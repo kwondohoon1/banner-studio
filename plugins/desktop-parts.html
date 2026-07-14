@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>데스크탑 부품 배너</title>
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top b{font-size:14px}.top span{font-size:9px;color:var(--muted);letter-spacing:.6px;display:block}
+main{padding:16px;max-width:520px}
+.step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.title-input,input[type=text],input[type=date],input[type=time]{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;outline:none}
+.title-input:focus,input:focus{border-color:#6f7268;box-shadow:0 0 0 3px rgba(38,40,35,.07)}
+.part{display:flex;gap:10px;align-items:center;margin-top:8px}
+.pnum{width:18px;text-align:center;color:var(--muted);font-weight:800;flex:none}
+.pthumb{width:48px;height:48px;border:1px dashed #bfc1b8;border-radius:10px;background:#fbfbf8 center/contain no-repeat;display:grid;place-items:center;cursor:pointer;flex:none;color:#a9aba2;font-size:18px}
+.pthumb.has{border-style:solid;color:transparent}
+.pname{flex:1}
+.datetime{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
+.primary{width:100%;margin-top:16px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
+.hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px;line-height:1.45}.status.show{display:block}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:14px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">PC</div><div><b>데스크탑 부품 배너</b><span>SPEC SHEET · 8 PARTS</span></div></header>
+<main>
+  <div class="step"><b>사양 타이틀</b><span class="num">01 TITLE</span></div>
+  <input id="titleInput" class="title-input" maxlength="60" value="R7-7800X3D / RTX5060Ti / 32GB / 1TB">
+
+  <div class="step"><b>부품 8종 (이미지 + 이름)</b><span class="num">02 PARTS</span></div>
+  <div id="partList"></div>
+  <div class="hint">＋ 칸을 눌러 각 부품 이미지를 올리고, 이름을 수정하세요. 9번째 칸(보증/방문서비스)은 고정입니다.</div>
+
+  <div class="step"><b>최종 수정일</b><span class="num">03 DATE</span></div>
+  <div class="datetime"><input type="date" id="dateInput"><input type="time" id="timeInput"></div>
+
+  <button class="primary" id="saveBtn">SVG 다운로드</button>
+  <div id="status" class="status"></div>
+  <div class="preview-shell" id="preview"></div>
+</main>
+
+<script>
+"use strict";
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const xmlEsc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt = n => Math.round(n*10)/10;
+const pad2 = n => String(n).padStart(2,'0');
+const mctx = document.createElement('canvas').getContext('2d');
+
+const DEFAULT_NAMES = [
+  "AMD 라이젠7-5세대 7800X3D",
+  "3RSYS RC1400 Quiet 쌍철봉 블랙",
+  "PALIT 지포스 RTX 5060 Ti DUAL D7 8GB",
+  "ACER DDR5-4800 CL40 32GB(16Gx2)",
+  "ASRock B650M PG Lightning",
+  "KingBank KP270 M.2 NVMe 1TB",
+  "darkFlash DS500 RGB (블랙)",
+  "NZXT C650 80PLUS골드"
+];
+const state = {
+  title: $('#titleInput').value,
+  parts: DEFAULT_NAMES.map(name => ({ name, dataUrl:'', w:0, h:0 })),
+  date: '', time: ''
+};
+
+/* ---------- 텍스트 측정 유틸 ---------- */
+function fitText(t, maxW, start, min, weight){
+  let s = start;
+  while (s > min){ mctx.font = `${weight} ${s}px Pretendard, sans-serif`; if (mctx.measureText(t).width <= maxW) break; s -= 1; }
+  return Math.max(min, s);
+}
+function wrap2(t, maxW, base, weight){
+  t = (t||'').trim();
+  const fits = (str,s)=>{ mctx.font = `${weight} ${s}px Pretendard, sans-serif`; return mctx.measureText(str).width <= maxW; };
+  let size = base;
+  if (fits(t, size)) return { lines:[t], size };
+  const words = t.split(/\s+/);
+  if (words.length > 1){
+    let acc=0, idx=1; const total=t.length;
+    for (let k=0;k<words.length;k++){ acc += words[k].length+1; if (acc >= total/2){ idx=k+1; break; } }
+    idx = Math.max(1, Math.min(words.length-1, idx));
+    const l1 = words.slice(0,idx).join(' '), l2 = words.slice(idx).join(' ');
+    while (size > 10 && (!fits(l1,size) || !fits(l2,size))) size -= 1;
+    return { lines:[l1,l2], size };
+  }
+  while (size > 10 && !fits(t, size)) size -= 1;
+  return { lines:[t], size };
+}
+function containRect(iw, ih, bx, by, bw, bh){
+  const s = Math.min(bw/iw, bh/ih); const w = iw*s, h = ih*s;
+  return { x: bx + (bw-w)/2, y: by + (bh-h)/2, w, h };
+}
+
+/* ---------- SVG 조립 ---------- */
+function T(str, x, y, o){ o = o||{};
+  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="Pretendard, 'Noto Sans KR', sans-serif" `+
+    `font-size="${o.size||14}" font-weight="${o.weight||400}" fill="${o.fill||'#000'}" `+
+    `text-anchor="${o.anchor||'start'}" dominant-baseline="central">${xmlEsc(str)}</text>`;
+}
+function IMG(href, x, y, w, h){
+  return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+function buildSVG(){
+  const W=680, H=830, pad=22;
+  const body=[];
+  body.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`);
+  // 타이틀 바
+  const barX=pad, barY=22, barW=W-2*pad, barH=54;
+  body.push(`<rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="12" fill="#2d2d2d"/>`);
+  const tSize = fitText(state.title, barW-40, 25, 14, 800);
+  body.push(T(state.title, W/2, barY+barH/2, { size:tSize, weight:800, fill:'#ffffff', anchor:'middle' }));
+  // 3×3 그리드
+  const gridTop=96, gridBottom=H-58, rowGap=14, colGap=14, gridLeft=pad, gridW=W-2*pad;
+  const cellW=(gridW-2*colGap)/3, cellH=(gridBottom-gridTop-2*rowGap)/3;
+  for (let i=0;i<9;i++){
+    const col=i%3, row=(i/3)|0;
+    const x=gridLeft+col*(cellW+colGap), y=gridTop+row*(cellH+rowGap);
+    body.push(`<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(cellW)}" height="${fmt(cellH)}" rx="14" fill="#f5f5f5"/>`);
+    const ibx=x+16, iby=y+14, ibw=cellW-32, ibh=cellH*0.58;
+    if (i < 8){
+      const p = state.parts[i];
+      if (p.dataUrl && p.w && p.h){
+        const r = containRect(p.w, p.h, ibx, iby, ibw, ibh);
+        body.push(IMG(p.dataUrl, r.x, r.y, r.w, r.h));
+      } else {
+        body.push(`<rect x="${fmt(ibx)}" y="${fmt(iby)}" width="${fmt(ibw)}" height="${fmt(ibh)}" rx="8" fill="#ececec"/>`);
+      }
+      const wr = wrap2(p.name, cellW-24, 14, 600);
+      const startY = y + cellH*0.72 - (wr.lines.length-1)*wr.size*0.68;
+      wr.lines.forEach((ln, li) => body.push(T(ln, x+cellW/2, startY + li*wr.size*1.35, { size:wr.size, weight:600, fill:'#222222', anchor:'middle' })));
+    } else {
+      // 9번째: 보증/방문서비스 (고정) — 공구 아이콘
+      body.push(T('🛠️', x+cellW/2, y+cellH*0.36, { size:46, anchor:'middle', fill:'#333' }));
+      const svc = ['한성 슈컴 조립PC 1년 보증', '무상 출장 방문서비스'];
+      const sy = y + cellH*0.66;
+      svc.forEach((ln, li) => body.push(T(ln, x+cellW/2, sy + li*19, { size:13.5, weight:700, fill:'#222', anchor:'middle' })));
+    }
+  }
+  // 최종 수정일 (우하단)
+  body.push(T(`최종 수정일 : ${state.date} ${state.time}`.trim(), W-pad, H-24, { size:12, weight:500, fill:'#8a8a8a', anchor:'end' }));
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body.join('')}</svg>`;
+}
+function render(){ $('#preview').innerHTML = buildSVG(); }
+
+/* ---------- 컨트롤 UI ---------- */
+function buildParts(){
+  const list = $('#partList'); list.innerHTML = '';
+  state.parts.forEach((p, i) => {
+    const row = document.createElement('div'); row.className = 'part';
+    row.innerHTML =
+      `<span class="pnum">${i+1}</span>`+
+      `<label class="pthumb" title="이미지 업로드"><input type="file" accept="image/*" hidden data-idx="${i}"><span>＋</span></label>`+
+      `<input type="text" class="pname" data-idx="${i}" maxlength="40">`;
+    list.appendChild(row);
+    row.querySelector('.pname').value = p.name;
+  });
+  list.querySelectorAll('.pname').forEach(inp => inp.addEventListener('input', e => {
+    state.parts[+e.target.dataset.idx].name = e.target.value; render();
+  }));
+  list.querySelectorAll('input[type=file]').forEach(inp => inp.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const idx = +e.target.dataset.idx;
+    const r = new FileReader();
+    r.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const p = state.parts[idx];
+        p.dataUrl = r.result; p.w = im.naturalWidth; p.h = im.naturalHeight;
+        const thumb = e.target.closest('.pthumb');
+        thumb.classList.add('has'); thumb.style.backgroundImage = `url("${r.result}")`;
+        render();
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  }));
+}
+
+/* ---------- 저장/전송 (에디터 브리지) ---------- */
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+function outputSVG(filename, svg){
+  if (inFrame){ parent.postMessage({ pluginMessage:{ type:'save-svg', filename, svg } }, '*'); setStatus('에디터로 보냈습니다: '+filename); }
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); setStatus('SVG를 다운로드했습니다: '+filename); }
+}
+window.addEventListener('message', e => { const m=e.data&&e.data.pluginMessage; if (m && (m.type==='toast'||m.type==='error')) setStatus(m.message); });
+
+/* ---------- 부트 ---------- */
+$('#titleInput').addEventListener('input', e => { state.title = e.target.value; render(); });
+$('#dateInput').addEventListener('input', e => { state.date = e.target.value; render(); });
+$('#timeInput').addEventListener('input', e => { state.time = e.target.value; render(); });
+$('#saveBtn').textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
+$('#saveBtn').onclick = () => outputSVG('desktop-parts.svg', buildSVG());
+
+(function initDate(){
+  const now = new Date();
+  state.date = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+  state.time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+  $('#dateInput').value = state.date; $('#timeInput').value = state.time;
+})();
+buildParts();
+render();
+</script>
+</body>
+</html>

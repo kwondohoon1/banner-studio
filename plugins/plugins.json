@@ -1,5 +1,6 @@
 [
   { "id": "launch-sale",  "title": "출시배너",   "description": "출시/이벤트 배너 생성기",     "file": "plugins/launch-sale.html" },
   { "id": "reservation",  "title": "예약배너",   "description": "예약판매 공지 배너",         "file": "plugins/reservation.html" },
-  { "id": "hansung-mall", "title": "한성몰종합", "description": "한성몰 종합 배너 세트(10종)", "file": "plugins/hansung-mall.html" }
+  { "id": "hansung-mall", "title": "한성몰종합", "description": "한성몰 종합 배너 세트(10종)", "file": "plugins/hansung-mall.html" },
+  { "id": "desktop-parts", "title": "데스크탑부품", "description": "부품 8종 스펙시트 배너", "file": "plugins/desktop-parts.html" }
 ]
