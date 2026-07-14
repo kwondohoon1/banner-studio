@@ -314,5 +314,7 @@ document.getElementById('downloadBtn').onclick = () => {
 document.getElementById('downloadBtn').textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
 render();
 </script>
+<script src="image-drop.js"></script>
+<script>window.addEventListener('load',function(){if(!window.ImageDrop)return;var st=window.setStatus||null;ImageDrop.wire('imageFile',['#canvasHolder'],st);});</script>
 </body>
 </html>

@@ -875,5 +875,7 @@ renderSceneGrid();
 renderLinkList();
 renderAll();
 </script>
+<script src="image-drop.js"></script>
+<script>window.addEventListener('load',function(){if(!window.ImageDrop)return;var st=window.setStatus||null;ImageDrop.wire('productImage',['#tplGrid'],st);ImageDrop.wire('sceneImage',[],st);});</script>
 </body>
 </html>

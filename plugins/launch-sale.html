@@ -643,4 +643,6 @@ $$('.t1f').forEach(x=>x.addEventListener('input',()=>{clearTimeout(state._t1t);s
 $('#generate').onclick=v9Generate;$('#createFigma').onclick=exportSVG;
 t1RenderPickers();v9Show();
 </script>
+<script src="image-drop.js"></script>
+<script>window.addEventListener('load',function(){if(!window.ImageDrop)return;var st=window.setStatus||null;ImageDrop.wire('files',['#preview'],st);});</script>
 </body></html>

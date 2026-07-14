@@ -47,6 +47,7 @@ main{padding:16px;max-width:520px}
   <div class="preview-shell" id="preview"></div>
 </main>
 
+<script src="image-drop.js"></script>
 <script>
 "use strict";
 const inFrame = window.parent !== window;
@@ -167,34 +168,6 @@ function readFileToPart(file, idx){
   r.onload = () => { const im = new Image(); im.onload = () => setPartImage(idx, r.result, im.naturalWidth, im.naturalHeight); im.src = r.result; };
   r.readAsDataURL(file);
 }
-// 웹페이지에서 끌어온 이미지 URL → CORS 허용 시 data URI 임베드, 아니면 URL 참조(경고)
-function loadUrlToPart(url, idx){
-  setStatus('이미지를 가져오는 중…');
-  const a = new Image(); a.crossOrigin = 'anonymous';
-  a.onload = () => {
-    try {
-      const c = document.createElement('canvas'); c.width = a.naturalWidth; c.height = a.naturalHeight;
-      c.getContext('2d').drawImage(a, 0, 0);
-      setPartImage(idx, c.toDataURL('image/png'), a.naturalWidth, a.naturalHeight);
-      setStatus('이미지를 넣었습니다. (파일로 임베드됨)');
-    } catch (err) { refUrlPart(url, idx); }
-  };
-  a.onerror = () => refUrlPart(url, idx);
-  a.src = url;
-}
-function refUrlPart(url, idx){
-  const b = new Image();
-  b.onload = () => { setPartImage(idx, url, b.naturalWidth, b.naturalHeight);
-    setStatus('⚠ URL로 넣었어요. 이 사이트(예: 다나와)는 보안정책상 파일로 임베드되지 않아 저장·PNG에서 이미지가 비어 보일 수 있어요 — 확실히 하려면 이미지를 PC에 저장해 파일로 올려주세요.'); };
-  b.onerror = () => setStatus('이미지를 불러오지 못했어요. 이미지를 PC에 저장해 파일로 올려주세요.');
-  b.src = url;
-}
-function extractDropUrl(dt){
-  let url = (dt.getData('text/uri-list') || '').split(/\r?\n/).find(l => l && !l.startsWith('#'));
-  if (!url){ const html = dt.getData('text/html'); const m = html && html.match(/<img[^>]+src=["']([^"']+)["']/i); if (m) url = m[1]; }
-  if (!url){ const t = dt.getData('text/plain'); if (/^https?:\/\//.test(t)) url = t.trim(); }
-  return url || '';
-}
 function buildParts(){
   const list = $('#partList'); list.innerHTML = '';
   state.parts.forEach((p, i) => {
@@ -212,17 +185,10 @@ function buildParts(){
   list.querySelectorAll('input[type=file]').forEach(inp => inp.addEventListener('change', e => {
     if (e.target.files[0]) readFileToPart(e.target.files[0], +e.target.dataset.idx);
   }));
+  // 드래그&드롭(파일 또는 웹페이지 이미지=다나와 등): 공용 헬퍼가 File로 만들어 파일입력에 주입
   list.querySelectorAll('.part').forEach(row => {
-    const idx = +row.dataset.idx;
-    row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drop'); });
-    row.addEventListener('dragleave', e => { if (!row.contains(e.relatedTarget)) row.classList.remove('drop'); });
-    row.addEventListener('drop', e => {
-      e.preventDefault(); row.classList.remove('drop');
-      const dt = e.dataTransfer;
-      if (dt.files && dt.files.length) { readFileToPart(dt.files[0], idx); return; }
-      const url = extractDropUrl(dt);
-      if (url) loadUrlToPart(url, idx); else setStatus('이미지를 인식하지 못했어요. 파일로 올려주세요.');
-    });
+    const input = row.querySelector('input[type=file]');
+    if (window.ImageDrop) ImageDrop.attachToInput(row, input, setStatus);
   });
 }
 

@@ -34,6 +34,7 @@
    ```
 5. **디자인 시스템 준수**(일관성) — 아래 라이트 테마 토큰/틀을 사용:
    좁은 단일 컬럼, 스티키 상단 헤더, `.step` 폼 섹션, `.primary` 버튼, 스케일되는 `.preview-shell`.
+6. **이미지 첨부는 드래그&드롭 지원(필수)** — 파일뿐 아니라 **웹페이지(다나와 등)의 이미지를 드래그해서** 넣을 수 있어야 한다. 공용 헬퍼 `image-drop.js`(같은 `plugins/` 폴더)를 포함하고 각 `<input type=file>`에 연결한다. 외부 이미지는 CORS 차단 시 이미지 프록시(`images.weserv.nl`)로 우회해 **data URI로 임베드**한다. (6절 참조)
 
 > 계약의 유일한 필수 접점은 **`postMessage({pluginMessage:{type:'save-svg', filename, svg}})`** 입니다. 이 한 줄만 지키면 어떤 방식으로 만들어도 에디터에 붙습니다.
 
@@ -103,6 +104,25 @@ render();
 
 ---
 
+## 3.5 이미지 드래그&드롭 (다나와 등) — 필수
+
+같은 폴더의 `image-drop.js`를 포함하고, 각 파일 입력에 연결하면 파일·웹이미지 드롭이 모두 된다.
+
+```html
+<script src="image-drop.js"></script>
+<script>
+  window.addEventListener('load', function(){
+    // (fileInput id, 추가 드롭영역 셀렉터[], 상태콜백?) — 라벨/미리보기가 드롭영역이 됨
+    ImageDrop.wire('myFileInput', ['#preview'], window.setStatus);
+    // 또는 요소 직접 지정: ImageDrop.attachToInput(dropEl, fileInputEl, onStatus)
+  });
+</script>
+```
+
+- 드롭된 **파일**이나 **웹페이지 이미지 URL**을 `File`로 만들어 지정한 `<input type=file>`에 주입하고 `change`를 발생 → 플러그인의 **기존 파일 처리(배경 제거 등)를 그대로 재사용**한다.
+- 다나와처럼 **CORS로 막힌 이미지**는 `images.weserv.nl` 프록시로 우회해 확실히 임베드된다(다나와 썸네일 크롭 파라미터는 자동 제거해 원본 해상도로).
+- 레포 없이 만드는 단독 플러그인이면 `image-drop.js` 내용을 그대로 인라인해도 된다.
+
 ## 4. 에디터에 붙이는 법 (둘 중 하나)
 
 - **런타임 추가(레포 수정 불필요)**: 에디터 상단바 **`＋ 플러그인`** → 플러그인 HTML의 경로/URL 입력 → 즉시 탭 추가(브라우저에 저장됨). 개인적으로 쓰거나 시험할 때.
@@ -131,6 +151,9 @@ render();
 5) UI는 라이트 테마(--bg:#f5f5f1 --dark:#20221d --lime:#dfff43), 좁은 단일 컬럼,
    스티키 상단 헤더, .step 폼 섹션, .primary 버튼, 폭에 맞게 축소되는 .preview-shell.
 6) 입력이 바뀌면 미리보기 SVG를 다시 그린다. 가로 스크롤이 생기면 안 된다(svg width:100%).
+7) 이미지 첨부는 파일 업로드뿐 아니라 웹페이지(다나와 등) 이미지 드래그&드롭을 지원한다.
+   같은 폴더의 image-drop.js를 포함하고 window load 시 ImageDrop.wire('파일입력id', ['#미리보기'], setStatus)로 연결한다.
+   (외부 CORS 차단 이미지는 헬퍼가 images.weserv.nl 프록시로 우회해 임베드한다.)
 
 만들 배너: << 여기에 배너 종류/크기/문구/레이아웃/색을 설명 >>
 ```
