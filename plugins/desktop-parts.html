@@ -20,6 +20,7 @@ main{padding:16px;max-width:520px}
 .pthumb{width:48px;height:48px;border:1px dashed #bfc1b8;border-radius:10px;background:#fbfbf8 center/contain no-repeat;display:grid;place-items:center;cursor:pointer;flex:none;color:#a9aba2;font-size:18px}
 .pthumb.has{border-style:solid;color:transparent}
 .pname{flex:1}
+.part.drop{outline:2px dashed var(--dark);outline-offset:3px;border-radius:12px;background:#f0f1e6}
 .datetime{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
 .primary{width:100%;margin-top:16px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
 .hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
@@ -124,7 +125,7 @@ function buildSVG(){
     const col=i%3, row=(i/3)|0;
     const x=gridLeft+col*(cellW+colGap), y=gridTop+row*(cellH+rowGap);
     body.push(`<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(cellW)}" height="${fmt(cellH)}" rx="14" fill="#f5f5f5"/>`);
-    const ibx=x+16, iby=y+14, ibw=cellW-32, ibh=cellH*0.58;
+    const ibx=x+16, iby=y+14, ibw=cellW-32, ibh=cellH*0.55;
     if (i < 8){
       const p = state.parts[i];
       if (p.dataUrl && p.w && p.h){
@@ -133,9 +134,9 @@ function buildSVG(){
       } else {
         body.push(`<rect x="${fmt(ibx)}" y="${fmt(iby)}" width="${fmt(ibw)}" height="${fmt(ibh)}" rx="8" fill="#ececec"/>`);
       }
-      const wr = wrap2(p.name, cellW-24, 14, 600);
-      const startY = y + cellH*0.72 - (wr.lines.length-1)*wr.size*0.68;
-      wr.lines.forEach((ln, li) => body.push(T(ln, x+cellW/2, startY + li*wr.size*1.35, { size:wr.size, weight:600, fill:'#222222', anchor:'middle' })));
+      const wr = wrap2(p.name, cellW-18, 18, 700);
+      const startY = y + cellH*0.83 - (wr.lines.length-1)*wr.size*0.62;
+      wr.lines.forEach((ln, li) => body.push(T(ln, x+cellW/2, startY + li*wr.size*1.3, { size:wr.size, weight:700, fill:'#1b1b1b', anchor:'middle' })));
     } else {
       // 9번째: 보증/방문서비스 (고정) — 공구 아이콘
       body.push(T('🛠️', x+cellW/2, y+cellH*0.36, { size:46, anchor:'middle', fill:'#333' }));
@@ -151,13 +152,56 @@ function buildSVG(){
 function render(){ $('#preview').innerHTML = buildSVG(); }
 
 /* ---------- 컨트롤 UI ---------- */
+function applyThumb(idx, src){
+  const inp = document.querySelector(`input[type=file][data-idx="${idx}"]`);
+  const thumb = inp && inp.closest('.pthumb');
+  if (thumb){ thumb.classList.add('has'); thumb.style.backgroundImage = `url("${src}")`; }
+}
+function setPartImage(idx, dataUrl, w, h){
+  const p = state.parts[idx]; p.dataUrl = dataUrl; p.w = w; p.h = h;
+  applyThumb(idx, dataUrl); render();
+}
+function readFileToPart(file, idx){
+  if (!file || !/^image\//.test(file.type)) { setStatus('이미지 파일이 아니에요.'); return; }
+  const r = new FileReader();
+  r.onload = () => { const im = new Image(); im.onload = () => setPartImage(idx, r.result, im.naturalWidth, im.naturalHeight); im.src = r.result; };
+  r.readAsDataURL(file);
+}
+// 웹페이지에서 끌어온 이미지 URL → CORS 허용 시 data URI 임베드, 아니면 URL 참조(경고)
+function loadUrlToPart(url, idx){
+  setStatus('이미지를 가져오는 중…');
+  const a = new Image(); a.crossOrigin = 'anonymous';
+  a.onload = () => {
+    try {
+      const c = document.createElement('canvas'); c.width = a.naturalWidth; c.height = a.naturalHeight;
+      c.getContext('2d').drawImage(a, 0, 0);
+      setPartImage(idx, c.toDataURL('image/png'), a.naturalWidth, a.naturalHeight);
+      setStatus('이미지를 넣었습니다. (파일로 임베드됨)');
+    } catch (err) { refUrlPart(url, idx); }
+  };
+  a.onerror = () => refUrlPart(url, idx);
+  a.src = url;
+}
+function refUrlPart(url, idx){
+  const b = new Image();
+  b.onload = () => { setPartImage(idx, url, b.naturalWidth, b.naturalHeight);
+    setStatus('⚠ URL로 넣었어요. 이 사이트(예: 다나와)는 보안정책상 파일로 임베드되지 않아 저장·PNG에서 이미지가 비어 보일 수 있어요 — 확실히 하려면 이미지를 PC에 저장해 파일로 올려주세요.'); };
+  b.onerror = () => setStatus('이미지를 불러오지 못했어요. 이미지를 PC에 저장해 파일로 올려주세요.');
+  b.src = url;
+}
+function extractDropUrl(dt){
+  let url = (dt.getData('text/uri-list') || '').split(/\r?\n/).find(l => l && !l.startsWith('#'));
+  if (!url){ const html = dt.getData('text/html'); const m = html && html.match(/<img[^>]+src=["']([^"']+)["']/i); if (m) url = m[1]; }
+  if (!url){ const t = dt.getData('text/plain'); if (/^https?:\/\//.test(t)) url = t.trim(); }
+  return url || '';
+}
 function buildParts(){
   const list = $('#partList'); list.innerHTML = '';
   state.parts.forEach((p, i) => {
-    const row = document.createElement('div'); row.className = 'part';
+    const row = document.createElement('div'); row.className = 'part'; row.dataset.idx = i;
     row.innerHTML =
       `<span class="pnum">${i+1}</span>`+
-      `<label class="pthumb" title="이미지 업로드"><input type="file" accept="image/*" hidden data-idx="${i}"><span>＋</span></label>`+
+      `<label class="pthumb" title="클릭 업로드 · 이미지를 드래그해서 넣기"><input type="file" accept="image/*" hidden data-idx="${i}"><span>＋</span></label>`+
       `<input type="text" class="pname" data-idx="${i}" maxlength="40">`;
     list.appendChild(row);
     row.querySelector('.pname').value = p.name;
@@ -166,22 +210,20 @@ function buildParts(){
     state.parts[+e.target.dataset.idx].name = e.target.value; render();
   }));
   list.querySelectorAll('input[type=file]').forEach(inp => inp.addEventListener('change', e => {
-    const file = e.target.files[0]; if (!file) return;
-    const idx = +e.target.dataset.idx;
-    const r = new FileReader();
-    r.onload = () => {
-      const im = new Image();
-      im.onload = () => {
-        const p = state.parts[idx];
-        p.dataUrl = r.result; p.w = im.naturalWidth; p.h = im.naturalHeight;
-        const thumb = e.target.closest('.pthumb');
-        thumb.classList.add('has'); thumb.style.backgroundImage = `url("${r.result}")`;
-        render();
-      };
-      im.src = r.result;
-    };
-    r.readAsDataURL(file);
+    if (e.target.files[0]) readFileToPart(e.target.files[0], +e.target.dataset.idx);
   }));
+  list.querySelectorAll('.part').forEach(row => {
+    const idx = +row.dataset.idx;
+    row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drop'); });
+    row.addEventListener('dragleave', e => { if (!row.contains(e.relatedTarget)) row.classList.remove('drop'); });
+    row.addEventListener('drop', e => {
+      e.preventDefault(); row.classList.remove('drop');
+      const dt = e.dataTransfer;
+      if (dt.files && dt.files.length) { readFileToPart(dt.files[0], idx); return; }
+      const url = extractDropUrl(dt);
+      if (url) loadUrlToPart(url, idx); else setStatus('이미지를 인식하지 못했어요. 파일로 올려주세요.');
+    });
+  });
 }
 
 /* ---------- 저장/전송 (에디터 브리지) ---------- */
