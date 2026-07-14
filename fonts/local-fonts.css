@@ -1,0 +1,26 @@
+/* 로컬 한글 웹폰트 (글꼴.zip → woff2 변환) + SDGdGothic00 */
+@font-face{font-family:'SDGdGothic00';font-display:swap;src:url('SDGdGothic00.woff2') format('woff2'),url('SDGdGothic00.woff') format('woff')}
+@font-face{font-family:'Gmarket Sans';font-style:normal;font-weight:300;font-display:swap;src:url('GmarketSansLight.woff2') format('woff2')}
+@font-face{font-family:'Gmarket Sans';font-style:normal;font-weight:500;font-display:swap;src:url('GmarketSansMedium.woff2') format('woff2')}
+@font-face{font-family:'Gmarket Sans';font-style:normal;font-weight:700;font-display:swap;src:url('GmarketSansBold.woff2') format('woff2')}
+@font-face{font-family:'S-Core Dream';font-style:normal;font-weight:400;font-display:swap;src:url('SCDream4.woff2') format('woff2')}
+@font-face{font-family:'S-Core Dream';font-style:normal;font-weight:600;font-display:swap;src:url('SCDream6.woff2') format('woff2')}
+@font-face{font-family:'S-Core Dream';font-style:normal;font-weight:800;font-display:swap;src:url('SCDream8.woff2') format('woff2')}
+@font-face{font-family:'NanumSquareNeo';font-style:normal;font-weight:400;font-display:swap;src:url('NanumSquareNeo-Rg.woff2') format('woff2')}
+@font-face{font-family:'NanumSquareNeo';font-style:normal;font-weight:700;font-display:swap;src:url('NanumSquareNeo-Bd.woff2') format('woff2')}
+@font-face{font-family:'NanumSquareNeo';font-style:normal;font-weight:800;font-display:swap;src:url('NanumSquareNeo-Eb.woff2') format('woff2')}
+@font-face{font-family:'NanumSquare';font-style:normal;font-weight:400;font-display:swap;src:url('NanumSquareR.woff2') format('woff2')}
+@font-face{font-family:'NanumSquare';font-style:normal;font-weight:700;font-display:swap;src:url('NanumSquareB.woff2') format('woff2')}
+@font-face{font-family:'NanumSquare';font-style:normal;font-weight:800;font-display:swap;src:url('NanumSquareEB.woff2') format('woff2')}
+@font-face{font-family:'NanumSquareRound';font-style:normal;font-weight:400;font-display:swap;src:url('NanumSquareRoundR.woff2') format('woff2')}
+@font-face{font-family:'NanumSquareRound';font-style:normal;font-weight:700;font-display:swap;src:url('NanumSquareRoundB.woff2') format('woff2')}
+@font-face{font-family:'NanumBarunGothic';font-style:normal;font-weight:400;font-display:swap;src:url('NanumBarunGothic.woff2') format('woff2')}
+@font-face{font-family:'NanumBarunGothic';font-style:normal;font-weight:700;font-display:swap;src:url('NanumBarunGothicBold.woff2') format('woff2')}
+@font-face{font-family:'NanumBarunpen';font-style:normal;font-weight:400;font-display:swap;src:url('NanumBarunpenR.woff2') format('woff2')}
+@font-face{font-family:'NanumBarunpen';font-style:normal;font-weight:700;font-display:swap;src:url('NanumBarunpenB.woff2') format('woff2')}
+@font-face{font-family:'Nanum Brush';font-style:normal;font-weight:400;font-display:swap;src:url('NanumBrush.woff2') format('woff2')}
+@font-face{font-family:'NanumGothicEco';font-style:normal;font-weight:400;font-display:swap;src:url('NanumGothicEco.woff2') format('woff2')}
+@font-face{font-family:'NanumGothicEco';font-style:normal;font-weight:700;font-display:swap;src:url('NanumGothicEcoBold.woff2') format('woff2')}
+@font-face{font-family:'NanumMyeongjoEco';font-style:normal;font-weight:400;font-display:swap;src:url('NanumMyeongjoEco.woff2') format('woff2')}
+@font-face{font-family:'NanumMyeongjoEco';font-style:normal;font-weight:700;font-display:swap;src:url('NanumMyeongjoEcoBold.woff2') format('woff2')}
+@font-face{font-family:'D2Coding';font-style:normal;font-weight:400;font-display:swap;src:url('D2Coding.woff2') format('woff2')}

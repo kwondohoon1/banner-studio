@@ -874,6 +874,8 @@ buildGrid();
 renderSceneGrid();
 renderLinkList();
 renderAll();
+// 기본 배경: 스튜디오 이미지(assets/studio-bg.jpg)를 sceneImg 기본값으로 사용
+(function(){ const img=new Image(); img.onload=function(){ shared.sceneImg=img; if(typeof renderSceneGrid==='function') renderSceneGrid(); renderAll(); }; img.src='assets/studio-bg.jpg'; })();
 </script>
 <script src="image-drop.js"></script>
 <script>window.addEventListener('load',function(){if(!window.ImageDrop)return;var st=window.setStatus||null;ImageDrop.wire('productImage',['#tplGrid'],st);ImageDrop.wire('sceneImage',[],st);});</script>
