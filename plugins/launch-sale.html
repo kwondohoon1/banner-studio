@@ -279,7 +279,7 @@ function v8Hero(doc,dna,P,T,S){
  const bg=img?`background:linear-gradient(180deg,rgba(${scr},.60),rgba(${scr},.16) 45%,rgba(${scr},.62)),url(${img}) center/cover`:B.css;
  const ink=img?'#fff':(B.ink||P.heroInk||P.ink),mut=img?'#dfe7f5':(B.mut||P.heroMut||P.muted);
  const t=esc(doc.title||''),ts=t.length>24?Math.round(T.hero*.64):t.length>14?Math.round(T.hero*.8):T.hero;
- const mM=dna.modelMul||1;const model=`<span style="display:inline-block;background:${P.accent};color:#fff;font-weight:900;font-size:${Math.round((T.card+4)*mM)}px;padding:12px 26px;border-radius:999px;letter-spacing:.01em">${esc(doc.model||'PRODUCT')}</span>`;
+ const mM=dna.modelMul||1;const model=`<span style="display:inline-block;background:${P.accent};color:#fff;font-weight:900;font-size:${Math.round((T.card+12)*mM)}px;padding:13px 30px;border-radius:999px;letter-spacing:.01em">${esc(doc.model||'PRODUCT')}</span>`;
  const oline=dna.titleStyle==='outline'?`color:#fff;-webkit-text-stroke:3px ${P.accent};text-shadow:4px 4px 0 rgba(0,0,0,.14);letter-spacing:.01em;`:'';
  const title=al=>`<h1 style="font-size:${ts}px;font-weight:900;line-height:1.06;letter-spacing:-.04em;color:${ink};margin:0;text-align:${al};${oline}">${t}</h1>`;
  const chipsOn=dna.heroStyle==='chips'&&doc.summary;
@@ -296,7 +296,7 @@ function v8Hero(doc,dna,P,T,S){
  if(dna.heroLayout==='split')return`<section style="position:relative;${bg};padding:${S.pad}px;overflow:hidden">${deco}<div style="display:flex;gap:${S.gap*2}px;align-items:center;position:relative"><div style="flex:1.05;display:flex;flex-direction:column;gap:18px;align-items:flex-start">${model}${title('left')}${spec}${dt}</div><div style="flex:.95">${prod('100%',300)}</div></div></section>`;
  if(dna.heroLayout==='fullbleed')return`<section style="position:relative;${bg};padding:${S.pad}px;min-height:540px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden">${deco}<div style="position:absolute;right:${S.pad}px;bottom:${S.pad}px;width:37%;height:290px;display:flex;align-items:flex-end">${v8Product(P,dna)}</div><div style="position:relative;max-width:57%;display:flex;flex-direction:column;gap:16px;align-items:flex-start">${model}${title('left')}${spec}${dt}</div></section>`;
  if(dna.heroLayout==='product')return`<section style="position:relative;${bg};padding:${S.pad}px;display:flex;flex-direction:column;gap:18px;align-items:center;overflow:hidden">${deco}${prod('66%',320)}${model}${title('center')}${spec?`<div style="display:flex;justify-content:center">${spec}</div>`:''}${dt}</section>`;
- return`<section style="position:relative;${bg};padding:${S.pad}px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;overflow:hidden">${deco}<div style="align-self:flex-end">${model}</div>${title('center')}${prod('62%',290)}${spec}${dt}</section>`}
+ return`<section style="position:relative;${bg};padding:${S.pad}px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;overflow:hidden">${deco}<div style="align-self:center">${model}</div>${title('center')}${prod('62%',290)}${spec}${dt}</section>`}
 function v8Offer(sec,dna,P,T,S){
  const card=v8Card(dna,P,S),o=edNum(sec.originalPrice),v=edNum(sec.salePrice),diff=o&&v&&o>v?o-v:0;
  const dtxt=diff?(diff>=10000&&diff%10000===0?diff/10000+'만원':diff.toLocaleString()+'원'):'';

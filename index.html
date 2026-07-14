@@ -84,6 +84,9 @@
   .handle.ne{right:-6px;top:-6px;cursor:nesw-resize}
   .handle.sw{left:-6px;bottom:-6px;cursor:nesw-resize}
   .handle.se{right:-6px;bottom:-6px;cursor:nwse-resize}
+  .guide{position:absolute;z-index:7;pointer-events:none;background:#ff2d78;box-shadow:0 0 0 .5px rgba(255,45,120,.35)}
+  .guide.x{top:0;bottom:0;width:1px}
+  .guide.y{left:0;right:0;height:1px}
   .inlineEdit{position:absolute;z-index:9;pointer-events:auto;margin:0;padding:0;border:0;
     outline:1.5px solid var(--accent);outline-offset:1px;border-radius:2px;
     background:rgba(255,255,255,.72);box-shadow:0 2px 10px rgba(25,27,22,.18)}
@@ -656,22 +659,81 @@ function startMoveSelected(e, targetEl, collapseIfNoMove) {
   const selected = state.sels.includes(targetEl) ? state.sels.slice() : [targetEl];
   const start = clientToUser(e.clientX, e.clientY);
   const geos = selected.map(el => ({ el, geo: readGeo(el) }));
+  const bb0 = selected.length === 1 ? safeBBox(selected[0]) : null;
   let moved = false;
   function mv(ev) {
     const p = clientToUser(ev.clientX, ev.clientY);
-    const dx = p.x - start.x, dy = p.y - start.y;
+    let dx = p.x - start.x, dy = p.y - start.y;
     if (Math.abs(dx) + Math.abs(dy) > 0.5) moved = true;
+    let guides = [];
+    if (bb0 && !ev.altKey) { const s = computeSnap(bb0, selected[0], dx, dy); dx = s.dx; dy = s.dy; guides = s.guides; }
     geos.forEach(item => writeGeo(item.el, item.geo, dx, dy));
     updateOverlay();
+    drawGuides(guides);
   }
   function up() {
     document.removeEventListener("mousemove", mv);
     document.removeEventListener("mouseup", up);
+    clearGuides();
     if (moved) { pushSnapshot(); renderProps(); }
     else if (collapseIfNoMove && selected.length > 1) { select(targetEl); }
   }
   document.addEventListener("mousemove", mv);
   document.addEventListener("mouseup", up);
+}
+
+/* ===== 스냅(자석) + 가이드 선 ===== */
+function computeSnap(bb0, el, dx, dy) {
+  const z = state.zoom || 1, SNAP = 7 / z;
+  const mx = [bb0.x, bb0.x + bb0.width / 2, bb0.x + bb0.width];
+  const my = [bb0.y, bb0.y + bb0.height / 2, bb0.y + bb0.height];
+  const tx = [0, state.vbW / 2, state.vbW], ty = [0, state.vbH / 2, state.vbH];
+  state.els.forEach(o => {
+    if (o === el || o.style.display === "none") return;
+    const b = safeBBox(o);
+    tx.push(b.x, b.x + b.width / 2, b.x + b.width);
+    ty.push(b.y, b.y + b.height / 2, b.y + b.height);
+  });
+  let bx = null, by = null;
+  for (const m of mx) for (const t of tx) { const d = t - (m + dx); if (Math.abs(d) < SNAP && (!bx || Math.abs(d) < Math.abs(bx.d))) bx = { d, t }; }
+  for (const m of my) for (const t of ty) { const d = t - (m + dy); if (Math.abs(d) < SNAP && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, t }; }
+  const guides = [];
+  if (bx) { dx += bx.d; guides.push({ axis: "x", pos: bx.t }); }
+  if (by) { dy += by.d; guides.push({ axis: "y", pos: by.t }); }
+  return { dx, dy, guides };
+}
+function userToScreen(ux, uy) {
+  const m = state.svg.getScreenCTM(); const pt = state.svg.createSVGPoint(); pt.x = ux; pt.y = uy;
+  const s = pt.matrixTransform(m); const o = $("overlay").getBoundingClientRect();
+  return { x: s.x - o.left, y: s.y - o.top };
+}
+function drawGuides(guides) {
+  const ov = $("overlay");
+  ov.querySelectorAll(".guide").forEach(g => g.remove());
+  (guides || []).forEach(g => {
+    const line = document.createElement("div"); line.className = "guide " + g.axis;
+    if (g.axis === "x") line.style.left = userToScreen(g.pos, 0).x + "px";
+    else line.style.top = userToScreen(0, g.pos).y + "px";
+    ov.appendChild(line);
+  });
+}
+function clearGuides() { $("overlay").querySelectorAll(".guide").forEach(g => g.remove()); }
+
+/* 캔버스 기준 정렬 */
+function alignEl(el, how) {
+  const bb = safeBBox(el); let dx = 0, dy = 0;
+  if (how === "left") dx = 0 - bb.x;
+  else if (how === "cx") dx = state.vbW / 2 - (bb.x + bb.width / 2);
+  else if (how === "right") dx = state.vbW - (bb.x + bb.width);
+  else if (how === "top") dy = 0 - bb.y;
+  else if (how === "cy") dy = state.vbH / 2 - (bb.y + bb.height / 2);
+  else if (how === "bottom") dy = state.vbH - (bb.y + bb.height);
+  writeGeo(el, readGeo(el), dx, dy);
+}
+function alignSelection(how) {
+  if (!state.sels.length) return;
+  state.sels.forEach(el => alignEl(el, how));
+  updateOverlay(); renderProps(); pushSnapshot();
 }
 
 function startMarquee(e) {
@@ -823,11 +885,16 @@ function renderProps() {
   const el = state.sel;
   if (!el) { box.innerHTML = `<div class="none">편집할 요소를 캔버스나 레이어 목록에서 선택하세요.</div>`; return; }
   if (state.sels.length > 1) {
-    box.innerHTML = `<div class="grp">다중 선택</div>
-      <div class="none">${state.sels.length}개 요소가 선택되었습니다.<br>선택된 요소를 드래그하거나 방향키로 함께 이동할 수 있습니다.</div>
+    box.innerHTML = `<div class="grp">다중 선택 (${state.sels.length}개)</div>
+      <label>정렬 (각 요소를 캔버스 기준)</label>
+      <div class="segbtns" data-align>
+        <button data-al="left">좌</button><button data-al="cx">가로중앙</button><button data-al="right">우</button>
+        <button data-al="top">상</button><button data-al="cy">세로중앙</button><button data-al="bottom">하</button>
+      </div>
       <button class="delBtn" data-del-many>선택 요소 삭제 (Delete)</button>
-      <div class="hint">빈 캔버스 영역을 드래그하면 여러 요소를 선택합니다. <kbd>Shift</kbd> 또는 <kbd>Ctrl</kbd> 클릭으로 선택을 추가/해제할 수 있습니다.</div>`;
+      <div class="hint">드래그·방향키로 함께 이동. <kbd>Shift</kbd>/<kbd>Ctrl</kbd> 클릭으로 추가/해제.</div>`;
     box.querySelector("[data-del-many]").onclick = deleteSelection;
+    box.querySelectorAll("[data-align] button").forEach(b => b.onclick = () => alignSelection(b.getAttribute("data-al")));
     return;
   }
   const t = el.tagName;
@@ -884,8 +951,13 @@ function renderProps() {
       <div class="cell"><label>X</label><input type="number" data-pos="x" value="${round(bb.x)}"></div>
       <div class="cell"><label>Y</label><input type="number" data-pos="y" value="${round(bb.y)}"></div>
     </div>
+    <label>정렬 (캔버스 기준)</label>
+    <div class="segbtns" data-align>
+      <button data-al="left">좌</button><button data-al="cx">가로중앙</button><button data-al="right">우</button>
+      <button data-al="top">상</button><button data-al="cy">세로중앙</button><button data-al="bottom">하</button>
+    </div>
     <button class="delBtn" data-del>🗑 요소 삭제 (Delete)</button>
-    <div class="hint">드래그로 이동 · 모서리 핸들로 크기 · <b>텍스트 더블클릭</b>으로 즉석 편집 · <kbd>방향키</kbd> 미세이동 · <kbd>Del</kbd> 삭제 · <kbd>Ctrl+Z</kbd> 되돌리기</div>`;
+    <div class="hint">드래그로 이동(가운데·요소에 <b>자석 스냅</b>, <kbd>Alt</kbd>로 해제) · 모서리 핸들로 크기 · <b>텍스트 더블클릭</b> 편집 · <kbd>방향키</kbd> 미세이동 · <kbd>Del</kbd> 삭제 · <kbd>Ctrl+Z</kbd> 되돌리기</div>`;
 
   box.innerHTML = html;
   bindProps(box, el);
@@ -908,6 +980,9 @@ function bindProps(box, el) {
     seg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
     b.classList.add("on"); updateOverlay(); pushSnapshot();
   });
+  // 정렬(캔버스 기준)
+  const alignRow = box.querySelector("[data-align]");
+  if (alignRow) alignRow.querySelectorAll("button").forEach(b => b.onclick = () => alignSelection(b.getAttribute("data-al")));
   // 위치 X/Y (bbox 목표값으로 이동)
   box.querySelectorAll("[data-pos]").forEach(inp => inp.addEventListener("change", () => {
     const axis = inp.getAttribute("data-pos");
