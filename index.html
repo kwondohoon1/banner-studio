@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <title>배너 SVG 에디터</title>
-<!-- Pretendard / Noto Sans KR (내부망/온라인 시 정확한 폰트, 없으면 시스템 폰트로 대체) -->
+<!-- 대표 한글 웹폰트 (Pretendard + Google Fonts + 사용자 추가 SDGdGothic00) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gaegu&family=Gothic+A1:wght@400;500;700;900&family=Jua&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700;900&family=Song+Myung&display=swap" />
+<style>@font-face{font-family:'SDGdGothic00';src:url('fonts/SDGdGothic00.woff2') format('woff2'),url('fonts/SDGdGothic00.woff') format('woff');font-display:swap}</style>
 <style>
   :root{
     --bg:#f5f5f1; --ink:#171814; --panel:#fff; --panel2:#fbfbf8; --surface:#eef0e8; --line:#dedfd8;
@@ -220,8 +222,9 @@ const state = {
 };
 
 const FONTS = [
-  "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic",
-  "Nanum Gothic", "Nanum Myeongjo", "Arial", "Georgia", "Times New Roman", "sans-serif", "serif"
+  "Pretendard", "Noto Sans KR", "Noto Serif KR", "Nanum Gothic", "Nanum Myeongjo",
+  "Gothic A1", "Black Han Sans", "Do Hyeon", "Jua", "Nanum Pen Script", "Gaegu", "Song Myung",
+  "SDGdGothic00", "Apple SD Gothic Neo", "Malgun Gothic", "Arial", "Georgia", "sans-serif", "serif"
 ];
 const SELECTABLE = ["text", "rect", "image", "ellipse", "circle", "path", "line", "polygon"];
 let builtinPlugins = [
@@ -930,7 +933,11 @@ function applyProp(el, prop, inp, box) {
     // color/text 두 입력 동기화
     box.querySelectorAll("[data-p=fill]").forEach(o => { if (o !== inp) o.value = val; });
   }
-  else if (prop === "font-family") el.setAttribute("font-family", val + ", sans-serif");
+  else if (prop === "font-family") {
+    el.setAttribute("font-family", val + ", sans-serif");
+    // 선택 즉시 웹폰트 로드(지연 로드 방지 → 화면·PNG 반영 보장)
+    if (document.fonts && document.fonts.load) document.fonts.load('40px "' + val + '"', el.textContent || 'Ag가나').then(() => updateOverlay()).catch(() => {});
+  }
   else if (val === "" || val == null) el.removeAttribute(prop);
   else el.setAttribute(prop, val);
 

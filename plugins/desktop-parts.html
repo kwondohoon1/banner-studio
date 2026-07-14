@@ -21,6 +21,8 @@ main{padding:16px;max-width:520px}
 .pthumb.has{border-style:solid;color:transparent}
 .pname{flex:1}
 .part.drop{outline:2px dashed var(--dark);outline-offset:3px;border-radius:12px;background:#f0f1e6}
+.bgrm{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;color:var(--ink);font-weight:600}
+.bgrm input{width:16px;height:16px}
 .datetime{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
 .primary{width:100%;margin-top:16px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
 .hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
@@ -37,7 +39,8 @@ main{padding:16px;max-width:520px}
 
   <div class="step"><b>부품 8종 (이미지 + 이름)</b><span class="num">02 PARTS</span></div>
   <div id="partList"></div>
-  <div class="hint">＋ 칸을 눌러 각 부품 이미지를 올리고, 이름을 수정하세요. 9번째 칸(보증/방문서비스)은 고정입니다.</div>
+  <label class="bgrm"><input type="checkbox" id="removeWhite" checked> 흰 배경 자동 제거 (밝은 단색 배경)</label>
+  <div class="hint">＋ 칸을 눌러 각 부품 이미지를 올리거나, 다나와 등에서 이미지를 드래그해 넣으세요. 9번째 칸(보증/방문서비스)은 고정입니다.</div>
 
   <div class="step"><b>최종 수정일</b><span class="num">03 DATE</span></div>
   <div class="datetime"><input type="date" id="dateInput"><input type="time" id="timeInput"></div>
@@ -69,9 +72,37 @@ const DEFAULT_NAMES = [
 ];
 const state = {
   title: $('#titleInput').value,
-  parts: DEFAULT_NAMES.map(name => ({ name, dataUrl:'', w:0, h:0 })),
-  date: '', time: ''
+  parts: DEFAULT_NAMES.map(name => ({ name, dataUrl:'', orig:'', w:0, h:0 })),
+  date: '', time: '', bgRemove: true
 };
+
+/* ---------- 흰 배경 자동 제거 (테두리부터 flood fill) ---------- */
+function colorDistance(a,b){ const dr=a[0]-b[0],dg=a[1]-b[1],db=a[2]-b[2]; return Math.sqrt(dr*dr+dg*dg+db*db); }
+function estimateEdgeColor(data,w,h){
+  let r=0,g=0,b=0,c=0; const sx=Math.max(1,Math.floor(w/80)), sy=Math.max(1,Math.floor(h/80));
+  const s=(x,y)=>{ const i=(y*w+x)*4; r+=data[i]; g+=data[i+1]; b+=data[i+2]; c++; };
+  for(let x=0;x<w;x+=sx){ s(x,0); s(x,h-1); } for(let y=0;y<h;y+=sy){ s(0,y); s(w-1,y); }
+  return [r/c,g/c,b/c];
+}
+function removeWhiteBackground(img){
+  const maxSide=1600, scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+  const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const cx=c.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0,w,h);
+  const im=cx.getImageData(0,0,w,h), d=im.data, bg=estimateEdgeColor(d,w,h);
+  const threshold=Math.max(34,Math.min(96,colorDistance(bg,[255,255,255])+42));
+  const visited=new Uint8Array(w*h), qx=[], qy=[];
+  const push=(x,y)=>{ const idx=y*w+x; if(!visited[idx]){ visited[idx]=1; qx.push(x); qy.push(y); } };
+  for(let x=0;x<w;x++){ push(x,0); push(x,h-1); } for(let y=0;y<h;y++){ push(0,y); push(w-1,y); }
+  let head=0;
+  while(head<qx.length){
+    const x=qx[head], y=qy[head++], i=(y*w+x)*4, col=[d[i],d[i+1],d[i+2]];
+    const nearBg=colorDistance(col,bg)<threshold || (d[i]>238&&d[i+1]>238&&d[i+2]>238);
+    if(!nearBg) continue; d[i+3]=0;
+    if(x>0)push(x-1,y); if(x<w-1)push(x+1,y); if(y>0)push(x,y-1); if(y<h-1)push(x,y+1);
+  }
+  cx.putImageData(im,0,0); return c;
+}
 
 /* ---------- 텍스트 측정 유틸 ---------- */
 function fitText(t, maxW, start, min, weight){
@@ -165,8 +196,21 @@ function setPartImage(idx, dataUrl, w, h){
 function readFileToPart(file, idx){
   if (!file || !/^image\//.test(file.type)) { setStatus('이미지 파일이 아니에요.'); return; }
   const r = new FileReader();
-  r.onload = () => { const im = new Image(); im.onload = () => setPartImage(idx, r.result, im.naturalWidth, im.naturalHeight); im.src = r.result; };
+  r.onload = () => { state.parts[idx].orig = r.result; processPart(idx); };
   r.readAsDataURL(file);
+}
+// 원본(orig)에 배경제거 여부를 적용해 부품 이미지 확정
+function processPart(idx){
+  const p = state.parts[idx]; if (!p.orig) return;
+  const im = new Image();
+  im.onload = () => {
+    if (state.bgRemove){
+      try { const cv = removeWhiteBackground(im); setPartImage(idx, cv.toDataURL('image/png'), cv.width, cv.height); return; }
+      catch (e) { /* 실패 시 원본 사용 */ }
+    }
+    setPartImage(idx, p.orig, im.naturalWidth, im.naturalHeight);
+  };
+  im.src = p.orig;
 }
 function buildParts(){
   const list = $('#partList'); list.innerHTML = '';
@@ -201,6 +245,11 @@ function outputSVG(filename, svg){
 window.addEventListener('message', e => { const m=e.data&&e.data.pluginMessage; if (m && (m.type==='toast'||m.type==='error')) setStatus(m.message); });
 
 /* ---------- 부트 ---------- */
+$('#removeWhite').addEventListener('change', e => {
+  state.bgRemove = e.target.checked;
+  state.parts.forEach((p, i) => { if (p.orig) processPart(i); });
+  setStatus(state.bgRemove ? '흰 배경 제거를 적용했어요.' : '원본 이미지를 사용해요.');
+});
 $('#titleInput').addEventListener('input', e => { state.title = e.target.value; render(); });
 $('#dateInput').addEventListener('input', e => { state.date = e.target.value; render(); });
 $('#timeInput').addEventListener('input', e => { state.time = e.target.value; render(); });
