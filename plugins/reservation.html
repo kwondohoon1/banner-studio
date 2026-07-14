@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>예약판매 공지 배너</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Inter,'Apple SD Gothic Neo','Malgun Gothic',Arial,sans-serif;letter-spacing:-.2px}
+  .app{max-width:460px;margin:0 auto;padding-bottom:28px}
+  .top{height:58px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950;font-size:11px}
+  .brand b{display:block;font-size:14px}.brand span{font-size:9px;color:var(--muted);letter-spacing:.8px}
+  main{padding:16px}
+  .intro{margin:2px 0 4px}.intro p{color:var(--muted);line-height:1.5;margin:0}
+  .step{margin:17px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+  .num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+  label{display:block;font-size:9px;color:var(--muted);font-weight:700;margin:9px 0 5px;letter-spacing:.2px}
+  .title-input,textarea.brief{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:10px 12px;font:12px/1.5 inherit;color:var(--ink);outline:none}
+  textarea.brief{resize:vertical;box-shadow:inset 0 1px 0 #fff}
+  .title-input:focus,textarea.brief:focus{border-color:#6f7268;box-shadow:0 0 0 3px rgba(38,40,35,.07)}
+  input[type=file]{width:100%;font-size:11px;color:var(--muted);margin-top:2px}
+  input[type=color]{width:38px;height:32px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:2px;cursor:pointer;flex:none}
+  .colorRow{display:flex;align-items:center;gap:9px;margin-top:7px}
+  .colorRow span{font-size:11px;color:var(--ink);font-weight:600}
+  .hint{font-size:9px;color:var(--muted);margin-top:5px;line-height:1.55}
+  .primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;font-size:13px;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
+  .primary:hover{filter:brightness(1.08)}
+  .status{display:none;margin:12px 0 0;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:10px;line-height:1.45}
+  .preview-shell{background:#d9dbd4;border-radius:14px;padding:8px}
+  .viewport{max-height:520px;overflow:auto;border-radius:8px;background:#fff}
+  #canvasHolder{display:block;background:repeating-conic-gradient(#e4e6dc 0% 25%,#f1f2ec 0% 50%) 50%/16px 16px}
+  #canvasHolder svg{width:100%;height:auto;max-width:100%;display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">예약</div>
+      <div><b>예약판매 배너</b><span>RESERVATION NOTICE</span></div>
+    </div>
+  </header>
+  <main>
+    <div class="intro"><p>모델명만 바꾸면 안내 문구에 자동 반영됩니다.<br>제품 이미지는 URL 또는 파일 업로드로 넣으세요.</p></div>
+
+    <div class="step"><b>제품</b><span class="num">01 PRODUCT</span></div>
+    <label>모델명</label>
+    <input class="title-input" id="model" type="text" maxlength="30" value="TFG24F24T" />
+    <label>제품 이미지 URL (자사몰 CDN 등)</label>
+    <input class="title-input" id="imageUrl" type="text" placeholder="https://static.superstore.co.kr/img/itemimg/big/....jpg" />
+    <p class="hint">외부 URL은 브라우저가 직접 불러옵니다. CORS 정책상 SVG에 이미지를 임베드하지 못하면 원본 URL을 참조로 넣어요 — 확실하게 임베드하려면 아래 파일 업로드를 쓰세요.</p>
+    <label>또는 파일 업로드</label>
+    <input id="imageFile" type="file" accept="image/*" />
+
+    <div class="step"><b>문구</b><span class="num">02 CONTENT</span></div>
+    <label>상단 헤더</label>
+    <input class="title-input" id="headerText" type="text" maxlength="20" value="구매전 꼭 읽어주세요!" />
+    <label>큰 타이틀</label>
+    <input class="title-input" id="bigTitle" type="text" maxlength="6" value="완판!" />
+    <label>안내 문구 ({모델명}이 자동 치환됩니다, 줄바꿈으로 구분)</label>
+    <textarea class="brief" id="bodyText" rows="3" style="height:82px">고객님의 사랑에 힘입어 {모델명}
+완판되어 예약 판매를 진행하게 되었습니다
+배송 일정은 아래와 같습니다.</textarea>
+    <label>배송 일정 타이틀</label>
+    <input class="title-input" id="dateTitle" type="text" maxlength="30" value="2026년 8월 3주차(12일이후)" />
+    <label>배송 일정 설명</label>
+    <input class="title-input" id="dateDesc" type="text" maxlength="30" value="입고후 순차적 출고 예정" />
+    <label>하단 안내 문구 (줄바꿈으로 구분)</label>
+    <textarea class="brief" id="footerText" rows="2" style="height:60px">※순차배송 되며, 생산 상황에 따라 변경될 수 있습니다.
+※배송일정은 제품이 발송되는 날을 의미합니다.</textarea>
+
+    <div class="step"><b>색상</b><span class="num">03 COLOR</span></div>
+    <div class="colorRow"><input id="colorDark" type="color" value="#2c6e75" /><span>헤더/푸터 진한 틸</span></div>
+    <div class="colorRow"><input id="colorLight" type="color" value="#5fb3bd" /><span>배경 밝은 틸</span></div>
+    <div class="colorRow"><input id="colorTitle" type="color" value="#f9d873" /><span>큰 타이틀 색</span></div>
+
+    <div class="step"><b>미리보기</b><span class="num">PREVIEW</span></div>
+    <div class="preview-shell"><div class="viewport"><div id="canvasHolder"></div></div></div>
+
+    <button class="primary" id="downloadBtn" style="margin-top:13px">SVG 다운로드</button>
+    <p class="status" id="status" style="display:none"></p>
+  </main>
+</div>
+
+<script>
+const W = 860, H = 1360;
+const inFrame = window.parent !== window;
+const holder = document.getElementById('canvasHolder');
+
+// 텍스트 폭 측정 전용 오프스크린 컨텍스트 (측정은 canvas, 출력은 SVG)
+const mctx = document.createElement('canvas').getContext('2d');
+
+let productImg = null;      // 로드된 Image 엘리먼트
+let productImgUrl = null;   // 외부 URL(임베드 실패 시 fallback href)
+let lastSVG = '';           // 마지막으로 생성한 SVG 문자열
+
+// XML 이스케이프
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function loadImageFromUrl(url){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+function loadImageFromFile(file){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+document.getElementById('imageUrl').addEventListener('change', async (e) => {
+  const url = e.target.value.trim();
+  if (!url) return;
+  try {
+    productImg = await loadImageFromUrl(url);
+    productImgUrl = url; // 임베드(toDataURL) 실패 시 원본 URL을 href로 사용
+  } catch (err) {
+    productImg = null;
+    productImgUrl = null;
+  }
+  render();
+});
+document.getElementById('imageFile').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  productImg = await loadImageFromFile(file);
+  productImgUrl = null;
+  document.getElementById('imageUrl').value = '';
+  render();
+});
+
+function containRect(img, box){
+  const iw = img.width, ih = img.height;
+  const scale = Math.min(box.w/iw, box.h/ih);
+  const dw = iw*scale, dh = ih*scale;
+  return { x: box.x + (box.w-dw)/2, y: box.y + (box.h-dh)/2, w: dw, h: dh };
+}
+
+// 크기 자동맞춤 — 측정만 오프스크린 canvas로 수행
+function fitSingle(text, maxW, startSize, minSize, weight){
+  let size = startSize;
+  while(size >= minSize){
+    mctx.font = weight + ' ' + size + 'px Pretendard, sans-serif';
+    if (mctx.measureText(text).width <= maxW) break;
+    size -= 2;
+  }
+  return Math.max(minSize, size);
+}
+
+// 제품 이미지를 data URI로 임베드. 외부 URL이라 tainted면 원본 URL 반환.
+function getImageHref(){
+  if (!productImg) return null;
+  try {
+    const oc = document.createElement('canvas');
+    oc.width = productImg.naturalWidth || productImg.width;
+    oc.height = productImg.naturalHeight || productImg.height;
+    oc.getContext('2d').drawImage(productImg, 0, 0);
+    return oc.toDataURL('image/png');
+  } catch (e) {
+    return productImgUrl || productImg.src; // 보안오류(tainted) 시 원본 URL 참조
+  }
+}
+
+// 세로중앙정렬(textBaseline='middle')된 단일 텍스트 노드
+function svgText(text, x, y, size, weight, fill, anchor){
+  return '<text x="'+x+'" y="'+y+'" font-family="Pretendard, sans-serif"'
+    + ' font-size="'+size+'" font-weight="'+weight+'" fill="'+fill+'"'
+    + ' text-anchor="'+(anchor||'middle')+'" dominant-baseline="central">'
+    + esc(text) + '</text>';
+}
+
+function render(){
+  const dark = document.getElementById('colorDark').value;
+  const light = document.getElementById('colorLight').value;
+  const titleColor = document.getElementById('colorTitle').value;
+  const model = document.getElementById('model').value.trim() || 'MODEL';
+
+  const defs = [];
+  const body = [];
+
+  // 배경
+  body.push('<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="'+light+'"/>');
+
+  // 장식 원들
+  body.push('<circle cx="'+(W*0.12)+'" cy="'+(H*0.14)+'" r="'+(W*0.16)+'" fill="rgba(255,255,255,0.14)"/>');
+  body.push('<circle cx="'+(W*0.03)+'" cy="'+(H*0.185)+'" r="'+(W*0.018)+'" fill="#f79a9a"/>');
+  body.push('<circle cx="'+(W*0.93)+'" cy="'+(H*0.19)+'" r="'+(W*0.045)+'" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="4,4"/>');
+  body.push('<circle cx="'+(W*0.95)+'" cy="'+(H*0.20)+'" r="'+(W*0.05)+'" fill="rgba(59,130,150,0.35)"/>');
+  body.push('<circle cx="'+(W*0.92)+'" cy="'+(H*0.90)+'" r="'+(W*0.02)+'" fill="rgba(247,154,154,0.9)"/>');
+
+  // 헤더
+  const headerH = H * 0.075;
+  body.push('<rect x="0" y="0" width="'+W+'" height="'+headerH+'" fill="'+dark+'"/>');
+  const headerText = document.getElementById('headerText').value;
+  const hSize = fitSingle(headerText, W*0.9, headerH*0.55, 18, '800');
+  body.push(svgText(headerText, W/2, headerH/2, hSize, 800, '#ffffff', 'middle'));
+
+  // 큰 타이틀 (완판!) — 입체감은 feDropShadow 필터로 근사
+  const bigTitle = document.getElementById('bigTitle').value || '완판!';
+  const titleSize = H*0.11;
+  const depth = Math.round(titleSize * 0.09);
+  defs.push('<filter id="titleExtrude" x="-20%" y="-20%" width="140%" height="140%">'
+    + '<feDropShadow dx="'+depth+'" dy="'+depth+'" stdDeviation="0" flood-color="#2a3a4a" flood-opacity="1"/></filter>');
+  body.push('<text x="'+(W/2)+'" y="'+(H*0.20)+'" font-family="Pretendard, sans-serif"'
+    + ' font-size="'+titleSize+'" font-weight="800" fill="'+titleColor+'"'
+    + ' text-anchor="middle" dominant-baseline="central" filter="url(#titleExtrude)">'
+    + esc(bigTitle) + '</text>');
+
+  // 본문 안내 문구 (줄마다 별도 text)
+  const bodyRaw = document.getElementById('bodyText').value;
+  const bodyLines = bodyRaw.split('\n').map(l => l.replace(/\{모델명\}/g, model));
+  const bodySize = H*0.023;
+  const lineH = H*0.032;
+  const bodyStartY = H*0.30;
+  bodyLines.forEach((line, i) => body.push(
+    svgText(line, W/2, bodyStartY + i*lineH, bodySize, 600, '#ffffff', 'middle')
+  ));
+
+  // 흰색 폴드 카드
+  const cardX = W*0.09, cardY = H*0.40, cardW = W*0.82, cardH = H*0.50, fold = W*0.09;
+  defs.push('<filter id="cardShadow" x="-30%" y="-30%" width="160%" height="160%">'
+    + '<feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.18"/></filter>');
+  const cardPath = 'M'+(cardX+fold)+' '+cardY
+    + ' L'+(cardX+cardW)+' '+cardY
+    + ' L'+(cardX+cardW)+' '+(cardY+cardH)
+    + ' L'+cardX+' '+(cardY+cardH)
+    + ' L'+cardX+' '+(cardY+fold)+' Z';
+  body.push('<path d="'+cardPath+'" fill="#ffffff" filter="url(#cardShadow)"/>');
+  // 접힌 모서리 삼각형
+  body.push('<polygon points="'+cardX+','+(cardY+fold)+' '+(cardX+fold)+','+cardY+' '+(cardX+fold)+','+(cardY+fold)+'" fill="rgba(0,0,0,0.10)"/>');
+
+  // 배송 일정 타이틀 / 설명
+  const dateTitle = document.getElementById('dateTitle').value;
+  const dSize = fitSingle(dateTitle, cardW*0.86, H*0.028, 14, '800');
+  body.push(svgText(dateTitle, cardX + cardW/2, cardY + H*0.045, dSize, 800, '#111111', 'middle'));
+
+  const dateDesc = document.getElementById('dateDesc').value;
+  body.push(svgText(dateDesc, cardX + cardW/2, cardY + H*0.075, H*0.020, 600, '#333333', 'middle'));
+
+  // 제품 이미지
+  if (productImg) {
+    const box = { x: cardX + cardW*0.08, y: cardY + H*0.10, w: cardW*0.84, h: cardH - H*0.14 };
+    const rect = containRect(productImg, box);
+    const href = getImageHref();
+    if (href) {
+      body.push('<image x="'+rect.x+'" y="'+rect.y+'" width="'+rect.w+'" height="'+rect.h+'"'
+        + ' preserveAspectRatio="xMidYMid meet" href="'+esc(href)+'" xlink:href="'+esc(href)+'"/>');
+    }
+  }
+
+  // 푸터
+  const footerH = H * 0.055;
+  body.push('<rect x="0" y="'+(H-footerH)+'" width="'+W+'" height="'+footerH+'" fill="'+dark+'"/>');
+  const footerLines = document.getElementById('footerText').value.split('\n');
+  const fLineH = H*0.020;
+  const fStartY = H - footerH/2 - (footerLines.length-1)*fLineH/2;
+  footerLines.forEach((line, i) => body.push(
+    svgText(line, W/2, fStartY + i*fLineH, H*0.014, 400, 'rgba(255,255,255,0.92)', 'middle')
+  ));
+
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+    + ' width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'
+    + '<defs>' + defs.join('') + '</defs>'
+    + body.join('')
+    + '</svg>';
+
+  lastSVG = svg;
+  holder.innerHTML = svg;
+}
+
+[
+  'model','headerText','bigTitle','bodyText','dateTitle','dateDesc','footerText',
+  'colorDark','colorLight','colorTitle'
+].forEach(id => document.getElementById(id).addEventListener('input', render));
+
+function setStatus(msg){
+  const el = document.getElementById('status');
+  if (!msg) { el.style.display = 'none'; return; }
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function outputSVG(filename, svg){
+  if (inFrame){
+    parent.postMessage({ pluginMessage: { type: 'save-svg', filename, svg } }, '*');
+    setStatus('에디터로 보냈습니다');
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+}
+
+document.getElementById('downloadBtn').onclick = () => {
+  render(); // 최신 시안 보장
+  outputSVG('reservation-notice.svg', lastSVG);
+};
+
+document.getElementById('downloadBtn').textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
+render();
+</script>
+</body>
+</html>

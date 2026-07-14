@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>출시 배너 세트 메이커 (마켓 템플릿)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  /* 디자인 시스템: renderer.html(Layer Lab) 라이트 테마 토큰/클래스 재사용 */
+  :root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Inter,'Apple SD Gothic Neo','Malgun Gothic',Arial,sans-serif;letter-spacing:-.2px}
+  .app{padding-bottom:28px}
+  .top{height:58px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950;font-size:11px;letter-spacing:-.5px}
+  .brand b{display:block;font-size:14px}
+  .brand span{font-size:9px;color:var(--muted);letter-spacing:.8px}
+  main{max-width:1200px;margin:0 auto;padding:16px}
+  .form{max-width:480px}
+  .intro{margin:2px 0 4px}
+  .intro p{color:var(--muted);line-height:1.5;margin:0}
+  .step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}
+  .step b{font-size:12px}
+  .num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+  label{display:block;font-size:9px;color:var(--muted);font-weight:700;margin:11px 0 5px;letter-spacing:.3px}
+  .title-input{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font-size:13px;font-weight:700;color:var(--ink);outline:none;font-family:inherit}
+  .title-input:focus{border-color:#6f7268;box-shadow:0 0 0 3px rgba(38,40,35,.07)}
+  .brief{width:100%;border:1px solid #cfd1c9;border-radius:14px;background:#fff;padding:12px;resize:vertical;outline:none;font:12px/1.55 inherit;color:var(--ink)}
+  .brief:focus{border-color:#6f7268;box-shadow:0 0 0 3px rgba(38,40,35,.07)}
+  .upload{border:1px dashed #bfc1b8;border-radius:12px;background:#fbfbf8;padding:12px;display:flex;gap:10px;align-items:center;cursor:pointer}
+  .upload i{width:34px;height:34px;border-radius:9px;background:#eaebe5;display:grid;place-items:center;font-style:normal;font-size:18px}
+  .upload b{display:block;font-size:11px}
+  .upload span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+  .check{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink);margin:9px 2px 0;font-weight:600}
+  .check input{width:16px;height:16px;accent-color:var(--dark)}
+  .hint{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14);margin-top:16px}
+  .primary:disabled{opacity:.55}
+  .primary i{font-style:normal;color:var(--lime);margin-right:6px}
+  /* 3D 배경 스타일 그리드 */
+  .sceneGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:5px}
+  .sceneItem{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:6px;background:#fff;text-align:center}
+  .sceneItem.active{border-color:var(--dark);box-shadow:0 0 0 3px rgba(223,255,67,.5)}
+  .sceneItem canvas{width:100%;border-radius:6px;display:block}
+  .sceneItem span{font-size:9px;color:var(--muted);margin-top:4px;display:block}
+  .linkList{display:flex;flex-direction:column;gap:6px;margin-top:5px}
+  .linkList a{display:block;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:11px;color:var(--ink);text-decoration:none;background:#fff}
+  .linkList a:hover{border-color:var(--dark);background:#fbfbf8}
+  /* 배너 세트 카드 그리드 — 셀 폭에 맞춰 SVG 축소(가로 스크롤 없음) */
+  .setblock{margin-top:6px}
+  .tplGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .tplCard{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:10px;box-shadow:0 10px 24px rgba(25,27,22,.06)}
+  .tplCard .head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}
+  .tplCard .head b{font-size:11px;line-height:1.2}
+  .tplCard .head span{font-size:9px;color:var(--muted);white-space:nowrap}
+  .tplCard .cnvBox{background:repeating-conic-gradient(#e4e6dc 0% 25%,#f1f2ec 0% 50%) 50%/14px 14px;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .tplCard .cnvBox svg{width:100%;height:auto;max-width:100%;display:block}
+  .tplCard .cnvBox canvas{max-width:100%;display:block}
+  .tplCard button{margin-top:8px;width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:11px;font-weight:800;padding:9px;cursor:pointer}
+  .tplCard button:hover{border-color:var(--dark)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">한성</div>
+      <div><b>한성몰 종합 배너 세트</b><span>MARKET TEMPLATE SET · 10 FORMATS</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="form">
+      <div class="intro"><p>마켓별 가이드가 템플릿에 내장되어 있습니다. 공통 정보만 입력하면 10종이 각자 규칙대로 배치됩니다. AI 미사용.</p></div>
+
+      <div class="step"><b>제품 정보</b><span class="num">PRODUCT</span></div>
+      <label>모델명</label>
+      <input id="modelName" class="title-input" type="text" maxlength="20" value="TFG27Q12PBL" />
+      <label>스펙 (쉼표 또는 줄바꿈으로 2줄 분리)</label>
+      <textarea id="specText" class="brief" rows="2" maxlength="60">27인치 QHD Nano IPS Black, 120Hz 모니터</textarea>
+      <label>이벤트 문구 (장식 타이틀)</label>
+      <input id="eventTitle" class="title-input" type="text" maxlength="10" value="신규출시" />
+      <label>혜택 3개 (쉼표 구분 · 띠배너용)</label>
+      <input id="benefits" class="title-input" type="text" maxlength="60" value="출시 특가, 무결점 업그레이드, 사은품 증정" />
+
+      <div class="step"><b>제품 이미지</b><span class="num">ASSET</span></div>
+      <label class="upload" for="productImage"><i>＋</i><div><b>제품 이미지 추가 (전체 공유)</b><span>밝은 배경은 자동 제거 · 모든 템플릿에 적용</span></div></label>
+      <input id="productImage" type="file" accept="image/*" hidden />
+      <label class="check"><input id="removeWhite" type="checkbox" checked /> 흰 배경 자동 제거</label>
+
+      <div class="step"><b>3D 공간 배경</b><span class="num">SCENE</span></div>
+      <label>자동 배경 스타일 (이미지 업로드 안 했을 때 적용)</label>
+      <div class="sceneGrid" id="sceneGrid"></div>
+      <label class="upload" for="sceneImage" style="margin-top:9px"><i>＋</i><div><b>배경 직접 업로드</b><span>스마트스토어·브랜드스토어에 cover 방식으로 적용</span></div></label>
+      <input id="sceneImage" type="file" accept="image/*" hidden />
+      <p class="hint">업로드하면 위 자동 스타일 대신 이 이미지가 cover 방식으로 깔립니다.</p>
+      <label>실사 3D 배경이 필요하면</label>
+      <div class="linkList" id="linkList"></div>
+      <p class="hint">다운로드한 이미지를 위 업로드 칸에 넣으면 바로 반영됩니다. 라이선스는 각 사이트 조건을 확인해주세요.</p>
+
+      <button class="primary" id="zipBtn"><i>⤓</i>전체 10종 SVG ZIP 다운로드</button>
+    </section>
+
+    <section class="setblock">
+      <div class="step"><b>배너 세트 미리보기</b><span class="num">10 TEMPLATES</span></div>
+      <div class="tplGrid" id="tplGrid"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ---------- 공유 상태 ---------- */
+let shared = { productImg:null, sceneImg:null, sceneStyle:'cove_podium', sceneStyleManual:false, sceneRecommend:null };
+
+function inputs(){
+  const rawSpec = document.getElementById('specText').value.trim();
+  const specLines = rawSpec.split(/[\n,]/).map(s=>s.trim()).filter(Boolean).slice(0,2);
+  return {
+    model: document.getElementById('modelName').value.trim() || 'MODEL',
+    specLines,
+    eventTitle: document.getElementById('eventTitle').value.trim(),
+    benefits: document.getElementById('benefits').value.split(',').map(s=>s.trim()).filter(Boolean).slice(0,3)
+  };
+}
+
+/* ---------- 유틸 (기존 엔진 재사용) ---------- */
+function loadImageFile(file){
+  return new Promise((resolve,reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+function colorDistance(a,b){ const dr=a[0]-b[0],dg=a[1]-b[1],db=a[2]-b[2]; return Math.sqrt(dr*dr+dg*dg+db*db); }
+function estimateEdgeColor(data,w,h){
+  let r=0,g=0,b=0,c=0;
+  const sx=Math.max(1,Math.floor(w/80)), sy=Math.max(1,Math.floor(h/80));
+  const sample=(x,y)=>{ const i=(y*w+x)*4; r+=data[i]; g+=data[i+1]; b+=data[i+2]; c++; };
+  for(let x=0;x<w;x+=sx){ sample(x,0); sample(x,h-1); }
+  for(let y=0;y<h;y+=sy){ sample(0,y); sample(w-1,y); }
+  return [r/c,g/c,b/c];
+}
+function removeWhiteBackground(img){
+  const maxSide = 1600;
+  const scale = Math.min(1, maxSide/Math.max(img.width,img.height));
+  const w = Math.max(1,Math.round(img.width*scale));
+  const h = Math.max(1,Math.round(img.height*scale));
+  const c = document.createElement('canvas'); c.width=w; c.height=h;
+  const cx = c.getContext('2d',{willReadFrequently:true});
+  cx.drawImage(img,0,0,w,h);
+  const im = cx.getImageData(0,0,w,h), d = im.data;
+  const bg = estimateEdgeColor(d,w,h);
+  const threshold = Math.max(34, Math.min(96, colorDistance(bg,[255,255,255])+42));
+  const visited = new Uint8Array(w*h), qx=[], qy=[];
+  const push=(x,y)=>{ const idx=y*w+x; if(!visited[idx]){ visited[idx]=1; qx.push(x); qy.push(y); } };
+  for(let x=0;x<w;x++){ push(x,0); push(x,h-1); }
+  for(let y=0;y<h;y++){ push(0,y); push(w-1,y); }
+  let head=0;
+  while(head<qx.length){
+    const x=qx[head], y=qy[head++], i=(y*w+x)*4;
+    const col=[d[i],d[i+1],d[i+2]];
+    const nearBg = colorDistance(col,bg) < threshold || (d[i]>238 && d[i+1]>238 && d[i+2]>238);
+    if(!nearBg) continue;
+    d[i+3]=0;
+    if(x>0) push(x-1,y); if(x<w-1) push(x+1,y); if(y>0) push(x,y-1); if(y<h-1) push(x,y+1);
+  }
+  cx.putImageData(im,0,0);
+  return c;
+}
+function containRect(img, box){
+  const iw = img.width, ih = img.height;
+  const scale = Math.min(box.w/iw, box.h/ih);
+  const dw = iw*scale, dh = ih*scale;
+  return { x: box.x + (box.w-dw)/2, y: box.y + (box.h-dh)/2, w: dw, h: dh };
+}
+function drawCover(ctx, img, w, h){
+  const iw = img.width, ih = img.height;
+  const scale = Math.max(w/iw, h/ih);
+  const dw = iw*scale, dh = ih*scale;
+  ctx.drawImage(img, (w-dw)/2, (h-dh)/2, dw, dh);
+}
+function fitSingle(ctx, text, maxW, startSize, minSize, weight){
+  let size = startSize;
+  while(size >= minSize){
+    ctx.font = weight + ' ' + size + 'px Pretendard, sans-serif';
+    if(ctx.measureText(text).width <= maxW) break;
+    size -= 1;
+  }
+  return Math.max(minSize, size);
+}
+/* ---------- SVG 빌더 (canvas 호출을 1:1 대체) ---------- */
+// 폰트 측정 전용 오프스크린 컨텍스트 (측정만 canvas, 출력은 SVG)
+const mctx = document.createElement('canvas').getContext('2d');
+
+function xmlEsc(s){
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+function fmtNum(n){
+  if(typeof n !== 'number') return n;
+  if(!isFinite(n)) return 0;
+  return Math.abs(n % 1) < 1e-9 ? String(Math.round(n)) : String(Math.round(n*1000)/1000);
+}
+// 캔버스/이미지 어느 쪽이든 PNG data URI로 임베드용 변환
+function toDataURL(src){
+  if(src && src.toDataURL) return src.toDataURL('image/png');
+  const c = document.createElement('canvas');
+  c.width = src.naturalWidth || src.width;
+  c.height = src.naturalHeight || src.height;
+  c.getContext('2d').drawImage(src, 0, 0);
+  return c.toDataURL('image/png');
+}
+
+function createBuilder(w, h){
+  const defs = [];
+  const body = [];
+  let idc = 0;
+  const f = fmtNum;
+  const nid = (p) => p + (idc++);
+  const S = {
+    _w: w, _h: h,
+    rect(x, y, rw, rh, fill, o){
+      o = o || {};
+      let s = '<rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(rw)+'" height="'+f(rh)+'"';
+      if(o.rx != null) s += ' rx="'+f(o.rx)+'"';
+      if(fill) s += ' fill="'+fill+'"';
+      if(o.fillOpacity != null) s += ' fill-opacity="'+o.fillOpacity+'"';
+      if(o.opacity != null) s += ' opacity="'+o.opacity+'"';
+      if(o.stroke) s += ' stroke="'+o.stroke+'"';
+      if(o.strokeW != null) s += ' stroke-width="'+f(o.strokeW)+'"';
+      body.push(s + '/>');
+      return this;
+    },
+    text(str, x, y, o){
+      o = o || {};
+      const align = o.align || 'left';
+      const anchor = align === 'center' ? 'middle' : align === 'right' ? 'end' : 'start';
+      const baseline = o.baseline || 'middle';
+      const family = o.family || 'Pretendard, sans-serif';
+      let s = '<text x="'+f(x)+'" y="'+f(y)+'" font-family="'+family+'"';
+      if(o.size != null) s += ' font-size="'+f(o.size)+'"';
+      if(o.weight != null) s += ' font-weight="'+o.weight+'"';
+      s += ' text-anchor="'+anchor+'"';
+      if(baseline === 'middle') s += ' dominant-baseline="central"';
+      else if(baseline === 'top') s += ' dominant-baseline="text-before-edge"';
+      else if(baseline === 'bottom') s += ' dominant-baseline="text-after-edge"';
+      if(o.fill) s += ' fill="'+o.fill+'"';
+      if(o.fillOpacity != null) s += ' fill-opacity="'+o.fillOpacity+'"';
+      if(o.opacity != null) s += ' opacity="'+o.opacity+'"';
+      if(o.letterSpacing != null) s += ' letter-spacing="'+f(o.letterSpacing)+'"';
+      if(o.stroke) s += ' stroke="'+o.stroke+'"';
+      if(o.strokeW != null) s += ' stroke-width="'+f(o.strokeW)+'"';
+      if(o.paintOrder) s += ' paint-order="'+o.paintOrder+'"';
+      body.push(s + '>' + xmlEsc(str) + '</text>');
+      return this;
+    },
+    image(href, x, y, iw, ih, o){
+      o = o || {};
+      const par = o.preserveAspectRatio || 'xMidYMid meet';
+      body.push('<image href="'+href+'" x="'+f(x)+'" y="'+f(y)+'" width="'+f(iw)+'" height="'+f(ih)+'" preserveAspectRatio="'+par+'"/>');
+      return this;
+    },
+    ellipse(cx, cy, rx, ry, fill, o){
+      o = o || {};
+      let s = '<ellipse cx="'+f(cx)+'" cy="'+f(cy)+'" rx="'+f(rx)+'" ry="'+f(ry)+'"';
+      if(fill) s += ' fill="'+fill+'"';
+      if(o.opacity != null) s += ' opacity="'+o.opacity+'"';
+      if(o.filter) s += ' filter="'+o.filter+'"';
+      body.push(s + '/>');
+      return this;
+    },
+    circle(cx, cy, r, fill, o){
+      o = o || {};
+      let s = '<circle cx="'+f(cx)+'" cy="'+f(cy)+'" r="'+f(r)+'"';
+      if(fill) s += ' fill="'+fill+'"';
+      if(o.opacity != null) s += ' opacity="'+o.opacity+'"';
+      body.push(s + '/>');
+      return this;
+    },
+    group(transform, fn){
+      body.push('<g transform="'+transform+'">');
+      fn(this);
+      body.push('</g>');
+      return this;
+    },
+    // 시작(x1,y1)→끝(x2,y2)을 좌표 그대로 쓰는 선형 그라데이션. url(#id) 반환.
+    linearGradient(stops, x1, y1, x2, y2){
+      const id = nid('lg');
+      let s = '<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+f(x1)+'" y1="'+f(y1)+'" x2="'+f(x2)+'" y2="'+f(y2)+'">';
+      stops.forEach(st => { s += '<stop offset="'+st[0]+'" stop-color="'+st[1]+'"/>'; });
+      defs.push(s + '</linearGradient>');
+      return 'url(#'+id+')';
+    },
+    blurFilter(std){
+      const id = nid('blur');
+      defs.push('<filter id="'+id+'" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="'+f(std)+'"/></filter>');
+      return 'url(#'+id+')';
+    },
+    defs(str){ defs.push(str); return this; },
+    serialize(){
+      return '<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'
+        + (defs.length ? '<defs>'+defs.join('')+'</defs>' : '')
+        + body.join('')
+        + '</svg>';
+    }
+  };
+  return S;
+}
+
+/* ---------- SVG용 그리기 헬퍼 (좌표 계산은 원본 그대로) ---------- */
+function drawProduct(S, box, w, h, opts){
+  if(!shared.productImg) return;
+  opts = opts || {};
+  const rect = containRect(shared.productImg, box);
+  if(opts.shadow !== false){
+    const blur = S.blurFilter(Math.max(2, Math.round(h*0.008)));
+    S.ellipse(rect.x+rect.w/2, rect.y+rect.h*0.96, rect.w*0.34, h*0.012, 'rgba(0,0,0,0.16)', { filter: blur });
+  }
+  // containRect가 이미 이미지 비율로 맞춘 rect라 preserveAspectRatio='none'로 정확히 채움
+  S.image(toDataURL(shared.productImg), rect.x, rect.y, rect.w, rect.h, { preserveAspectRatio: 'none' });
+}
+/* 장식(아웃라인) 타이틀: 원본의 stroke 텍스트를 편집 가능한 <text>로 근사 (paint-order로 윤곽 강조) */
+function drawOutlineText(S, text, x, y, size, color, align){
+  S.text(text, x, y, {
+    size: size, weight: '800', align: align || 'left', baseline: 'middle',
+    fill: color, stroke: color, strokeW: Math.max(1.5, size*0.045), paintOrder: 'stroke'
+  });
+}
+function skyGradientSVG(S, w, h){
+  const fill = S.linearGradient([[0,'#cfe8f6'],[0.5,'#dceefa'],[1,'#bfe0f2']], 0, 0, w*0.6, h);
+  S.rect(0, 0, w, h, fill);
+}
+// 3D 배경/실사 cover: 기존 canvas 씬 엔진을 오프스크린에 그려 하나의 <image>로 임베드(레이아웃/픽셀 동일)
+function sceneBackgroundSVG(S, w, h){
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  sceneBackground(c.getContext('2d'), w, h);
+  S.image(c.toDataURL('image/png'), 0, 0, w, h, { preserveAspectRatio: 'none' });
+}
+const SCENE_STYLES = [
+  { key: 'cove_podium', label: '클래식 포디움' },
+  { key: 'arch_stage', label: '아치 스테이지' },
+  { key: 'diagonal_light', label: '대각선 라이트' },
+  { key: 'geo_blocks', label: '지오메트릭 블록' },
+  { key: 'striped_wall', label: '줄무늬 월' }
+];
+
+// 공통 헬퍼: 제품이 놓일 받침대(포디움)를 그림. 모든 배경 구도가 이걸 재사용.
+function drawPodium(ctx, px, py, pw, ph, c){
+  ctx.save();
+  ctx.fillStyle = c.shadow;
+  ctx.beginPath();
+  ctx.ellipse(px, py + ph*1.6, pw*0.95, ph*0.9, 0, 0, Math.PI*2);
+  ctx.filter = 'blur(' + Math.round(ph*0.5) + 'px)';
+  ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = c.podiumSide;
+  ctx.beginPath();
+  ctx.moveTo(px - pw, py);
+  ctx.lineTo(px - pw*0.94, py + ph*1.9);
+  ctx.ellipse(px, py + ph*1.9, pw*0.94, ph*0.7, 0, Math.PI, 0, true);
+  ctx.lineTo(px + pw, py);
+  ctx.closePath();
+  ctx.fill();
+
+  const g = ctx.createRadialGradient(px, py, 4, px, py, pw);
+  g.addColorStop(0, c.podiumLight);
+  g.addColorStop(1, c.podiumDark);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(px, py, pw, ph, 0, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// 1) 클래식 포디움 — 벽/바닥이 곡선으로 이어지는 무한배경(cove) + 은은한 조명 글로우
+function sceneCovePodium(ctx, w, h){
+  const wallGrad = ctx.createLinearGradient(0, 0, 0, h);
+  wallGrad.addColorStop(0, '#e8f1f8'); wallGrad.addColorStop(1, '#c7dcec');
+  ctx.fillStyle = wallGrad; ctx.fillRect(0, 0, w, h);
+
+  const curveY = h * 0.66;
+  ctx.beginPath();
+  ctx.moveTo(0, curveY + h*0.02);
+  ctx.bezierCurveTo(w*0.22, curveY - h*0.06, w*0.78, curveY - h*0.06, w, curveY + h*0.02);
+  ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+  const floorGrad = ctx.createLinearGradient(0, curveY, 0, h);
+  floorGrad.addColorStop(0, '#c7dcec'); floorGrad.addColorStop(1, '#a9c6dd');
+  ctx.fillStyle = floorGrad; ctx.fill();
+
+  ctx.save();
+  ctx.globalAlpha = 0.28; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(1, h*0.004);
+  ctx.beginPath();
+  ctx.moveTo(0, curveY + h*0.015);
+  ctx.bezierCurveTo(w*0.22, curveY - h*0.065, w*0.78, curveY - h*0.065, w, curveY + h*0.015);
+  ctx.stroke();
+  ctx.restore();
+
+  const glow = ctx.createRadialGradient(w*0.62, h*0.42, 10, w*0.62, h*0.42, w*0.42);
+  glow.addColorStop(0, 'rgba(255,255,255,0.55)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.filter = 'blur(' + Math.round(h*0.02) + 'px)';
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.arc(w*0.12, h*0.22, w*0.05, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.90, h*0.30, w*0.035, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  drawPodium(ctx, w*0.62, h*0.80, w*0.24, h*0.045, {
+    podiumLight:'#ffffff', podiumDark:'#c3d6e6', podiumSide:'#aec8dc', shadow:'rgba(40,70,100,0.28)'
+  });
+}
+
+// 2) 아치 스테이지 — 진한 블루 배경 위 크림색 아치 무대
+function sceneArchStage(ctx, w, h){
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#9db8dd'); g.addColorStop(1, '#7897c6');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(0, h*0.80, w, h*0.20);
+
+  const ax = w*0.5, aw = w*0.30, ah = h*0.60, ay = h*0.85;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(ax-aw, ay);
+  ctx.lineTo(ax-aw, ay-ah+aw);
+  ctx.arc(ax, ay-ah+aw, aw, Math.PI, 0, false);
+  ctx.lineTo(ax+aw, ay);
+  ctx.closePath();
+  const archGrad = ctx.createLinearGradient(0, ay-ah, 0, ay);
+  archGrad.addColorStop(0, '#f5edd6'); archGrad.addColorStop(1, '#e9dab3');
+  ctx.fillStyle = archGrad;
+  ctx.shadowColor = 'rgba(20,30,60,0.25)'; ctx.shadowBlur = w*0.02; ctx.shadowOffsetY = h*0.01;
+  ctx.fill();
+  ctx.restore();
+
+  drawPodium(ctx, ax, h*0.82, w*0.13, h*0.032, {
+    podiumLight:'#dfe6f4', podiumDark:'#aebbdb', podiumSide:'#96a6cc', shadow:'rgba(30,40,70,0.3)'
+  });
+}
+
+// 3) 대각선 라이트 — 라벤더 배경에 창살 사이로 들어오는 대각선 빛줄기 + 2단 원기둥
+function sceneDiagonalLight(ctx, w, h){
+  ctx.fillStyle = '#c3c2f0'; ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.globalAlpha = 0.16; ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 4; i++) {
+    const offset = i * w * 0.32 - w * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(offset, 0);
+    ctx.lineTo(offset + w*0.09, 0);
+    ctx.lineTo(offset - h*0.55, h);
+    ctx.lineTo(offset - h*0.55 - w*0.09, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+
+  drawPodium(ctx, w*0.5, h*0.70, w*0.22, h*0.045, {
+    podiumLight:'#e4e3fb', podiumDark:'#b6b4ec', podiumSide:'#9f9ce0', shadow:'rgba(40,30,90,0.25)'
+  });
+  drawPodium(ctx, w*0.5, h*0.53, w*0.13, h*0.03, {
+    podiumLight:'#f4f3fe', podiumDark:'#c3c1f4', podiumSide:'#aca8ec', shadow:'rgba(0,0,0,0)'
+  });
+}
+
+// 4) 지오메트릭 블록 — 연한 배경 + 회전된 각진 유리 블록 두 개로 추상적 깊이감
+function sceneGeoBlocks(ctx, w, h){
+  ctx.fillStyle = '#eef2f5'; ctx.fillRect(0, 0, w, h);
+
+  function block(cx, cy, size, rot, topColor, sideColor){
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate(rot);
+    ctx.fillStyle = sideColor;
+    ctx.fillRect(-size*0.5, -size*0.1, size, size*0.9);
+    ctx.fillStyle = topColor;
+    ctx.beginPath();
+    ctx.moveTo(-size*0.5, -size*0.1);
+    ctx.lineTo(0, -size*0.4);
+    ctx.lineTo(size*0.5, -size*0.1);
+    ctx.lineTo(0, size*0.15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  block(w*0.74, h*0.32, w*0.24, -0.12, '#d7e6df', '#b7cfc4');
+  block(w*0.90, h*0.20, w*0.15, 0.18, '#e3d7ee', '#c6b3dc');
+
+  drawPodium(ctx, w*0.58, h*0.80, w*0.15, h*0.032, {
+    podiumLight:'#ffffff', podiumDark:'#d6dde0', podiumSide:'#c3ccd1', shadow:'rgba(20,30,30,0.18)'
+  });
+}
+
+// 5) 줄무늬 월 — 세로 스트라이프 벽 + 겹쳐진 원반 두 개
+function sceneStripedWall(ctx, w, h){
+  const stripeCount = 26;
+  const stripeW = w / stripeCount;
+  for (let i = 0; i < stripeCount; i++) {
+    ctx.fillStyle = i % 2 === 0 ? '#c9dbe8' : '#bcd0e0';
+    ctx.fillRect(i*stripeW, 0, stripeW+1, h*0.72);
+  }
+  ctx.fillStyle = '#eef3f7';
+  ctx.fillRect(0, h*0.72, w, h*0.28);
+
+  function disc(cx, cy, rx, ry, color){
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); ctx.fill();
+  }
+  disc(w*0.56, h*0.79, w*0.11, h*0.022, '#ffffff');
+  disc(w*0.66, h*0.81, w*0.10, h*0.020, '#dfe7ee');
+
+  drawPodium(ctx, w*0.60, h*0.75, w*0.10, h*0.020, {
+    podiumLight:'#ffffff', podiumDark:'#dbe4ea', podiumSide:'#c7d3db', shadow:'rgba(20,40,60,0.2)'
+  });
+}
+
+// 실사 이미지가 없을 때 자동으로 적용되는 절차적 3D 배경. 네트워크/저작권 문제 없이 즉시 적용됨.
+function drawSceneStyle(ctx, w, h, styleKey){
+  if (styleKey === 'arch_stage') return sceneArchStage(ctx, w, h);
+  if (styleKey === 'diagonal_light') return sceneDiagonalLight(ctx, w, h);
+  if (styleKey === 'geo_blocks') return sceneGeoBlocks(ctx, w, h);
+  if (styleKey === 'striped_wall') return sceneStripedWall(ctx, w, h);
+  return sceneCovePodium(ctx, w, h);
+}
+
+function sceneBackground(ctx, w, h){
+  if (shared.sceneImg) { drawCover(ctx, shared.sceneImg, w, h); return; }
+  drawSceneStyle(ctx, w, h, shared.sceneStyle || 'cove_podium');
+}
+
+/* ---------- 마켓별 템플릿 (참고 이미지의 가이드를 코드로 고정) ---------- */
+const TEMPLATES = [
+  {
+    id:'super_slide_pc', label:'슈퍼스토어 PC 슬라이드', w:640, h:298,
+    draw(S, w, h, inp){
+      S.rect(0, 0, w, h, '#e6f2ef');
+      drawProduct(S, { x:w*0.52, y:h*0.13, w:w*0.42, h:h*0.76 }, w, h);
+      const x = w*0.06;
+      S.text('New', x, h*0.20, { size:h*0.075, weight:'700', fill:'#111', align:'left' });
+      const ms = fitSingle(mctx, inp.model, w*0.44, h*0.135, h*0.07, '800');
+      S.text(inp.model, x, h*0.40, { size:ms, weight:'800', fill:'#111', align:'left' });
+      inp.specLines.forEach((line,i)=> S.text(line, x, h*0.57 + i*h*0.095, { size:h*0.068, weight:'400', fill:'#222', align:'left' }));
+    }
+  },
+  {
+    id:'super_slide_mobile', label:'슈퍼스토어 모바일 슬라이드', w:720, h:336,
+    draw(S, w, h, inp){
+      S.rect(0, 0, w, h, '#dbe9f8');
+      drawProduct(S, { x:w*0.53, y:h*0.13, w:w*0.41, h:h*0.76 }, w, h);
+      const x = w*0.055;
+      S.text('New', x, h*0.20, { size:h*0.07, weight:'700', fill:'#111', align:'left' });
+      const ms = fitSingle(mctx, inp.model, w*0.45, h*0.125, h*0.065, '800');
+      S.text(inp.model, x, h*0.39, { size:ms, weight:'800', fill:'#111', align:'left' });
+      inp.specLines.forEach((line,i)=> S.text(line, x, h*0.56 + i*h*0.09, { size:h*0.062, weight:'400', fill:'#222', align:'left' }));
+    }
+  },
+  {
+    id:'naver_brand_mobile', label:'네이버 브랜드스토어 모바일', w:708, h:250,
+    draw(S, w, h, inp){
+      sceneBackgroundSVG(S, w, h);
+      drawProduct(S, { x:w*0.55, y:h*0.10, w:w*0.38, h:h*0.82 }, w, h, { shadow:false });
+      const x = w*0.14;
+      inp.specLines.forEach((line,i)=> S.text(line, x, h*0.36 + i*h*0.115, { size:h*0.085, weight:'400', fill:'#1b1b22', align:'left' }));
+      const ms = fitSingle(mctx, inp.model, w*0.4, h*0.125, h*0.075, '800');
+      S.text(inp.model, x, h*0.66, { size:ms, weight:'800', fill:'#1b1b22', align:'left' });
+    }
+  },
+  {
+    id:'own_mall_event_small', label:'자사몰 이벤트 소배너', w:284, h:400,
+    draw(S, w, h, inp){
+      skyGradientSVG(S, w, h);
+      S.text(inp.specLines.join(' '), w/2, h*0.075, { size:h*0.035, weight:'600', fill:'#2a3a4a', align:'center' });
+      const ms = fitSingle(mctx, inp.model, w*0.9, h*0.075, h*0.04, '800');
+      drawOutlineText(S, inp.model, w/2, h*0.16, ms, '#3576d6', 'center');
+      if(inp.eventTitle){
+        drawOutlineText(S, inp.eventTitle, w/2, h*0.26, h*0.065, '#1b2a3a', 'center');
+      }
+      drawProduct(S, { x:w*0.08, y:h*0.34, w:w*0.84, h:h*0.60 }, w, h);
+    }
+  },
+  {
+    id:'ebay_minishop', label:'이베이 미니샵', w:980, h:700,
+    draw(S, w, h, inp){
+      S.rect(0, 0, w, h, '#f7f8fa');
+      inp.specLines.forEach((line,i)=> S.text(line, w/2, h*0.13 + i*h*0.06, { size:h*0.045, weight:'400', fill:'#1b1b22', align:'center' }));
+      const ms = fitSingle(mctx, inp.model, w*0.7, h*0.065, h*0.04, '800');
+      S.text(inp.model, w/2, h*0.30, { size:ms, weight:'800', fill:'#111', align:'center' });
+      drawProduct(S, { x:w*0.2, y:h*0.38, w:w*0.6, h:h*0.56 }, w, h);
+    }
+  },
+  {
+    id:'smartstore_category', label:'스마트스토어 카테고리', w:1280, h:600,
+    draw(S, w, h, inp){
+      sceneBackgroundSVG(S, w, h);
+      drawProduct(S, { x:w*0.55, y:h*0.12, w:w*0.36, h:h*0.78 }, w, h, { shadow:false });
+      const x = w*0.09;
+      inp.specLines.forEach((line,i)=> S.text(line, x, h*0.38 + i*h*0.075, { size:h*0.055, weight:'400', fill:'#1b1b22', align:'left' }));
+      const ms = fitSingle(mctx, inp.model, w*0.36, h*0.075, h*0.045, '800');
+      S.text(inp.model, x, h*0.58, { size:ms, weight:'800', fill:'#1b1b22', align:'left' });
+    }
+  },
+  {
+    id:'category_rolling', label:'카테고리 롤링', w:526, h:278,
+    draw(S, w, h, inp){
+      skyGradientSVG(S, w, h);
+      const deg = -0.05 * 180 / Math.PI;
+      S.group('translate(' + fmtNum(w/2) + ' ' + fmtNum(h*0.22) + ') rotate(' + fmtNum(deg) + ')', S2 => {
+        S2.text(inp.specLines.join(' '), 0, 0, { size:h*0.085, weight:'600', fill:'#2a3a4a', align:'center' });
+      });
+      const ms = fitSingle(mctx, inp.model, w*0.9, h*0.19, h*0.10, '800');
+      drawOutlineText(S, inp.model, w/2, h*0.50, ms, '#3576d6', 'center');
+      if(inp.eventTitle){
+        drawOutlineText(S, inp.eventTitle, w/2, h*0.76, h*0.15, '#1b2a3a', 'center');
+      }
+    }
+  },
+  {
+    id:'top_strip', label:'상단 띠배너', w:860, h:350,
+    draw(S, w, h, inp){
+      skyGradientSVG(S, w, h);
+      drawProduct(S, { x:w*0.60, y:h*0.10, w:w*0.36, h:h*0.82 }, w, h);
+      const deg = -0.04 * 180 / Math.PI;
+      S.group('translate(' + fmtNum(w*0.30) + ' ' + fmtNum(h*0.13) + ') rotate(' + fmtNum(deg) + ')', S2 => {
+        S2.text(inp.specLines.join(' '), 0, 0, { size:h*0.062, weight:'600', fill:'#2a3a4a', align:'center' });
+      });
+      const ms = fitSingle(mctx, inp.model, w*0.52, h*0.135, h*0.08, '800');
+      drawOutlineText(S, inp.model, w*0.30, h*0.32, ms, '#3576d6', 'center');
+      if(inp.eventTitle){
+        drawOutlineText(S, inp.eventTitle, w*0.30, h*0.50, h*0.105, '#1b2a3a', 'center');
+      }
+      const items = inp.benefits;
+      if(items.length){
+        const totalW = w*0.52, bx = w*0.04, by = h*0.66, bh = h*0.24;
+        const gap = w*0.012;
+        const bw = (totalW - gap*(items.length-1)) / items.length;
+        items.forEach((b, i) => {
+          const x = bx + i*(bw+gap);
+          S.rect(x, by, bw, bh, '#ffffff', { rx:10, fillOpacity:0.92 });
+          S.circle(x+bw/2, by+bh*0.36, bh*0.17, '#1b1b22');
+          const fs = fitSingle(mctx, b, bw*0.9, h*0.038, 9, '700');
+          S.text(b, x+bw/2, by+bh*0.75, { size:fs, weight:'700', fill:'#1b1b22', align:'center' });
+        });
+      }
+    }
+  },
+  {
+    id:'smartstore_main_pc', label:'스마트스토어 PC 메인대문', w:1920, h:860,
+    draw(S, w, h, inp){
+      sceneBackgroundSVG(S, w, h);
+      drawProduct(S, { x:w*0.56, y:h*0.16, w:w*0.32, h:h*0.72 }, w, h, { shadow:false });
+      const x = w*0.24;
+      inp.specLines.forEach((line,i)=> S.text(line, x, h*0.44 + i*h*0.058, { size:h*0.042, weight:'400', fill:'#1b1b22', align:'left' }));
+      const ms = fitSingle(mctx, inp.model, w*0.28, h*0.055, h*0.035, '800');
+      S.text(inp.model, x, h*0.60, { size:ms, weight:'800', fill:'#1b1b22', align:'left' });
+    }
+  },
+  {
+    id:'smartstore_main_mobile', label:'스마트스토어 모바일 메인대문', w:750, h:1308,
+    draw(S, w, h, inp){
+      sceneBackgroundSVG(S, w, h);
+      const ms = fitSingle(mctx, inp.model, w*0.85, h*0.038, h*0.024, '800');
+      S.text(inp.model, w/2, h*0.24, { size:ms, weight:'800', fill:'#111', align:'center' });
+      inp.specLines.forEach((line,i)=> S.text(line, w/2, h*0.29 + i*h*0.030, { size:h*0.022, weight:'400', fill:'#1b1b22', align:'center' }));
+      drawProduct(S, { x:w*0.10, y:h*0.42, w:w*0.80, h:h*0.42 }, w, h);
+    }
+  }
+];
+
+/* ---------- 렌더링/UI ---------- */
+const inFrame = window.parent !== window;
+const cardBoxes = {};   // 템플릿별 프리뷰 컨테이너(.cnvBox)
+const svgCache = {};    // 템플릿별 최신 SVG 문자열(다운로드/ZIP 재사용)
+
+// 저장/전송 브리지: iframe이면 에디터로 postMessage, 아니면 .svg 다운로드
+function outputSVG(filename, svg){
+  if(inFrame){ parent.postMessage({ pluginMessage:{ type:'save-svg', filename, svg } }, '*'); }
+  else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svg], { type:'image/svg+xml' }));
+    a.download = filename;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  }
+}
+
+function renderTemplateSVG(t, inp){
+  const S = createBuilder(t.w, t.h);
+  t.draw(S, t.w, t.h, inp);
+  return S.serialize();
+}
+
+function buildGrid(){
+  const grid = document.getElementById('tplGrid');
+  grid.innerHTML = '';
+  TEMPLATES.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'tplCard';
+    card.innerHTML = '<div class="head"><b>' + t.label + '</b><span>' + t.w + '×' + t.h + '</span></div>';
+    const box = document.createElement('div');
+    box.className = 'cnvBox';
+    card.appendChild(box);
+    const btn = document.createElement('button');
+    btn.textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
+    btn.onclick = () => {
+      outputSVG(t.id + '_' + t.w + 'x' + t.h + '.svg', svgCache[t.id]);
+    };
+    card.appendChild(btn);
+    grid.appendChild(card);
+    cardBoxes[t.id] = box;
+  });
+}
+
+function renderAll(){
+  const inp = inputs();
+  TEMPLATES.forEach(t => {
+    const svg = renderTemplateSVG(t, inp);
+    svgCache[t.id] = svg;
+    cardBoxes[t.id].innerHTML = svg;
+  });
+}
+
+['modelName','specText','eventTitle','benefits'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderAll);
+});
+
+function rgbToHsl(r, g, b){
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d !== 0) {
+    s = d / (1 - Math.abs(2*l - 1));
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s: s*100, l: l*100 };
+}
+
+// 업로드된 제품 사진(투명 배경 제거 후)의 평균 색상을 분석해서 어울리는 배경 스타일을 추천.
+// 외부 검색 없이, 실제 업로드한 사진 픽셀 데이터만으로 판단 — 네트워크/저작권 문제 없음.
+function analyzeProductColor(img){
+  const size = 40;
+  const c = document.createElement('canvas'); c.width = size; c.height = size;
+  const cx = c.getContext('2d', { willReadFrequently: true });
+  cx.drawImage(img, 0, 0, size, size);
+  const d = cx.getImageData(0, 0, size, size).data;
+  let r=0, g=0, b=0, n=0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i+3] < 40) continue; // 투명 픽셀(제거된 배경) 제외
+    r += d[i]; g += d[i+1]; b += d[i+2]; n++;
+  }
+  if (n === 0) return { brightness: 128, hue: 0, sat: 0 };
+  r/=n; g/=n; b/=n;
+  const { h, s, l } = rgbToHsl(r, g, b);
+  return { brightness: l * 2.55, hue: h, sat: s };
+}
+
+function recommendSceneStyle(avg){
+  if (avg.brightness < 65) return 'striped_wall';
+  if (avg.sat < 12) return 'cove_podium';
+  if (avg.hue >= 15 && avg.hue < 70) return 'arch_stage';
+  if (avg.hue >= 190 && avg.hue < 260) return 'diagonal_light';
+  if (avg.hue >= 70 && avg.hue < 190) return 'geo_blocks';
+  return 'cove_podium';
+}
+
+function applyProductImage(img){
+  shared.productImg = document.getElementById('removeWhite').checked ? removeWhiteBackground(img) : img;
+  const avg = analyzeProductColor(shared.productImg);
+  shared.sceneRecommend = recommendSceneStyle(avg);
+  if (!shared.sceneStyleManual) shared.sceneStyle = shared.sceneRecommend;
+}
+
+document.getElementById('productImage').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = await loadImageFile(file);
+  applyProductImage(img);
+  renderSceneGrid();
+  renderAll();
+});
+document.getElementById('removeWhite').addEventListener('change', async () => {
+  const file = document.getElementById('productImage').files[0];
+  if(!file) return;
+  const img = await loadImageFile(file);
+  applyProductImage(img);
+  renderSceneGrid();
+  renderAll();
+});
+document.getElementById('sceneImage').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  shared.sceneImg = await loadImageFile(file);
+  renderSceneGrid();
+  renderAll();
+});
+
+function renderSceneGrid(){
+  const grid = document.getElementById('sceneGrid');
+  grid.innerHTML = '';
+  SCENE_STYLES.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'sceneItem' + (!shared.sceneImg && shared.sceneStyle === s.key ? ' active' : '');
+    const cnv = document.createElement('canvas');
+    cnv.width = 160; cnv.height = 90;
+    drawSceneStyle(cnv.getContext('2d'), 160, 90, s.key);
+    item.appendChild(cnv);
+    const label = document.createElement('span');
+    label.textContent = s.label + (shared.sceneRecommend === s.key ? ' · 추천' : '');
+    item.appendChild(label);
+    item.onclick = () => {
+      shared.sceneStyle = s.key;
+      shared.sceneStyleManual = true;
+      shared.sceneImg = null;
+      document.getElementById('sceneImage').value = '';
+      renderSceneGrid();
+      renderAll();
+    };
+    grid.appendChild(item);
+  });
+}
+
+const SCENE_LINKS = [
+  { name: 'Magnific(Freepik) — 무료만', url: 'https://www.magnific.com/kr/search?format=search&last_filter=selection&last_value=1&query=product%20podium%203d%20background&selection=1&type=photo' },
+  { name: 'Unsplash — 제품 배경 (전체 무료)', url: 'https://unsplash.com/ko/s/사진/제품-배경' },
+  { name: 'Pixabay — 3D 배경 (전체 무료)', url: 'https://pixabay.com/ko/illustrations/search/3d%20배경/' },
+  { name: 'Pngtree — 3D 배경', url: 'https://kor.pngtree.com/free-3d-background' }
+];
+function renderLinkList(){
+  const list = document.getElementById('linkList');
+  list.innerHTML = '';
+  SCENE_LINKS.forEach(l => {
+    const a = document.createElement('a');
+    a.href = l.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = l.name + ' ↗';
+    list.appendChild(a);
+  });
+}
+
+document.getElementById('zipBtn').onclick = async () => {
+  const btn = document.getElementById('zipBtn');
+  btn.disabled = true;
+  btn.textContent = 'ZIP 만드는 중...';
+  try {
+    const inp = inputs();
+    const zip = new JSZip();
+    TEMPLATES.forEach(t => {
+      const svg = svgCache[t.id] || renderTemplateSVG(t, inp);
+      zip.file(t.id + '_' + t.w + 'x' + t.h + '.svg', svg);
+    });
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const link = document.createElement('a');
+    link.download = 'launch-banner-set.zip';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '전체 10종 ZIP 다운로드';
+  }
+};
+
+buildGrid();
+renderSceneGrid();
+renderLinkList();
+renderAll();
+</script>
+</body>
+</html>
