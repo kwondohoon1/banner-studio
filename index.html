@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gaegu&family=Gothic+A1:wght@400;500;700;900&family=Jua&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700;900&family=Song+Myung&display=swap" />
 <link rel="stylesheet" href="fonts/local-fonts.css" />
+<script src="plugins/image-drop.js"></script>
 <style>
   :root{
     --bg:#f5f5f1; --ink:#171814; --panel:#fff; --panel2:#fbfbf8; --surface:#eef0e8; --line:#dedfd8;
@@ -67,6 +68,7 @@
   /* ---- 캔버스 ---- */
   .stageWrap{position:relative;overflow:auto;background:
     repeating-conic-gradient(#e4e6dc 0% 25%,#f1f2ec 0% 50%) 50%/22px 22px;min-height:0}
+  .stageWrap.dropping{outline:2px dashed var(--accent);outline-offset:-6px;background:#eef0e8}
   .stageWrap.panready{cursor:grab}
   .stageWrap.panning,.stageWrap.panning *{cursor:grabbing !important}
   #stage{position:relative;transform-origin:0 0;margin:40px}
@@ -178,8 +180,8 @@
       <div id="overlay"></div>
       <div class="empty" id="emptyState">
         <div class="drop" id="dropZone">
-          <b>SVG 파일을 열어주세요</b>
-          <div style="margin-top:8px;font-size:12px">여기로 드래그하거나 상단 <b>SVG 열기</b> 클릭</div>
+          <b>SVG를 열거나 이미지를 끌어다 놓으세요</b>
+          <div style="margin-top:8px;font-size:12px">SVG는 <b>문서로 열기</b> · 이미지(파일·다나와 등)는 <b>요소로 추가</b>(누끼 여부 질문)</div>
         </div>
       </div>
     </div>
@@ -373,18 +375,117 @@ loadManifest();
 $("openBtn").onclick = () => $("fileInput").click();
 $("fileInput").onchange = (e) => { const f = e.target.files[0]; if (f) readFile(f); e.target.value = ""; };
 
-const dz = $("dropZone");
-["dragover", "dragenter"].forEach(ev => $("stageWrap").addEventListener(ev, e => { e.preventDefault(); dz && (dz.style.borderColor = "var(--accent)"); }));
-["dragleave", "drop"].forEach(ev => $("stageWrap").addEventListener(ev, e => { e.preventDefault(); dz && (dz.style.borderColor = ""); }));
-$("stageWrap").addEventListener("drop", e => {
-  const f = e.dataTransfer.files[0];
-  if (f && /svg/i.test(f.type + f.name)) readFile(f);
+["dragover", "dragenter"].forEach(ev => $("stageWrap").addEventListener(ev, e => { e.preventDefault(); $("stageWrap").classList.add("dropping"); }));
+$("stageWrap").addEventListener("dragleave", e => { if (!$("stageWrap").contains(e.relatedTarget)) $("stageWrap").classList.remove("dropping"); });
+$("stageWrap").addEventListener("drop", async e => {
+  e.preventDefault(); $("stageWrap").classList.remove("dropping");
+  const dt = e.dataTransfer;
+  const f = dt.files && dt.files[0];
+  if (f && /svg/i.test(f.type + f.name)) { readFile(f); return; }   // .svg 파일 → 문서 열기
+  // 이미지 파일/웹 이미지(다나와 등) → 요소로 추가
+  try {
+    showToast("이미지를 가져오는 중…");
+    const img = await droppedToImage(dt);
+    if (!img) { showToast("이미지를 인식하지 못했어요. 이미지 파일을 끌어다 놓으세요.", true); return; }
+    await addImageElement(img, e.clientX, e.clientY);
+  } catch (err) { showToast("이미지를 가져오지 못했어요.", true); }
 });
 
 function readFile(file) {
   const r = new FileReader();
   r.onload = () => loadSVG(r.result);
   r.readAsText(file);
+}
+
+/* ===== 이미지 드롭 → 요소로 추가 (누끼 여부 질문) ===== */
+async function droppedToImage(dt) {
+  let file = (dt.files && dt.files[0] && /^image\//.test(dt.files[0].type)) ? dt.files[0] : null;
+  if (!file) {
+    const url = (window.ImageDrop && ImageDrop.dropUrl(dt)) || "";
+    if (!url) return null;
+    file = await ImageDrop.urlToFile(url);   // 웹 이미지: CORS 차단 시 프록시 우회
+  }
+  return await fileToImageData(file);
+}
+function fileToImageData(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => { const im = new Image(); im.onload = () => res({ dataUrl: r.result, w: im.naturalWidth, h: im.naturalHeight }); im.onerror = rej; im.src = r.result; };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+function cutoutDataUrl(src) {
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => { try { const c = removeWhiteBackground(im); res({ dataUrl: c.toDataURL("image/png"), w: c.width, h: c.height }); } catch (e) { res(null); } };
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+}
+async function addImageElement(imgData, clientX, clientY) {
+  let { dataUrl, w, h } = imgData;
+  if (confirm("이미지 배경(누끼)을 제거할까요?\n\n확인 = 배경 제거(흰/밝은 단색 배경)\n취소 = 원본 그대로")) {
+    showToast("배경을 제거하는 중…");
+    const cut = await cutoutDataUrl(dataUrl);
+    if (cut) { dataUrl = cut.dataUrl; w = cut.w; h = cut.h; }
+  }
+  const fresh = !state.svg;
+  if (fresh) {
+    const CW = Math.min(w, 1600), CH = Math.max(1, Math.round(h * CW / w));
+    loadSVG(`<svg xmlns="${SVGNS}" width="${CW}" height="${CH}" viewBox="0 0 ${CW} ${CH}"><rect width="${CW}" height="${CH}" fill="#ffffff"/></svg>`);
+  }
+  let dw, dh, cx, cy;
+  if (fresh) { dw = state.vbW * 0.92; dh = state.vbH * 0.92; cx = state.vbW / 2; cy = state.vbH / 2; }
+  else {
+    const sc = Math.min(state.vbW * 0.5 / w, state.vbH * 0.5 / h, 1); dw = w * sc; dh = h * sc;
+    const p = (clientX != null) ? clientToUser(clientX, clientY) : { x: state.vbW / 2, y: state.vbH / 2 };
+    cx = isFinite(p.x) ? p.x : state.vbW / 2; cy = isFinite(p.y) ? p.y : state.vbH / 2;
+  }
+  const x = Math.round(cx - dw / 2), y = Math.round(cy - dh / 2);
+  const el = document.createElementNS(SVGNS, "image");
+  el.setAttribute("x", x); el.setAttribute("y", y);
+  el.setAttribute("width", Math.round(dw)); el.setAttribute("height", Math.round(dh));
+  el.setAttribute("href", dataUrl);
+  el.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  state.svg.appendChild(el);
+  registerEl(el);
+  select(el);
+  pushSnapshot();
+  showToast("이미지를 추가했습니다.");
+}
+function registerEl(el) {
+  el.setAttribute("data-eid", "e" + Date.now().toString(36) + state.els.length);
+  el.addEventListener("mousedown", onElementDown);
+  if (el.tagName === "text") el.addEventListener("dblclick", onTextDblClick);
+  state.els.push(el);
+  renderLayers();
+}
+/* 흰/밝은 단색 배경 제거 (테두리부터 flood fill) */
+function colorDistance(a, b) { const dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2]; return Math.sqrt(dr * dr + dg * dg + db * db); }
+function estimateEdgeColor(data, w, h) {
+  let r = 0, g = 0, b = 0, c = 0; const sx = Math.max(1, Math.floor(w / 80)), sy = Math.max(1, Math.floor(h / 80));
+  const s = (x, y) => { const i = (y * w + x) * 4; r += data[i]; g += data[i + 1]; b += data[i + 2]; c++; };
+  for (let x = 0; x < w; x += sx) { s(x, 0); s(x, h - 1); } for (let y = 0; y < h; y += sy) { s(0, y); s(w - 1, y); }
+  return [r / c, g / c, b / c];
+}
+function removeWhiteBackground(img) {
+  const maxSide = 1600, scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const cx = c.getContext("2d", { willReadFrequently: true }); cx.drawImage(img, 0, 0, w, h);
+  const im = cx.getImageData(0, 0, w, h), d = im.data, bg = estimateEdgeColor(d, w, h);
+  const threshold = Math.max(34, Math.min(96, colorDistance(bg, [255, 255, 255]) + 42));
+  const visited = new Uint8Array(w * h), qx = [], qy = [];
+  const push = (x, y) => { const idx = y * w + x; if (!visited[idx]) { visited[idx] = 1; qx.push(x); qy.push(y); } };
+  for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); } for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+  let head = 0;
+  while (head < qx.length) {
+    const x = qx[head], y = qy[head++], i = (y * w + x) * 4, col = [d[i], d[i + 1], d[i + 2]];
+    const nearBg = colorDistance(col, bg) < threshold || (d[i] > 238 && d[i + 1] > 238 && d[i + 2] > 238);
+    if (!nearBg) continue; d[i + 3] = 0;
+    if (x > 0) push(x - 1, y); if (x < w - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < h - 1) push(x, y + 1);
+  }
+  cx.putImageData(im, 0, 0); return c;
 }
 
 function loadSVG(text) {
