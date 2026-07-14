@@ -50,4 +50,3 @@ python -m http.server 8000
 ## 설계 메모
 
 - 플러그인↔에디터는 `postMessage({pluginMessage:{type:'save-svg', filename, svg}})` 한 계약으로만 연결 — 서로 독립적으로 수정 가능.
-- 내부망(사내 AI/LLM/ComfyUI) 접속 코드는 포함하지 않는다.
