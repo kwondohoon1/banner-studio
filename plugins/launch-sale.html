@@ -149,6 +149,10 @@ input.t3c{font-size:10px;font-weight:600;padding:9px 8px}
  <div class="preview-shell"><div class="viewport"><div class="canvas" id="preview"></div></div></div>
  <div class="result-meta"><b id="resultStyle"></b><span id="resultSize"></span></div>
  <div class="actions"><button class="primary" id="createFigma">SVG로 저장 (편집 가능)</button></div>
+ <div class="step" style="margin-top:15px"><b>추가 규격 (같은 디자인)</b><span class="num">SET</span></div>
+ <div class="grid2"><button class="secondary" data-extra="small">자사몰 소배너 284×400</button><button class="secondary" data-extra="strip">상단 띠배너 860×350</button></div>
+ <button class="secondary" id="sendAll3" style="margin-top:8px">메인 + 소배너 + 띠배너 3종 모두 보내기</button>
+ <p class="hint">출시배너와 같은 색/제품/스타일로 소배너·띠배너를 함께 만들어 에디터로 보냅니다. (에디터에서 각각 페이지로 열립니다)</p>
  <div class="step" style="margin-top:15px"><b>말로 수정하기</b><span class="num" id="revNo">1차 시안</span></div>
  <textarea id="tweakInput" class="brief" style="height:64px" placeholder="예: 보라색 톤으로, 제목 더 크게, 여백 넓게, 둥글게, 장식 빼줘, 우주 배경"></textarea>
  <div style="display:grid;grid-template-columns:1fr 2.2fr;gap:7px;margin-top:7px"><button class="secondary" id="undoTweak">↩ 이전으로</button><button class="primary" id="applyTweak">이 내용으로 수정</button></div>
@@ -264,6 +268,27 @@ function v8Decor(dna,P){const a='position:absolute;pointer-events:none;';
   return g('left:26px;bottom:16px',88,-8)+g('left:104px;bottom:8px',56,7)+g('right:28px;bottom:14px',94,8)+g('right:118px;bottom:6px',50,-6)}
  return''}
 function v8Product(P,dna){return state.files&&state.files[0]?`<img src="${state.files[0].url}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto">`:`<div style="width:100%;height:100%;border-radius:12px;background:linear-gradient(25deg,${P.accent},${hsl2hex((dna.hue+320)%360,70,60)})"></div>`}
+/* ---------- 추가 규격 (같은 디자인 느낌) : 자사몰 소배너 / 상단 띠배너 ---------- */
+function docBenefits(doc){const out=[];(doc.sections||[]).forEach(s=>{if(s.type==='offer'){if(s.badge)out.push(s.badge);(s.bullets||[]).forEach(b=>out.push(b))}if(s.type==='rewards'&&s.title)out.push(s.title);if(s.type==='features')(s.items||[]).forEach(i=>out.push(i))});return out.filter(Boolean).map(x=>String(x).replace(/\s+/g,' ').slice(0,18)).slice(0,3)}
+function v8SmallEvent(doc,dna){const {P}=dnaTokens(dna);const model=esc(doc.model||''),title=esc(doc.title||''),summary=esc(doc.summary||'');const tSize=(doc.title||'').length>10?30:38;
+ return `<div class="v8-canvas" style="width:284px;height:400px;position:relative;overflow:hidden;background:linear-gradient(165deg,${P.heroA},${P.heroB});font-family:Pretendard,'Noto Sans KR',sans-serif;letter-spacing:-.02em;display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 16px;box-sizing:border-box">
+  <div style="display:inline-block;background:#fff;color:${P.accent};font-weight:900;font-size:12px;padding:5px 14px;border-radius:999px">${model}</div>
+  <div style="font-weight:900;font-size:${tSize}px;line-height:1.05;color:${P.ink};margin-top:10px">${title}</div>
+  ${summary?`<div style="font-size:12px;font-weight:700;color:${P.ink2||P.muted};margin-top:6px;line-height:1.35">${summary}</div>`:''}
+  <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;margin:10px 0">${v8Product(P,dna)}</div>
+  <div style="display:inline-block;background:${P.accent};color:#fff;font-weight:900;font-size:14px;padding:8px 20px;border-radius:10px">예약판매 OPEN</div>
+ </div>`}
+function v8TopStrip(doc,dna){const {P}=dnaTokens(dna);const model=esc(doc.model||''),title=esc(doc.title||''),summary=esc(doc.summary||'');const chips=docBenefits(doc);
+ const chipHtml=chips.length?`<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">${chips.map(c=>`<span style="background:#fff;color:${P.ink};font-weight:800;font-size:13px;padding:7px 13px;border-radius:9px;box-shadow:0 4px 12px rgba(10,20,40,.12)">${esc(c)}</span>`).join('')}</div>`:'';
+ return `<div class="v8-canvas" style="width:860px;height:350px;position:relative;overflow:hidden;background:linear-gradient(120deg,${P.heroA},${P.heroB});font-family:Pretendard,'Noto Sans KR',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:24px;padding:28px 34px;box-sizing:border-box">
+  <div style="flex:1.15;display:flex;flex-direction:column;align-items:flex-start;min-width:0">
+   <div style="display:inline-block;background:#fff;color:${P.accent};font-weight:900;font-size:15px;padding:6px 16px;border-radius:999px">${model}</div>
+   <div style="font-weight:900;font-size:52px;line-height:1.02;color:${P.ink};margin-top:10px">${title}</div>
+   ${summary?`<div style="font-size:15px;font-weight:700;color:${P.ink2||P.muted};margin-top:8px">${summary}</div>`:''}
+   ${chipHtml}
+  </div>
+  <div style="flex:.85;height:100%;display:flex;align-items:center;justify-content:center;min-width:0">${v8Product(P,dna)}</div>
+ </div>`}
 function v8HeroBg(dna,P){const h=dna.hue||222,g=`linear-gradient(160deg,${P.heroA},${P.heroB})`,abs='position:absolute;pointer-events:none;';
  const bgs=dna.bgStyle||'gradient';
  if(bgs==='space')return{css:`background:radial-gradient(ellipse at 30% 18%,${hsl2hex(h,70,30)} 0%,#070b1a 62%)`,ink:'#fff',mut:'#c9d4ee',extra:Array.from({length:16},(_,i)=>`<span style="${abs}left:${(i*137)%92}%;top:${20+(i*89)%420}px;width:${i%4?2:4}px;height:${i%4?2:4}px;border-radius:50%;background:#fff;opacity:${i%3?.85:.5}"></span>`).join('')};
@@ -400,19 +425,32 @@ function currentSVGSource(){const t=state.bannerType;
  if(t==='3'){const d=state.t3||t3Data();return{html:v9RenewalRender(d),W:860,name:(d.model||'리뉴얼')}}
  if(!state.doc||!state.dna)return null;
  return{html:v8Render(state.doc,state.dna),W:state.dna.canvasW||860,name:(state.doc.model||'배너')}}
+async function htmlToSVG(html,W){
+ const holder=document.createElement('div');holder.style.cssText='position:fixed;left:-99999px;top:0;width:'+W+'px';holder.innerHTML=html;document.body.appendChild(holder);
+ try{await LayerLabSVG.inlineImages(holder);return LayerLabSVG.canvasToSVG(holder.firstElementChild)}
+ finally{holder.remove()}}
+async function sendSVG(svg,fname){
+ fname=fname.replace(/[\\/:*?"<>|]/g,'_');
+ if(window.parent!==window){parent.postMessage({pluginMessage:{type:'save-svg',filename:fname,svg}},'*');setStatus('SVG를 에디터로 보냈습니다: '+fname)}
+ else if(window.layerLabSave){const r=await window.layerLabSave(fname,svg);setStatus(r&&r.canceled?'저장을 취소했습니다.':'SVG로 저장했습니다: '+((r&&r.path)||fname))}
+ else{const blob=new Blob([svg],{type:'image/svg+xml'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);setStatus('SVG를 다운로드했습니다: '+fname)}}
 async function exportSVG(){if(state.busy)return;const t=state.bannerType;
  if((t==='1'||t==='4')&&(!state.doc||!state.dna))await v9Generate();
  const src=currentSVGSource();
  if(!src){setStatus('먼저 디자인을 생성해 주세요.',true);return}
  setStatus('SVG로 변환하고 있습니다...');
- const holder=document.createElement('div');holder.style.cssText='position:fixed;left:-99999px;top:0;width:'+src.W+'px';holder.innerHTML=src.html;document.body.appendChild(holder);
- try{const canvas=holder.firstElementChild;await LayerLabSVG.inlineImages(holder);const svg=LayerLabSVG.canvasToSVG(canvas);
-  const fname=(src.name+'_'+src.W+'.svg').replace(/[\\/:*?"<>|]/g,'_');
-  if(window.parent!==window){parent.postMessage({pluginMessage:{type:'save-svg',filename:fname,svg}},'*');setStatus('SVG를 에디터로 보냈습니다: '+fname)}
-  else if(window.layerLabSave){const r=await window.layerLabSave(fname,svg);setStatus(r&&r.canceled?'저장을 취소했습니다.':'SVG로 저장했습니다: '+((r&&r.path)||fname))}
-  else{const blob=new Blob([svg],{type:'image/svg+xml'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);setStatus('SVG를 다운로드했습니다: '+fname)}
- }catch(e){setStatus('SVG 변환 실패: '+((e&&e.message)||e),true)}
- finally{holder.remove()}}
+ try{const svg=await htmlToSVG(src.html,src.W);await sendSVG(svg,src.name+'_'+src.W+'.svg')}
+ catch(e){setStatus('SVG 변환 실패: '+((e&&e.message)||e),true)}}
+async function exportExtra(kind){
+ if((state.bannerType==='1'||state.bannerType==='4')&&(!state.doc||!state.dna))await v9Generate();
+ if(!state.doc||!state.dna){setStatus('먼저 출시배너를 생성해 주세요.',true);return}
+ const small=kind==='small';
+ setStatus((small?'소배너':'띠배너')+'를 만드는 중...');
+ try{
+  const html=small?v8SmallEvent(state.doc,state.dna):v8TopStrip(state.doc,state.dna);
+  const svg=await htmlToSVG(html,small?284:860);
+  await sendSVG(svg,(state.doc.model||'배너')+(small?'_소배너_284x400':'_띠배너_860x350')+'.svg');
+ }catch(e){setStatus('변환 실패: '+((e&&e.message)||e),true)}}
 
 /* ---------- 대화형 수정 (2차·3차·4차 시안) ---------- */
 function localTweakParse(t){const p={},cur=state.dna||{};
@@ -641,6 +679,8 @@ $$('#btypes .chip').forEach(b=>b.onclick=()=>{state.bannerType=b.dataset.bt;v9Sh
 $('#t3add').onclick=()=>t3AddRow();t3AddRow();t3AddRow();t3AddRow();
 $$('.t1f').forEach(x=>x.addEventListener('input',()=>{clearTimeout(state._t1t);state._t1t=setTimeout(()=>{if(state.bannerType==='1'&&state.doc)generateType1()},450)}));
 $('#generate').onclick=v9Generate;$('#createFigma').onclick=exportSVG;
+$$('[data-extra]').forEach(b=>b.onclick=()=>exportExtra(b.dataset.extra));
+$('#sendAll3').onclick=async()=>{await exportSVG();await exportExtra('small');await exportExtra('strip');setStatus('메인·소배너·띠배너 3종을 모두 보냈습니다.')};
 t1RenderPickers();v9Show();
 </script>
 <script src="image-drop.js"></script>

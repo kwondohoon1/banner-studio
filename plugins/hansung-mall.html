@@ -581,19 +581,6 @@ const TEMPLATES = [
     }
   },
   {
-    id:'own_mall_event_small', label:'자사몰 이벤트 소배너', w:284, h:400,
-    draw(S, w, h, inp){
-      skyGradientSVG(S, w, h);
-      S.text(inp.specLines.join(' '), w/2, h*0.075, { size:h*0.035, weight:'600', fill:'#2a3a4a', align:'center' });
-      const ms = fitSingle(mctx, inp.model, w*0.9, h*0.075, h*0.04, '800');
-      drawOutlineText(S, inp.model, w/2, h*0.16, ms, '#3576d6', 'center');
-      if(inp.eventTitle){
-        drawOutlineText(S, inp.eventTitle, w/2, h*0.26, h*0.065, '#1b2a3a', 'center');
-      }
-      drawProduct(S, { x:w*0.08, y:h*0.34, w:w*0.84, h:h*0.60 }, w, h);
-    }
-  },
-  {
     id:'ebay_minishop', label:'이베이 미니샵', w:980, h:700,
     draw(S, w, h, inp){
       S.rect(0, 0, w, h, '#f7f8fa');
@@ -626,35 +613,6 @@ const TEMPLATES = [
       drawOutlineText(S, inp.model, w/2, h*0.50, ms, '#3576d6', 'center');
       if(inp.eventTitle){
         drawOutlineText(S, inp.eventTitle, w/2, h*0.76, h*0.15, '#1b2a3a', 'center');
-      }
-    }
-  },
-  {
-    id:'top_strip', label:'상단 띠배너', w:860, h:350,
-    draw(S, w, h, inp){
-      skyGradientSVG(S, w, h);
-      drawProduct(S, { x:w*0.60, y:h*0.10, w:w*0.36, h:h*0.82 }, w, h);
-      const deg = -0.04 * 180 / Math.PI;
-      S.group('translate(' + fmtNum(w*0.30) + ' ' + fmtNum(h*0.13) + ') rotate(' + fmtNum(deg) + ')', S2 => {
-        S2.text(inp.specLines.join(' '), 0, 0, { size:h*0.062, weight:'600', fill:'#2a3a4a', align:'center' });
-      });
-      const ms = fitSingle(mctx, inp.model, w*0.52, h*0.135, h*0.08, '800');
-      drawOutlineText(S, inp.model, w*0.30, h*0.32, ms, '#3576d6', 'center');
-      if(inp.eventTitle){
-        drawOutlineText(S, inp.eventTitle, w*0.30, h*0.50, h*0.105, '#1b2a3a', 'center');
-      }
-      const items = inp.benefits;
-      if(items.length){
-        const totalW = w*0.52, bx = w*0.04, by = h*0.66, bh = h*0.24;
-        const gap = w*0.012;
-        const bw = (totalW - gap*(items.length-1)) / items.length;
-        items.forEach((b, i) => {
-          const x = bx + i*(bw+gap);
-          S.rect(x, by, bw, bh, '#ffffff', { rx:10, fillOpacity:0.92 });
-          S.circle(x+bw/2, by+bh*0.36, bh*0.17, '#1b1b22');
-          const fs = fitSingle(mctx, b, bw*0.9, h*0.038, 9, '700');
-          S.text(b, x+bw/2, by+bh*0.75, { size:fs, weight:'700', fill:'#1b1b22', align:'center' });
-        });
       }
     }
   },
