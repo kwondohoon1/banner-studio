@@ -26,7 +26,8 @@
     border-bottom:1px solid var(--line);flex-wrap:wrap;backdrop-filter:blur(12px)}
   .topbar .title{font-size:14px;font-weight:800;letter-spacing:-.02em;margin-right:6px}
   .topbar .title .ver{font-size:10px;font-weight:600;color:var(--muted);margin-left:5px;vertical-align:middle}
-  .topbar .title .credit{font-size:7.5px;font-weight:400;color:var(--muted);opacity:.32;margin-left:4px;letter-spacing:0;vertical-align:middle}
+  .topbar .credit{font-size:7.5px;font-weight:400;color:var(--muted);opacity:.32;letter-spacing:0;align-self:center;margin-right:4px;white-space:nowrap}
+  .topbar .rightgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .topbar .title span{color:var(--accent2)}
   .tb{background:#fff;border:1px solid var(--line);color:var(--text);border-radius:8px;
     padding:7px 11px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
@@ -172,7 +173,7 @@
 
   <!-- 상단바 -->
   <div class="topbar">
-    <div class="title">배너 <span>SVG</span> 에디터<span class="ver">v0.9</span><span class="credit">developed by 권도훈</span></div>
+    <div class="title">배너 <span>SVG</span> 에디터<span class="ver">v0.9</span></div>
     <button class="tb primary" id="openBtn">📂 SVG 열기</button>
     <input type="file" id="fileInput" accept=".svg,image/svg+xml" style="display:none" />
     <div class="sep"></div>
@@ -187,8 +188,11 @@
     <div class="pluginTabs" id="pluginTabs"></div>
     <button class="tb" id="addPluginBtn" title="플러그인 URL·경로로 추가">＋ 플러그인</button>
     <div class="spacer"></div>
-    <button class="tb" id="saveSvg" disabled>💾 SVG 저장</button>
-    <button class="tb" id="exportPng" disabled>🖼 PNG 내보내기</button>
+    <div class="rightgroup">
+      <span class="credit">developed by 권도훈</span>
+      <button class="tb" id="saveSvg" disabled>💾 SVG 저장</button>
+      <button class="tb" id="exportPng" disabled>🖼 PNG 내보내기</button>
+    </div>
   </div>
   <div class="editorToast" id="editorToast" role="status" aria-live="polite"></div>
 
