@@ -1,5 +1,6 @@
 /* 로컬 한글 웹폰트 (글꼴.zip → woff2 변환) + SDGdGothic00 */
 @font-face{font-family:'SDGdGothic00';font-display:swap;src:url('SDGdGothic00.woff2') format('woff2'),url('SDGdGothic00.woff') format('woff')}
+@font-face{font-family:'DungGeunMo';font-style:normal;font-weight:400;font-display:swap;src:url('DungGeunMo.woff2') format('woff2')}
 @font-face{font-family:'Gmarket Sans';font-style:normal;font-weight:300;font-display:swap;src:url('GmarketSansLight.woff2') format('woff2')}
 @font-face{font-family:'Gmarket Sans';font-style:normal;font-weight:500;font-display:swap;src:url('GmarketSansMedium.woff2') format('woff2')}
 @font-face{font-family:'Gmarket Sans';font-style:normal;font-weight:700;font-display:swap;src:url('GmarketSansBold.woff2') format('woff2')}
