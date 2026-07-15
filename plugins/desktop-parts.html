@@ -116,11 +116,17 @@ function wrap2(t, maxW, base, weight){
   let size = base;
   if (fits(t, size)) return { lines:[t], size };
   const words = t.split(/\s+/);
-  if (words.length > 1){
+  // "Ti"/"SUPER" 접미사는 앞 모델번호에 붙여 한 단위로 취급 → 줄바꿈으로 분리 방지 (예: "RTX 5060 Ti")
+  const units = [];
+  for (const w of words){
+    if (/^(ti|super)$/i.test(w) && units.length) units[units.length-1] += ' ' + w;
+    else units.push(w);
+  }
+  if (units.length > 1){
     let acc=0, idx=1; const total=t.length;
-    for (let k=0;k<words.length;k++){ acc += words[k].length+1; if (acc >= total/2){ idx=k+1; break; } }
-    idx = Math.max(1, Math.min(words.length-1, idx));
-    const l1 = words.slice(0,idx).join(' '), l2 = words.slice(idx).join(' ');
+    for (let k=0;k<units.length;k++){ acc += units[k].length+1; if (acc >= total/2){ idx=k+1; break; } }
+    idx = Math.max(1, Math.min(units.length-1, idx));
+    const l1 = units.slice(0,idx).join(' '), l2 = units.slice(idx).join(' ');
     while (size > 10 && (!fits(l1,size) || !fits(l2,size))) size -= 1;
     return { lines:[l1,l2], size };
   }
