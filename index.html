@@ -864,6 +864,7 @@ function startPan(e) {
 }
 // 캡처 단계에서 먼저 가로채 요소/마퀴 선택보다 우선 (가운데 버튼 또는 Space+좌클릭)
 $("stageWrap").addEventListener("mousedown", (e) => {
+  if (e.target.closest(".iconPanel")) return;   // 로고 패널 입력 방해 금지
   if (e.button === 1 || (e.button === 0 && spaceDown)) { e.stopPropagation(); startPan(e); }
 }, true);
 // 가운데 버튼 기본 자동스크롤 방지
@@ -878,8 +879,8 @@ document.addEventListener("keyup", (e) => {
 });
 
 $("stageWrap").addEventListener("mousedown", (e) => {
-  // 빈 곳 드래그 → 영역 선택 (핸들/요소가 아니면)
-  if (e.target.closest("#stage svg *") || e.target.classList.contains("handle")) return;
+  // 빈 곳 드래그 → 영역 선택 (핸들/요소/로고 패널이 아니면)
+  if (e.target.closest("#stage svg *") || e.target.classList.contains("handle") || e.target.closest(".iconPanel")) return;
   if (state.svg) startMarquee(e);
   else select(null);
 });
