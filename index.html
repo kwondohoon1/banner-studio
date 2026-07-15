@@ -69,6 +69,20 @@
   .stageWrap{position:relative;overflow:auto;background:
     repeating-conic-gradient(#e4e6dc 0% 25%,#f1f2ec 0% 50%) 50%/22px 22px;min-height:0}
   .stageWrap.dropping{outline:2px dashed var(--accent);outline-offset:-6px;background:#eef0e8}
+  .iconPanel{position:absolute;left:12px;bottom:12px;z-index:8;width:252px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(25,27,22,.16);font-size:12px;overflow:hidden}
+  .iconHead{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .iconHead b{font-size:12px}
+  .iconHead button{border:0;background:none;cursor:pointer;font-size:14px;color:var(--muted)}
+  .iconBody{padding:8px 10px}
+  .iconPanel.collapsed .iconBody{display:none}
+  .iconSearchRow{display:flex;gap:6px}
+  .iconSearchRow input[type=text]{flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;outline:none;background:#fff;color:var(--text)}
+  .iconSearchRow input[type=text]:focus{border-color:var(--accent)}
+  .iconResults{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px;max-height:154px;overflow:auto}
+  .iconTile{aspect-ratio:1;border:1px solid var(--line);border-radius:7px;background:#fff;display:grid;place-items:center;cursor:grab;padding:4px}
+  .iconTile img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+  .iconTile:hover{border-color:var(--accent);background:#f6f7f1}
+  .iconHint{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.5;padding:4px 2px}
   .stageWrap.panready{cursor:grab}
   .stageWrap.panning,.stageWrap.panning *{cursor:grabbing !important}
   #stage{position:relative;transform-origin:0 0;margin:40px}
@@ -184,6 +198,18 @@
           <div style="margin-top:8px;font-size:12px">SVG는 <b>문서로 열기</b> · 이미지(파일·다나와 등)는 <b>요소로 추가</b>(누끼 여부 질문)</div>
         </div>
       </div>
+
+      <!-- 로고/아이콘(Iconify) -->
+      <aside class="iconPanel" id="iconPanel">
+        <div class="iconHead"><b>🔖 로고·아이콘</b><button id="iconToggle" title="접기/펴기">▾</button></div>
+        <div class="iconBody" id="iconBody">
+          <div class="iconSearchRow">
+            <input type="text" id="iconSearch" placeholder="검색: 특가, sale, star, fire…">
+            <input type="color" id="iconColor" value="#20221d" title="아이콘 색">
+          </div>
+          <div class="iconResults" id="iconResults"><div class="iconHint">키워드 검색 후 결과를 캔버스로 <b>드래그</b>하거나 <b>클릭</b>해 넣으세요. (예: 특가·sale·star)</div></div>
+        </div>
+      </aside>
     </div>
 
     <!-- 우: 속성 -->
@@ -380,6 +406,8 @@ $("stageWrap").addEventListener("dragleave", e => { if (!$("stageWrap").contains
 $("stageWrap").addEventListener("drop", async e => {
   e.preventDefault(); $("stageWrap").classList.remove("dropping");
   const dt = e.dataTransfer;
+  const iconUrl = dt.getData("application/x-bs-icon");
+  if (iconUrl) { await insertIconFromUrl(iconUrl, e.clientX, e.clientY); return; }   // Iconify 로고/아이콘
   const f = dt.files && dt.files[0];
   if (f && /svg/i.test(f.type + f.name)) { readFile(f); return; }   // .svg 파일 → 문서 열기
   // 이미지 파일/웹 이미지(다나와 등) → 요소로 추가
@@ -487,6 +515,57 @@ function removeWhiteBackground(img) {
   }
   cx.putImageData(im, 0, 0); return c;
 }
+
+/* ===== Iconify 로고/아이콘 패널 ===== */
+const ICON_KO_EN = { "특가": "sale", "할인": "discount", "세일": "sale", "별": "star", "불": "fire", "왕관": "crown", "선물": "gift", "신제품": "new", "새제품": "new", "배송": "delivery-truck", "트럭": "truck", "체크": "check", "하트": "heart", "좋아요": "thumb-up", "알림": "bell", "장바구니": "shopping-cart", "쿠폰": "ticket", "티켓": "ticket", "태그": "tag", "로고": "logo", "화살표": "arrow", "시계": "clock", "전화": "phone", "메일": "mail", "홈": "home", "검색": "search", "설정": "settings", "돈": "money", "카드": "credit-card", "불꽃": "fire", "번개": "flash", "왕": "crown" };
+function iconColorEnc() { const c = $("iconColor"); return encodeURIComponent((c && c.value) || "#20221d"); }
+function iconTileUrl(id, px) { const i = id.split(":"); return `https://api.iconify.design/${i[0]}/${i[1]}.svg?height=${px}&color=${iconColorEnc()}`; }
+let iconSearchT = null;
+function iconSearch() {
+  const raw = ($("iconSearch").value || "").trim();
+  const q = ICON_KO_EN[raw] || raw;
+  const res = $("iconResults");
+  if (!q) { res.innerHTML = `<div class="iconHint">키워드 검색 후 결과를 캔버스로 <b>드래그</b>하거나 <b>클릭</b>해 넣으세요. (예: 특가·sale·star)</div>`; return; }
+  res.innerHTML = `<div class="iconHint">검색 중…</div>`;
+  fetch(`https://api.iconify.design/search?query=${encodeURIComponent(q)}&limit=48`)
+    .then(r => r.json())
+    .then(d => {
+      const icons = (d && d.icons) || [];
+      if (!icons.length) { res.innerHTML = `<div class="iconHint">결과 없음. 영문 키워드로 시도해보세요 (예: sale, star, fire, crown).</div>`; return; }
+      res.innerHTML = "";
+      icons.forEach(id => {
+        const tile = document.createElement("div"); tile.className = "iconTile"; tile.title = id; tile.draggable = true;
+        const img = document.createElement("img"); img.src = iconTileUrl(id, 36); img.alt = id; tile.appendChild(img);
+        tile.addEventListener("dragstart", ev => { ev.dataTransfer.setData("application/x-bs-icon", iconTileUrl(id, 240)); ev.dataTransfer.effectAllowed = "copy"; });
+        tile.addEventListener("click", () => insertIconFromUrl(iconTileUrl(id, 240)));
+        res.appendChild(tile);
+      });
+    })
+    .catch(() => { res.innerHTML = `<div class="iconHint">검색 실패(네트워크). 잠시 후 다시 시도하세요.</div>`; });
+}
+async function insertIconFromUrl(url, clientX, clientY) {
+  showToast("아이콘을 가져오는 중…");
+  let txt;
+  try { txt = await (await fetch(url)).text(); } catch (e) { showToast("아이콘을 가져오지 못했어요.", true); return; }
+  if (!/<svg/i.test(txt)) { showToast("아이콘을 가져오지 못했어요.", true); return; }
+  const wm = txt.match(/width="([\d.]+)"/i), hm = txt.match(/height="([\d.]+)"/i);
+  let iw = wm ? +wm[1] : 64, ih = hm ? +hm[1] : 64;
+  const dataUrl = "data:image/svg+xml," + encodeURIComponent(txt);
+  if (!state.svg) loadSVG(`<svg xmlns="${SVGNS}" width="800" height="800" viewBox="0 0 800 800"><rect width="800" height="800" fill="#ffffff"/></svg>`);
+  const target = state.vbW * 0.18, sc = target / iw, dw = iw * sc, dh = ih * sc;
+  let x, y;
+  if (clientX != null && state.svg.getScreenCTM) { const p = clientToUser(clientX, clientY); x = p.x - dw / 2; y = p.y - dh / 2; }
+  else { x = state.vbW * 0.04; y = state.vbH - dh - state.vbH * 0.04; }   // 기본: 왼쪽 하단
+  const el = document.createElementNS(SVGNS, "image");
+  el.setAttribute("x", Math.round(x)); el.setAttribute("y", Math.round(y));
+  el.setAttribute("width", Math.round(dw)); el.setAttribute("height", Math.round(dh));
+  el.setAttribute("href", dataUrl); el.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  state.svg.appendChild(el); registerEl(el); select(el); pushSnapshot();
+  showToast("로고를 넣었습니다.");
+}
+$("iconSearch").addEventListener("input", () => { clearTimeout(iconSearchT); iconSearchT = setTimeout(iconSearch, 350); });
+$("iconColor").addEventListener("change", iconSearch);
+$("iconToggle").onclick = () => { const p = $("iconPanel"); p.classList.toggle("collapsed"); $("iconToggle").textContent = p.classList.contains("collapsed") ? "▸" : "▾"; };
 
 function loadSVG(text) {
   const doc = new DOMParser().parseFromString(text, "image/svg+xml");
