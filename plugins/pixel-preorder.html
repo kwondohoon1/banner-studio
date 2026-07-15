@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>픽셀 예약판매 배너</title>
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+button,input,select{font:inherit}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top small{display:block;color:var(--muted);font-size:10px;font-weight:500;margin-top:2px}
+main{padding:16px;max-width:520px;margin:0 auto 40px}
+.step{margin:17px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.title-input,textarea,input[type=text],select,input[type=number],input[type=range]{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;outline:none}
+input[type=range]{padding:8px 10px}
+textarea{min-height:72px;resize:vertical}
+.title-input:focus,textarea:focus,input[type=text]:focus,select:focus,input[type=number]:focus{border-color:#9da08f;box-shadow:0 0 0 3px rgba(223,255,67,.22)}
+.primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;margin-top:12px}
+.primary:hover{filter:brightness(1.08)}
+.secondary{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);padding:11px;font-weight:750;cursor:pointer}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:14px;box-shadow:var(--shadow)}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px}.status.show{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.field{display:grid;gap:5px}.field label{font-size:10px;color:var(--muted);font-weight:700}
+.theme-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.theme-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;cursor:pointer;text-align:left;min-width:0}
+.theme-btn.active{border-color:var(--dark);box-shadow:inset 0 0 0 1px var(--dark)}
+.theme-swatch{height:46px;border-radius:8px;margin-bottom:7px;position:relative;overflow:hidden}
+.theme-swatch.purple{background:linear-gradient(135deg,#f9f8fc,#ece8f6)}
+.theme-swatch.cookie{background:linear-gradient(135deg,#fffaf0,#f1dfc8)}
+.theme-swatch:after{content:"";position:absolute;left:11px;right:11px;bottom:9px;height:9px;border-radius:2px;background:currentColor;opacity:.75}
+.theme-swatch.purple{color:#6d36a4}.theme-swatch.cookie{color:#6c4129}
+.theme-btn b{font-size:11px}.theme-btn span{font-size:9px;color:var(--muted);display:block;margin-top:2px}
+.dropzone{border:1px dashed #b7baae;border-radius:14px;background:#fff;padding:16px;text-align:center;cursor:pointer;transition:.16s}
+.dropzone.drag{border-color:var(--dark);background:#f2f7d4;transform:translateY(-1px)}
+.dropzone b{display:block;margin-bottom:4px}.dropzone span{font-size:10px;color:var(--muted)}
+.file-name{font-size:10px;color:var(--muted);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar{display:flex;gap:8px;margin-top:8px}.toolbar>*{flex:1}
+.checkrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.checkrow input{accent-color:#20221d}
+.hint{font-size:10px;line-height:1.55;color:var(--muted);margin:6px 1px 0}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;background:#fff;border:1px solid var(--line);padding:5px 8px;font-size:9px;color:var(--muted)}
+@media(max-width:380px){.grid3{grid-template-columns:1fr}.theme-list,.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">PX</div>
+  <div><b>픽셀 예약판매 배너</b><small>편집 가능한 1254 × 1254 SVG 생성</small></div>
+</header>
+<main>
+  <div class="step"><b>테마 선택</b><span class="num">01</span></div>
+  <div class="theme-list" id="themeList">
+    <button type="button" class="theme-btn active" data-theme="purple">
+      <div class="theme-swatch purple"></div><b>픽셀 퍼플</b><span>보라색 RPG 픽셀 월드</span>
+    </button>
+    <button type="button" class="theme-btn" data-theme="cookie">
+      <div class="theme-swatch cookie"></div><b>쿠키앤크림</b><span>크림·브라운 디저트 월드</span>
+    </button>
+  </div>
+
+  <div class="step"><b>제품 이미지</b><span class="num">02</span></div>
+  <input id="productFile" type="file" accept="image/*" hidden>
+  <div class="dropzone" id="productDrop" tabindex="0" role="button" aria-label="제품 이미지 업로드">
+    <b>제품 PNG를 클릭하거나 드래그하세요</b>
+    <span>파일 또는 웹페이지 이미지를 그대로 드롭할 수 있습니다.</span>
+    <div class="file-name" id="fileName">이미지 없음</div>
+  </div>
+  <div class="toolbar">
+    <button type="button" class="secondary" id="chooseBtn">파일 선택</button>
+    <button type="button" class="secondary" id="removeBtn">이미지 제거</button>
+  </div>
+  <div class="grid3" style="margin-top:8px">
+    <div class="field"><label for="productX">가로 위치</label><input id="productX" type="number" value="627" min="-600" max="1800" step="1"></div>
+    <div class="field"><label for="productY">세로 위치</label><input id="productY" type="number" value="545" min="-600" max="1800" step="1"></div>
+    <div class="field"><label for="productW">이미지 폭</label><input id="productW" type="number" value="850" min="80" max="1800" step="5"></div>
+  </div>
+  <div class="grid2" style="margin-top:8px">
+    <label class="checkrow"><input id="productShadow" type="checkbox" checked> 제품 그림자</label>
+    <label class="checkrow"><input id="productBehind" type="checkbox"> 제품을 타이틀 뒤로</label>
+  </div>
+  <p class="hint">투명 배경 PNG를 권장합니다. 다나와 등 외부 이미지가 CORS로 막히면 자동으로 이미지 프록시를 거쳐 PNG data URI로 변환합니다.</p>
+
+  <div class="step"><b>문구</b><span class="num">03</span></div>
+  <div class="field"><label for="modelText">상단 모델명</label><input id="modelText" class="title-input" value="TFG Magnetox 2XL"></div>
+  <div class="grid2" style="margin-top:8px">
+    <div class="field"><label for="headlineLeft">메인 타이틀 1</label><input id="headlineLeft" type="text" value="픽셀"></div>
+    <div class="field"><label for="headlineRight">메인 타이틀 2</label><input id="headlineRight" type="text" value="POLARIS2"></div>
+  </div>
+  <div class="field" style="margin-top:8px"><label for="ctaText">하단 타이틀</label><input id="ctaText" type="text" value="예약판매 개시"></div>
+  <div class="grid2" style="margin-top:8px">
+    <div class="field"><label for="dateText">배송 안내</label><input id="dateText" type="text" value="7월 14일부터 순차배송"></div>
+    <label class="checkrow" style="align-self:end"><input id="showDate" type="checkbox"> 배송 배지 표시</label>
+  </div>
+
+  <div class="step"><b>글자 크기 및 출력</b><span class="num">04</span></div>
+  <div class="grid3">
+    <div class="field"><label for="headlineSize">메인 크기</label><input id="headlineSize" type="number" value="108" min="42" max="180"></div>
+    <div class="field"><label for="ctaSize">하단 크기</label><input id="ctaSize" type="number" value="92" min="34" max="150"></div>
+    <div class="field"><label for="dateSize">배송 크기</label><input id="dateSize" type="number" value="38" min="18" max="70"></div>
+  </div>
+  <div class="field" style="margin-top:8px"><label for="filename">파일명</label><input id="filename" type="text" value="TFG-Magnetox-2XL-preorder-banner.svg"></div>
+  <button class="primary" id="saveBtn">SVG 다운로드</button>
+  <div id="status" class="status"></div>
+  <div class="preview-shell" id="preview"></div>
+  <p class="hint"><span class="pill">SVG</span> 글자는 각각 별도 &lt;text&gt; 노드이며, 제품 이미지는 PNG data URI로 포함됩니다.</p>
+</main>
+<script>
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+const clamp = (v,min,max) => Math.max(min,Math.min(max,Number(v)||0));
+let theme = 'purple';
+let productData = '';
+let productRatio = 1.6;
+
+function setStatus(t, isError=false){
+  const x=$('#status');
+  x.textContent=t;
+  x.className='status show';
+  x.style.background=isError?'#ffe0dc':'#efffb7';
+  x.style.color=isError?'#7c2016':'#39430f';
+}
+window.setStatus = setStatus;
+
+function loadImage(src){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=reject;
+    img.src=src;
+  });
+}
+async function fileToPngDataUrl(file){
+  const objectUrl=URL.createObjectURL(file);
+  try{
+    const img=await loadImage(objectUrl);
+    const maxSide=2400;
+    const scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+    const w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+    const h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+    const canvas=document.createElement('canvas');
+    canvas.width=w; canvas.height=h;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,w,h);
+    ctx.drawImage(img,0,0,w,h);
+    productRatio=w/h;
+    return canvas.toDataURL('image/png');
+  } finally { URL.revokeObjectURL(objectUrl); }
+}
+function cleanExternalUrl(url){
+  try{
+    const u=new URL(url,location.href);
+    ['width','height','w','h','crop','thumb','thumbnail','resize','quality','q'].forEach(k=>u.searchParams.delete(k));
+    return u.href;
+  }catch(_){ return url; }
+}
+async function fetchAsFile(url){
+  const clean=cleanExternalUrl(url);
+  let res;
+  try{ res=await fetch(clean,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}); }catch(_){ res=null; }
+  if(!res || !res.ok || res.type==='opaque'){
+    const noProtocol=clean.replace(/^https?:\/\//i,'');
+    const proxy='https://images.weserv.nl/?url='+encodeURIComponent(noProtocol)+'&output=png';
+    res=await fetch(proxy,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'});
+  }
+  if(!res.ok) throw new Error('이미지를 불러오지 못했습니다.');
+  const blob=await res.blob();
+  return new File([blob],'dropped-image.'+(blob.type.includes('png')?'png':'jpg'),{type:blob.type||'image/png'});
+}
+function extractUrl(dt){
+  const uri=(dt.getData('text/uri-list')||'').split('\n').find(v=>v && !v.startsWith('#'));
+  if(uri) return uri.trim();
+  const html=dt.getData('text/html')||'';
+  if(html){
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    const img=doc.querySelector('img');
+    if(img) return img.currentSrc||img.src||img.getAttribute('src')||'';
+  }
+  const plain=(dt.getData('text/plain')||'').trim();
+  return /^https?:\/\//i.test(plain)?plain:'';
+}
+const ImageDrop={
+  wire(inputId,selectors,onStatus){
+    const input=document.getElementById(inputId);
+    const zones=selectors.map(s=>document.querySelector(s)).filter(Boolean);
+    zones.forEach(z=>this.attachToInput(z,input,onStatus));
+  },
+  attachToInput(zone,input,onStatus){
+    ['dragenter','dragover'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add('drag');}));
+    ['dragleave','drop'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove('drag');}));
+    zone.addEventListener('drop',async e=>{
+      try{
+        let file=e.dataTransfer.files && e.dataTransfer.files[0];
+        if(!file){
+          const url=extractUrl(e.dataTransfer);
+          if(!url) throw new Error('드롭한 항목에서 이미지 주소를 찾지 못했습니다.');
+          onStatus && onStatus('외부 이미지를 가져오는 중입니다…');
+          file=await fetchAsFile(url);
+        }
+        const dt=new DataTransfer(); dt.items.add(file); input.files=dt.files;
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+      }catch(err){ onStatus && onStatus(err.message||'이미지 처리 실패',true); }
+    });
+  }
+};
+window.ImageDrop=ImageDrop;
+
+function sparkle(x,y,s,color,opacity=1){
+  const a=Math.max(2,Math.round(s*.18));
+  return `<g fill="${color}" opacity="${opacity}"><rect x="${x-a/2}" y="${y-s/2}" width="${a}" height="${s}"/><rect x="${x-s/2}" y="${y-a/2}" width="${s}" height="${a}"/><rect x="${x-a*.45}" y="${y-a*.45}" width="${a*.9}" height="${a*.9}" fill="#fff" opacity=".7"/></g>`;
+}
+function pixelCloud(x,y,scale,base,light){
+  const u=14*scale;
+  const blocks=[[2,1,4,1],[1,2,6,1],[0,3,8,1],[1,4,6,1],[2,0,2,1]];
+  return `<g opacity=".78">${blocks.map(([bx,by,bw,bh],i)=>`<rect x="${x+bx*u}" y="${y+by*u}" width="${bw*u}" height="${bh*u}" fill="${i<2?light:base}"/>`).join('')}</g>`;
+}
+function topGrid(color){
+  let out='<g opacity=".19">';
+  for(let r=0;r<9;r++) for(let c=0;c<11;c++){
+    const d=Math.hypot(c-3.8,r-3.8);
+    const op=Math.max(0,.75-d*.11);
+    if(op>.08) out+=`<rect x="${c*19}" y="${r*19}" width="17" height="17" fill="none" stroke="${color}" stroke-width="1" opacity="${op.toFixed(2)}"/>`;
+  }
+  return out+'</g>';
+}
+function mountainScene(p){
+  return `<g opacity=".78">
+    <polygon points="0,1165 75,1080 147,1152 217,1092 301,1168 356,1118 448,1254 0,1254" fill="${p.mountainBack}"/>
+    <polygon points="0,1213 76,1110 136,1188 212,1125 284,1217 356,1151 433,1254 0,1254" fill="${p.mountainMid}"/>
+    <polygon points="0,1254 75,1160 134,1212 210,1160 281,1230 357,1190 410,1254" fill="${p.mountainFront}"/>
+    <polygon points="43,1141 76,1108 101,1144 78,1136 69,1152" fill="#fff" opacity=".72"/>
+    <polygon points="181,1155 213,1126 239,1162 214,1151 204,1168" fill="#fff" opacity=".66"/>
+  </g>`;
+}
+function castleScene(p){
+  return `<g transform="translate(1000 925)" opacity=".88">
+    <path d="M-80 329 C-33 265 6 248 58 260 C116 271 163 304 215 329 Z" fill="${p.hill}"/>
+    <rect x="18" y="100" width="96" height="190" fill="${p.castle}" stroke="${p.accent}" stroke-width="8"/>
+    <polygon points="8,104 66,42 124,104" fill="${p.castleRoof}"/>
+    <rect x="-53" y="160" width="61" height="131" fill="${p.castle}" stroke="${p.accent}" stroke-width="7"/>
+    <polygon points="-63,164 -22,115 18,164" fill="${p.castleRoof}"/>
+    <rect x="124" y="170" width="58" height="121" fill="${p.castle}" stroke="${p.accent}" stroke-width="7"/>
+    <polygon points="114,174 153,126 192,174" fill="${p.castleRoof}"/>
+    <rect x="51" y="207" width="31" height="83" rx="15" fill="${p.dark}" opacity=".7"/>
+    <rect x="-34" y="215" width="20" height="37" rx="10" fill="${p.dark}" opacity=".55"/>
+    <rect x="143" y="217" width="19" height="35" rx="9" fill="${p.dark}" opacity=".55"/>
+    <line x1="66" y1="42" x2="66" y2="-3" stroke="${p.accent}" stroke-width="7"/>
+    <path d="M66 -3 L115 8 L66 22 Z" fill="${p.accent}"/>
+  </g>`;
+}
+function cookieScene(p){
+  const cookie=(x,y,r)=>`<g><circle cx="${x}" cy="${y}" r="${r}" fill="${p.cookie}" stroke="${p.accent}" stroke-width="5"/><circle cx="${x-r*.35}" cy="${y-r*.28}" r="${r*.12}" fill="${p.dark}"/><circle cx="${x+r*.31}" cy="${y-r*.18}" r="${r*.105}" fill="${p.dark}"/><circle cx="${x+r*.2}" cy="${y+r*.34}" r="${r*.13}" fill="${p.dark}"/><circle cx="${x-r*.3}" cy="${y+r*.25}" r="${r*.09}" fill="${p.dark}"/></g>`;
+  return `<g opacity=".94">
+    <path d="M0 1210 C60 1135 147 1137 202 1198 C261 1144 347 1155 398 1222 C510 1186 594 1218 664 1254 L0 1254 Z" fill="${p.cream}"/>
+    <path d="M832 1254 C896 1168 974 1171 1032 1217 C1106 1155 1180 1172 1254 1239 L1254 1254 Z" fill="${p.cream}"/>
+    ${cookie(31,1141,76)}${cookie(176,1160,52)}${cookie(1084,1168,73)}${cookie(1209,1140,83)}${cookie(940,1220,30)}${cookie(267,1220,28)}
+    <circle cx="153" cy="1234" r="10" fill="${p.dark}"/><circle cx="781" cy="1230" r="8" fill="${p.dark}"/><circle cx="1001" cy="1208" r="12" fill="${p.dark}"/>
+  </g>`;
+}
+function pixelCorners(x,y,w,h,c,stroke,fill,shadow=true){
+  const cut=26;
+  const d=`M${x+cut} ${y} H${x+w-cut} V${y+9} H${x+w-9} V${y+cut} H${x+w} V${y+h-cut} H${x+w-9} V${y+h-9} H${x+w-cut} V${y+h} H${x+cut} V${y+h-9} H${x+9} V${y+h-cut} H${x} V${y+cut} H${x+9} V${y+9} H${x+cut} Z`;
+  return `${shadow?`<path d="${d}" transform="translate(0 12)" fill="${c}" opacity=".22"/>`:''}<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="8"/>`;
+}
+function defs(p){
+  return `<defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.bgTop}"/><stop offset="1" stop-color="${p.bgBottom}"/></linearGradient>
+    <linearGradient id="badgeGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${p.badgeDark}"/><stop offset=".5" stop-color="${p.badge}"/><stop offset="1" stop-color="${p.badgeDark}"/></linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="${p.dark}" flood-opacity=".22"/></filter>
+    <filter id="textShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="5" dy="7" stdDeviation="0" flood-color="${p.shadowText}" flood-opacity=".62"/></filter>
+  </defs>`;
+}
+function palette(){
+  if(theme==='cookie') return {
+    bgTop:'#fffaf2',bgBottom:'#f7ede2',ink:'#5d3823',accent:'#70442c',accent2:'#9b613c',badge:'#946445',badgeDark:'#5c3827',dark:'#4c2d1d',shadowText:'#d8b893',
+    cloud:'#ead1ad',cloudLight:'#fff9e9',mountainBack:'#d2ad80',mountainMid:'#b98457',mountainFront:'#845a3b',hill:'#ead9bd',castle:'#fff1d9',castleRoof:'#6f432b',cookie:'#c98c54',cream:'#fff8eb'
+  };
+  return {
+    bgTop:'#fbfbfd',bgBottom:'#f5f4f8',ink:'#161617',accent:'#6836a0',accent2:'#8b57c4',badge:'#814fb5',badgeDark:'#44206f',dark:'#3d205e',shadowText:'#b7a5ca',
+    cloud:'#c8c7d8',cloudLight:'#f1f0f8',mountainBack:'#cbc9db',mountainMid:'#aaa5c3',mountainFront:'#817b9e',hill:'#bbb8aa',castle:'#c8c4d7',castleRoof:'#6b608a',cookie:'#c98c54',cream:'#fff8eb'
+  };
+}
+function value(id){return $(id).value.trim();}
+function buildSVG(previewMode=false){
+  const W=1254,H=1254,p=palette();
+  const model=value('#modelText'), left=value('#headlineLeft'), right=value('#headlineRight'), cta=value('#ctaText'), date=value('#dateText');
+  const mainSize=clamp($('#headlineSize').value,42,180), ctaSize=clamp($('#ctaSize').value,34,150), dateSize=clamp($('#dateSize').value,18,70);
+  const px=Number($('#productX').value)||627, py=Number($('#productY').value)||545, pw=clamp($('#productW').value,80,1800), ph=pw/productRatio;
+  const showDate=$('#showDate').checked;
+  const imageTag=productData?`<image href="${productData}" x="${(px-pw/2).toFixed(2)}" y="${(py-ph/2).toFixed(2)}" width="${pw.toFixed(2)}" height="${ph.toFixed(2)}" preserveAspectRatio="xMidYMid meet"${$('#productShadow').checked?' filter="url(#softShadow)"':''}/>`:'';
+  const guide=previewMode&&!productData?`<g opacity=".35"><rect x="282" y="372" width="690" height="350" rx="28" fill="none" stroke="${p.accent}" stroke-width="5" stroke-dasharray="16 16"/><text x="627" y="547" text-anchor="middle" dominant-baseline="central" font-family="Pretendard, Noto Sans KR, Arial, sans-serif" font-size="30" font-weight="700" fill="${p.accent}">제품 이미지를 드롭하세요</text></g>`:'';
+  const modelBadge=`<g>${pixelCorners(379,92,496,66,p.dark,'none','url(#badgeGrad)',true)}${sparkle(416,125,27,'#fff')}${sparkle(838,125,27,'#fff')}<text x="627" y="126" text-anchor="middle" dominant-baseline="central" font-family="Courier New, Pretendard, Noto Sans KR, monospace" font-size="34" font-weight="500" fill="#ffffff">${esc(model)}</text></g>`;
+  const headline=`<g filter="url(#textShadow)"><text x="470" y="262" text-anchor="end" dominant-baseline="central" font-family="Galmuri11, DungGeunMo, Pretendard, Noto Sans KR, monospace" font-size="${mainSize}" font-weight="900" fill="${p.ink}">${esc(left)}</text><text x="493" y="262" text-anchor="start" dominant-baseline="central" font-family="Galmuri11, DungGeunMo, Courier New, monospace" font-size="${mainSize}" font-weight="900" fill="${p.accent}">${esc(right)}</text></g>`;
+  const ctaY=theme==='cookie'?852:870;
+  const ctaPanel=`<g>${pixelCorners(194,ctaY,872,218,p.dark,p.accent,'rgba(255,255,255,.88)',true)}${sparkle(252,ctaY+58,30,p.accent)}${sparkle(1023,ctaY+139,22,p.accent)}<text x="627" y="${ctaY+111}" text-anchor="middle" dominant-baseline="central" font-family="Galmuri11, DungGeunMo, Pretendard, Noto Sans KR, monospace" font-size="${ctaSize}" font-weight="900" fill="${p.accent}">${esc(cta)}</text></g>`;
+  const dateBadge=showDate?`<g>${pixelCorners(331,ctaY+190,592,87,p.dark,p.accent,'rgba(255,249,238,.95)',true)}${theme==='cookie'?`<circle cx="385" cy="${ctaY+233}" r="19" fill="${p.cookie}" stroke="${p.accent}" stroke-width="3"/><circle cx="379" cy="${ctaY+226}" r="4" fill="${p.dark}"/><circle cx="392" cy="${ctaY+238}" r="4" fill="${p.dark}"/><circle cx="871" cy="${ctaY+233}" r="19" fill="${p.cookie}" stroke="${p.accent}" stroke-width="3"/><circle cx="866" cy="${ctaY+226}" r="4" fill="${p.dark}"/><circle cx="879" cy="${ctaY+238}" r="4" fill="${p.dark}"/>`:''}<text x="627" y="${ctaY+234}" text-anchor="middle" dominant-baseline="central" font-family="Galmuri11, DungGeunMo, Pretendard, Noto Sans KR, monospace" font-size="${dateSize}" font-weight="800" fill="${p.dark}">${esc(date)}</text></g>`:'';
+  const scene=theme==='cookie'?cookieScene(p):mountainScene(p);
+  const decoration=`${topGrid(p.accent)}${pixelCloud(1006,77,1.05,p.cloud,p.cloudLight)}${pixelCloud(48,338,.55,p.cloud,p.cloudLight)}${sparkle(252,137,37,p.accent)}${sparkle(130,269,39,p.accent)}${sparkle(1115,266,48,p.accent)}${sparkle(1218,637,24,p.accent,.7)}${sparkle(48,773,19,p.accent,.66)}${sparkle(64,918,48,p.accent)}${sparkle(117,981,36,p.accent)}${sparkle(1216,847,45,p.accent)}${scene}${castleScene(p)}${sparkle(627,1167,80,p.accent)}`;
+  const productBehind=$('#productBehind').checked;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs(p)}<rect x="0" y="0" width="${W}" height="${H}" fill="url(#bgGrad)"/>${decoration}${modelBadge}${productBehind?imageTag:''}${headline}${!productBehind?imageTag:''}${guide}${ctaPanel}${dateBadge}</svg>`;
+}
+function render(){ $('#preview').innerHTML=buildSVG(true); }
+function outputSVG(filename, svg){
+  if (inFrame) parent.postMessage({ pluginMessage: { type: 'save-svg', filename, svg } }, '*');
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+}
+
+$$('.theme-btn').forEach(btn=>btn.addEventListener('click',()=>{
+  theme=btn.dataset.theme;
+  $$('.theme-btn').forEach(x=>x.classList.toggle('active',x===btn));
+  if(theme==='cookie') $('#showDate').checked=true;
+  render();
+}));
+$('#productDrop').addEventListener('click',()=>$('#productFile').click());
+$('#productDrop').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#productFile').click();}});
+$('#chooseBtn').onclick=()=>$('#productFile').click();
+$('#removeBtn').onclick=()=>{productData='';$('#productFile').value='';$('#fileName').textContent='이미지 없음';setStatus('제품 이미지를 제거했습니다.');render();};
+$('#productFile').addEventListener('change',async e=>{
+  const file=e.target.files&&e.target.files[0]; if(!file)return;
+  try{
+    setStatus('이미지를 PNG data URI로 변환하는 중입니다…');
+    productData=await fileToPngDataUrl(file);
+    $('#fileName').textContent=file.name;
+    setStatus('제품 이미지가 적용되었습니다.');
+    render();
+  }catch(err){setStatus(err.message||'이미지를 처리하지 못했습니다.',true);}
+});
+$$('input[type=text], input[type=number], input[type=checkbox], select').forEach(el=>el.addEventListener('input',render));
+$('#saveBtn').textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
+$('#saveBtn').onclick=()=>{
+  const filename=(value('#filename')||'pixel-preorder-banner.svg').replace(/[\\/:*?"<>|]+/g,'-');
+  outputSVG(filename.endsWith('.svg')?filename:filename+'.svg',buildSVG(false));
+  setStatus(inFrame?'에디터로 SVG를 전송했습니다.':'SVG 다운로드를 시작했습니다.');
+};
+window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(!m)return;if(m.type==='toast'||m.type==='error')setStatus(m.message,m.type==='error');});
+window.addEventListener('load',()=>{ImageDrop.wire('productFile',['#productDrop','#preview'],setStatus);render();});
+</script>
+</body>
+</html>
