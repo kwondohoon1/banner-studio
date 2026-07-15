@@ -66,6 +66,16 @@
   .layer.hidden .nm{opacity:.4;text-decoration:line-through}
 
   /* ---- 캔버스 ---- */
+  .center{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .center>.stageWrap{flex:1}
+  .pageTabs{display:flex;align-items:center;gap:4px;padding:5px 8px 0;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;min-height:36px;flex:none}
+  .pageTab{display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--panel2);cursor:pointer;white-space:nowrap;font-size:12px;color:var(--muted);max-width:180px}
+  .pageTab .nm{overflow:hidden;text-overflow:ellipsis}
+  .pageTab.active{background:#fff;color:var(--text);font-weight:700}
+  .pageTab .x{opacity:.5;font-size:11px;flex:none}
+  .pageTab .x:hover{opacity:1;color:var(--danger)}
+  .pageAdd{border:1px dashed var(--line);border-radius:8px;background:none;cursor:pointer;color:var(--muted);padding:5px 11px;font-size:14px;flex:none}
+  .pageAdd:hover{border-color:var(--accent);color:var(--text)}
   .stageWrap{position:relative;overflow:auto;background:
     repeating-conic-gradient(#e4e6dc 0% 25%,#f1f2ec 0% 50%) 50%/22px 22px;min-height:0}
   .stageWrap.dropping{outline:2px dashed var(--accent);outline-offset:-6px;background:#eef0e8}
@@ -188,7 +198,9 @@
       <div id="layerList"></div>
     </div>
 
-    <!-- 중앙: 캔버스 -->
+    <!-- 중앙: 페이지 탭 + 캔버스 -->
+    <div class="center">
+    <div class="pageTabs" id="pageTabs"></div>
     <div class="stageWrap" id="stageWrap">
       <div id="stage"></div>
       <div id="overlay"></div>
@@ -211,6 +223,7 @@
         </div>
       </aside>
     </div>
+    </div>
 
     <!-- 우: 속성 -->
     <div class="side right">
@@ -230,9 +243,7 @@
         <button class="iconBtn" id="closePlugin" aria-label="플러그인 닫기">×</button>
       </div>
       <div class="pluginList" id="pluginList"></div>
-      <div class="pluginHost" id="pluginHost">
-        <iframe id="pluginFrame" title="배너 플러그인" src="about:blank"></iframe>
-      </div>
+      <div class="pluginHost" id="pluginHost"></div>
     </aside>
   </div>
 </div>
@@ -250,7 +261,9 @@ const state = {
   sels: [],            // 드래그/다중 선택된 요소 목록
   els: [],             // 선택 가능한 요소 목록
   undo: [], redo: [],  // 스냅샷 스택(문자열)
+  pageIndex: -1,       // 현재 페이지 인덱스
 };
+let pages = [];        // 포토샵식 페이지 목록: {name, data|null} (활성 페이지 데이터는 작업세트에 라이브)
 
 const FONTS = [
   "Pretendard", "Gmarket Sans", "S-Core Dream", "NanumSquareNeo", "Noto Sans KR",
@@ -348,6 +361,20 @@ function renderPluginList() {
   });
 }
 
+// 플러그인마다 iframe을 유지(전환해도 입력·상태 보존) — 보이는 것만 표시
+function pluginFrameFor(id) {
+  const host = $("pluginHost");
+  let fr = host.querySelector('iframe[data-plugin="' + id + '"]');
+  if (!fr) {
+    const p = EDITOR_PLUGINS.find(x => x.id === id);
+    fr = document.createElement("iframe");
+    fr.title = (p && p.title) || "플러그인";
+    fr.setAttribute("data-plugin", id);
+    fr.src = p ? p.file : "about:blank";
+    host.appendChild(fr);
+  }
+  return fr;
+}
 function openPlugin(id) {
   const plugin = EDITOR_PLUGINS.find(p => p.id === id);
   if (!plugin) return;
@@ -357,10 +384,8 @@ function openPlugin(id) {
   $("pluginDesc").textContent = plugin.description || "";
   renderPluginTabs();
   renderPluginList();
-  const frame = $("pluginFrame");
-  if (!frame.getAttribute("src") || frame.getAttribute("src") === "about:blank" || !frame.src.endsWith(plugin.file)) {
-    frame.src = plugin.file;
-  }
+  const fr = pluginFrameFor(id);
+  $("pluginHost").querySelectorAll("iframe").forEach(f => { f.style.display = (f === fr) ? "" : "none"; });
 }
 
 function closePlugin() {
@@ -369,19 +394,20 @@ function closePlugin() {
 }
 
 function postToPlugin(message) {
-  const frame = $("pluginFrame");
-  if (frame && frame.contentWindow) frame.contentWindow.postMessage({ pluginMessage: message }, "*");
+  const fr = $("pluginHost").querySelector('iframe[data-plugin="' + pluginState.active + '"]');
+  if (fr && fr.contentWindow) fr.contentWindow.postMessage({ pluginMessage: message }, "*");
 }
 
 function handlePluginMessage(e) {
-  const frame = $("pluginFrame");
-  if (!frame || e.source !== frame.contentWindow) return;
+  const frames = [...$("pluginHost").querySelectorAll("iframe")];
+  const frame = frames.find(f => f.contentWindow === e.source);
+  if (!frame) return;
   const msg = e.data && e.data.pluginMessage;
   if (!msg) return;
   if (msg.type === "save-svg") {
-    const ok = loadSVG(msg.svg || "");
-    const name = msg.filename ? ` (${msg.filename})` : "";
     const label = (EDITOR_PLUGINS.find(p => p.id === pluginState.active) || {}).title || "배너";
+    const ok = openDoc(label, msg.svg || "");   // 새 페이지로 가져와 기존 작업 유지
+    const name = msg.filename ? ` (${msg.filename})` : "";
     if (ok) {
       postToPlugin({ type: "toast", message: "SVG를 에디터로 가져왔습니다." });
       showToast(`${label} SVG를 캔버스로 가져왔습니다${name}`);
@@ -421,7 +447,7 @@ $("stageWrap").addEventListener("drop", async e => {
 
 function readFile(file) {
   const r = new FileReader();
-  r.onload = () => loadSVG(r.result);
+  r.onload = () => openDoc((file.name || "SVG").replace(/\.svg$/i, ""), r.result);
   r.readAsText(file);
 }
 
@@ -567,7 +593,88 @@ $("iconSearch").addEventListener("input", () => { clearTimeout(iconSearchT); ico
 $("iconColor").addEventListener("change", iconSearch);
 $("iconToggle").onclick = () => { const p = $("iconPanel"); p.classList.toggle("collapsed"); $("iconToggle").textContent = p.classList.contains("collapsed") ? "▸" : "▾"; };
 
+/* ================= 페이지(포토샵식 여러 문서) ================= */
+function getWorkingData() {
+  return { html: state.svg ? state.svg.outerHTML : null, vbW: state.vbW, vbH: state.vbH, undo: state.undo.slice(), redo: state.redo.slice(), zoom: state.zoom };
+}
+function setWorkingData(d) {
+  const stage = $("stage"); stage.innerHTML = "";
+  if (typeof clearGuides === "function") clearGuides();
+  if (d && d.html) {
+    const doc = new DOMParser().parseFromString(d.html, "image/svg+xml");
+    const fresh = document.importNode(doc.querySelector("svg"), true);
+    stage.appendChild(fresh); state.svg = fresh; state.vbW = d.vbW; state.vbH = d.vbH;
+    $("emptyState").style.display = "none";
+    bindSelectable();
+    ["saveSvg", "exportPng"].forEach(id => $(id).disabled = false);
+  } else {
+    state.svg = null; state.vbW = (d && d.vbW) || 860; state.vbH = (d && d.vbH) || 1360;
+    state.els = []; renderLayers();
+    $("emptyState").style.display = "";
+    ["saveSvg", "exportPng"].forEach(id => $(id).disabled = true);
+  }
+  state.undo = (d && d.undo) ? d.undo.slice() : []; state.redo = (d && d.redo) ? d.redo.slice() : [];
+  state.zoom = (d && d.zoom) || 1;
+  select(null); applyZoom(); refreshUndoButtons();
+  if (state.svg) zoomFit();
+}
+function ensureActivePage(name) {
+  if (state.pageIndex < 0) { pages.push({ name: name || "페이지 1", data: null }); state.pageIndex = 0; }
+}
+function renderTabs() {
+  const bar = $("pageTabs"); if (!bar) return;
+  bar.innerHTML = "";
+  pages.forEach((p, i) => {
+    const tab = document.createElement("div"); tab.className = "pageTab" + (i === state.pageIndex ? " active" : "");
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name; tab.appendChild(nm);
+    const x = document.createElement("span"); x.className = "x"; x.textContent = "✕"; x.title = "페이지 닫기";
+    x.onclick = (e) => { e.stopPropagation(); closePage(i); };
+    tab.appendChild(x);
+    tab.onclick = () => switchToPage(i);
+    bar.appendChild(tab);
+  });
+  const add = document.createElement("button"); add.className = "pageAdd"; add.textContent = "＋"; add.title = "새 페이지";
+  add.onclick = () => newBlankPage();
+  bar.appendChild(add);
+}
+function switchToPage(i) {
+  if (i === state.pageIndex || i < 0 || i >= pages.length) return;
+  pages[state.pageIndex].data = getWorkingData();
+  state.pageIndex = i;
+  setWorkingData(pages[i].data);
+  renderTabs();
+}
+function newBlankPage() {
+  if (state.pageIndex >= 0) pages[state.pageIndex].data = getWorkingData();
+  pages.push({ name: "페이지 " + (pages.length + 1), data: null });
+  state.pageIndex = pages.length - 1;
+  setWorkingData(null);
+  renderTabs();
+}
+function openDoc(name, svgText) {
+  if (state.pageIndex >= 0) pages[state.pageIndex].data = getWorkingData();
+  pages.push({ name: name || ("페이지 " + (pages.length + 1)), data: null });
+  state.pageIndex = pages.length - 1;
+  const ok = loadSVG(svgText);
+  if (ok === false) {
+    pages.pop(); state.pageIndex = pages.length - 1;
+    setWorkingData(state.pageIndex >= 0 ? pages[state.pageIndex].data : null);
+  }
+  renderTabs();
+  return ok;
+}
+function closePage(i) {
+  if (pages.length <= 1) { pages[0] = { name: "페이지 1", data: null }; state.pageIndex = 0; setWorkingData(null); renderTabs(); return; }
+  const active = state.pageIndex;
+  if (i !== active) { pages.splice(i, 1); if (active > i) state.pageIndex--; renderTabs(); return; }
+  pages.splice(i, 1);
+  state.pageIndex = Math.max(0, Math.min(i, pages.length - 1));
+  setWorkingData(pages[state.pageIndex].data);
+  renderTabs();
+}
+
 function loadSVG(text) {
+  ensureActivePage();
   const doc = new DOMParser().parseFromString(text, "image/svg+xml");
   const svg = doc.querySelector("svg");
   if (!svg) { alert("유효한 SVG가 아닙니다."); return false; }
@@ -595,6 +702,7 @@ function loadSVG(text) {
   zoomFit();
   ["saveSvg", "exportPng"].forEach(id => $(id).disabled = false);
   refreshUndoButtons();
+  renderTabs();
   return true;
 }
 
@@ -1351,6 +1459,9 @@ function toHex(c) {
   if (m) { const p = m[1].split(",").map(x => parseFloat(x)); return "#" + p.slice(0, 3).map(n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0")).join(""); }
   return "#000000";
 }
+
+/* 시작: 빈 페이지 1개 */
+newBlankPage();
 </script>
 </body>
 </html>

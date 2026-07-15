@@ -95,10 +95,10 @@
       <input id="sceneImage" type="file" accept="image/*" hidden />
       <p class="hint">업로드하면 위 자동 스타일 대신 이 이미지가 깔립니다. 아래에서 배경 위치·크기를 조절하세요.</p>
       <div id="sceneAdjust" style="margin-top:8px">
-        <label class="check"><input type="checkbox" id="sceneContain" /> 잘림 없이 전체 보이기(맞춤)</label>
-        <label style="margin-top:8px">배경 가로 위치</label><input type="range" id="scenePosX" min="0" max="1" step="0.01" value="0.5" style="width:100%" />
-        <label>배경 세로 위치</label><input type="range" id="scenePosY" min="0" max="1" step="0.01" value="0.5" style="width:100%" />
-        <label>배경 확대</label><input type="range" id="sceneZoom" min="1" max="2" step="0.02" value="1" style="width:100%" />
+        <p class="hint" style="margin:0 0 4px">배경은 꽉 채워 들어갑니다. 아래로 <b>어느 부분이 보일지</b> 옮기세요.</p>
+        <label>배경 좌우 이동</label><input type="range" id="scenePosX" min="0" max="1" step="0.01" value="0.5" style="width:100%" />
+        <label>배경 상하 이동</label><input type="range" id="scenePosY" min="0" max="1" step="0.01" value="0.5" style="width:100%" />
+        <label>배경 확대</label><input type="range" id="sceneZoom" min="1" max="2.5" step="0.02" value="1" style="width:100%" />
       </div>
       <label>실사 3D 배경이 필요하면</label>
       <div class="linkList" id="linkList"></div>
@@ -182,14 +182,13 @@ function containRect(img, box){
   return { x: box.x + (box.w-dw)/2, y: box.y + (box.h-dh)/2, w: dw, h: dh };
 }
 function drawCover(ctx, img, w, h){
+  // 꽉 채우되(cover) 위치(scenePosX/Y)·확대(sceneZoom)로 어느 부분이 보일지 조절
   const iw = img.width, ih = img.height;
-  const fit = shared.sceneFit || 'cover';
   const zoom = shared.sceneZoom || 1;
   const px = shared.scenePosX == null ? 0.5 : shared.scenePosX;
   const py = shared.scenePosY == null ? 0.5 : shared.scenePosY;
-  const scale = (fit === 'contain' ? Math.min(w/iw, h/ih) : Math.max(w/iw, h/ih)) * zoom;
+  const scale = Math.max(w/iw, h/ih) * zoom;
   const dw = iw*scale, dh = ih*scale;
-  if (fit === 'contain') { ctx.fillStyle = '#eef1f5'; ctx.fillRect(0, 0, w, h); }
   ctx.drawImage(img, (w-dw)*px, (h-dh)*py, dw, dh);
 }
 function fitSingle(ctx, text, maxW, startSize, minSize, weight){
@@ -892,7 +891,6 @@ renderAll();
   shared.sceneZoom=+document.getElementById('sceneZoom').value;
   renderAll();
 }); });
-(function(){ const sc=document.getElementById('sceneContain'); if(sc) sc.addEventListener('change',()=>{ shared.sceneFit=sc.checked?'contain':'cover'; renderAll(); }); })();
 // 기본 배경: 스튜디오 이미지(assets/studio-bg.jpg)를 sceneImg 기본값으로 사용
 (function(){ const img=new Image(); img.onload=function(){ shared.sceneImg=img; if(typeof renderSceneGrid==='function') renderSceneGrid(); renderAll(); }; img.src='assets/studio-bg.jpg'; })();
 </script>
