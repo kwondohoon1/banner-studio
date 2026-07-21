@@ -34,6 +34,9 @@
   .tb:hover{border-color:#bfc1b8;box-shadow:0 4px 12px rgba(25,27,22,.07)}
   .tb.primary,.tb.active{background:var(--accent);border-color:var(--accent);color:#fff}
   .tb:disabled{opacity:.4;cursor:default}
+  .helpBtn{width:30px;height:30px;padding:0;border-radius:50%;justify-content:center}
+  .helpBtn span{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1.6px solid currentColor;font-size:11px;font-weight:900;line-height:1}
+  .helpBtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
   .sep{width:1px;height:22px;background:var(--line);margin:0 3px}
   .zoomlbl{font-size:12px;color:var(--muted);min-width:44px;text-align:center}
   .spacer{flex:1}
@@ -48,7 +51,8 @@
   .body{position:relative;display:grid;grid-template-columns:210px minmax(0,1fr) 248px;height:100%;min-height:0;transition:grid-template-columns .18s ease}
   .body.plugins-open{grid-template-columns:210px minmax(0,1fr) 248px minmax(390px,440px)}
   .side{background:var(--panel);overflow:auto}
-  .side.left{border-right:1px solid var(--line)}
+  .side.left{border-right:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+  .side.left #layerList{flex:1;overflow:auto;min-height:60px}
   .side.right{border-left:1px solid var(--line)}
   .side h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
     margin:0;padding:12px 12px 8px;position:sticky;top:0;background:var(--panel);z-index:2}
@@ -82,7 +86,7 @@
   .stageWrap{position:relative;overflow:auto;background:
     repeating-conic-gradient(#e4e6dc 0% 25%,#f1f2ec 0% 50%) 50%/22px 22px;min-height:0}
   .stageWrap.dropping{outline:2px dashed var(--accent);outline-offset:-6px;background:#eef0e8}
-  .iconPanel{position:absolute;left:12px;bottom:12px;z-index:8;width:252px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(25,27,22,.16);font-size:12px;overflow:hidden}
+  .iconPanel{flex:none;background:var(--panel);border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;font-size:12px;overflow:hidden}
   .iconHead{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel2)}
   .iconHead b{font-size:12px}
   .iconHead button{border:0;background:none;cursor:pointer;font-size:14px;color:var(--muted)}
@@ -91,7 +95,7 @@
   .iconSearchRow{display:flex;gap:6px}
   .iconSearchRow input[type=text]{flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;outline:none;background:#fff;color:var(--text)}
   .iconSearchRow input[type=text]:focus{border-color:var(--accent)}
-  .iconResults{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px;max-height:154px;overflow:auto}
+  .iconResults{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px;max-height:132px;overflow:auto}
   .iconTile{aspect-ratio:1;border:1px solid var(--line);border-radius:7px;background:#fff;display:grid;place-items:center;cursor:grab;padding:4px}
   .iconTile img{width:100%;height:100%;object-fit:contain;pointer-events:none}
   .iconTile:hover{border-color:var(--accent);background:#f6f7f1}
@@ -200,7 +204,7 @@
     <div class="sep"></div>
     <div class="pluginTabs" id="pluginTabs"></div>
     <button class="tb" id="addPluginBtn" title="HTML 파일을 선택해 임시 플러그인 추가 (이 브라우저에서만)">＋ 플러그인</button>
-    <button class="tb" id="pluginHelpBtn" title="플러그인 사용법" style="width:34px;padding:0;font-weight:900">?</button>
+    <button class="tb helpBtn" id="pluginHelpBtn" title="사용법 보기" aria-label="사용법"><span>?</span></button>
     <div class="spacer"></div>
     <div class="rightgroup">
       <span class="credit">developed by 권도훈</span>
@@ -235,6 +239,17 @@
     <div class="side left">
       <h3>레이어</h3>
       <div id="layerList"></div>
+      <!-- 로고/아이콘(Iconify) — 레이어 패널 하단으로 이동 -->
+      <aside class="iconPanel" id="iconPanel">
+        <div class="iconHead"><b>🔖 로고·아이콘</b><button id="iconToggle" title="접기/펴기">▾</button></div>
+        <div class="iconBody" id="iconBody">
+          <div class="iconSearchRow">
+            <input type="text" id="iconSearch" placeholder="검색: 특가, sale, star, fire…">
+            <input type="color" id="iconColor" value="#20221d" title="아이콘 색">
+          </div>
+          <div class="iconResults" id="iconResults"><div class="iconHint">키워드 검색 후 결과를 캔버스로 <b>드래그</b>하거나 <b>클릭</b>해 넣으세요. (예: 특가·sale·star)</div></div>
+        </div>
+      </aside>
     </div>
 
     <!-- 중앙: 페이지 탭 + 캔버스 -->
@@ -247,20 +262,9 @@
         <div class="drop" id="dropZone">
           <b>SVG를 열거나 이미지를 끌어다 놓으세요</b>
           <div style="margin-top:8px;font-size:12px">SVG는 <b>문서로 열기</b> · 이미지(파일·다나와 등)는 <b>요소로 추가</b>(누끼 여부 질문)</div>
+          <button class="tb" id="emptyHelpBtn" style="margin-top:16px;font-weight:800">사용방법 확인하기 →</button>
         </div>
       </div>
-
-      <!-- 로고/아이콘(Iconify) -->
-      <aside class="iconPanel" id="iconPanel">
-        <div class="iconHead"><b>🔖 로고·아이콘</b><button id="iconToggle" title="접기/펴기">▾</button></div>
-        <div class="iconBody" id="iconBody">
-          <div class="iconSearchRow">
-            <input type="text" id="iconSearch" placeholder="검색: 특가, sale, star, fire…">
-            <input type="color" id="iconColor" value="#20221d" title="아이콘 색">
-          </div>
-          <div class="iconResults" id="iconResults"><div class="iconHint">키워드 검색 후 결과를 캔버스로 <b>드래그</b>하거나 <b>클릭</b>해 넣으세요. (예: 특가·sale·star)</div></div>
-        </div>
-      </aside>
     </div>
     </div>
 
@@ -486,9 +490,10 @@ const PLUGIN_PROMPT = `너는 "배너 스튜디오" 에디터에 붙는 독립 �
 
 만들 배너: << 여기에 원하는 배너를 자유롭게 적기 (예: 여름 세일 배너, 보라색 톤, 큰 제목, 쿠폰 3개) >>`;
 $("phSpecLink").href = PLUGIN_SPEC_URL;
-function openPluginHelp() { $("pluginHelp").classList.add("show"); }
-function closePluginHelp() { $("pluginHelp").classList.remove("show"); }
+function openPluginHelp() { $("pluginHelp").classList.add("show"); $("pluginHelpBtn").classList.add("on"); }
+function closePluginHelp() { $("pluginHelp").classList.remove("show"); $("pluginHelpBtn").classList.remove("on"); }
 $("pluginHelpBtn").onclick = openPluginHelp;
+$("emptyHelpBtn").onclick = openPluginHelp;
 $("phClose").onclick = closePluginHelp;
 $("pluginHelp").addEventListener("click", (e) => { if (e.target === $("pluginHelp")) closePluginHelp(); });
 $("phCopyPrompt").onclick = async () => {
