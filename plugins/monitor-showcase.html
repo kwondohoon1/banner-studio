@@ -162,6 +162,12 @@ function T(str, x, y, o){ o=o||{};
 function IMG(href, x, y, w, h){
   return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="xMidYMid meet"/>`;
 }
+// 캔버스: 흰 바탕 + 그 위에 모서리 살짝 라운드된 그라데이션 → 네 모서리는 흰색
+const BG_RADIUS = 48;
+function bgRect(W, H){
+  return `<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`+
+    `<rect x="0" y="0" width="${W}" height="${H}" rx="${BG_RADIUS}" fill="url(#bgG)"/>`;
+}
 function containRect(iw, ih, bx, by, bw, bh){
   const s = Math.min(bw/iw, bh/ih); const w=iw*s, h=ih*s;
   return { x:bx+(bw-w)/2, y:by+(bh-h)/2, w, h };
@@ -225,7 +231,7 @@ function buildPC(){
   const labelCY = titleCY + titleS/2 + gap1 + labelS/2;
   const desc0CY = labelCY + labelS/2 + gap2 + dl.size/2;
   const chipsY = desc0CY + (dl.lines.length-1)*descLH + dl.size/2 + gap3;
-  let body = `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#bgG)"/>`;
+  let body = bgRect(W, H);
   body += imageCard(cardX, cardY, cardW, cardH);
   body += T(state.title, tx, titleCY, { size:titleS, weight:800, fill:'#191a1f', anchor:'start', ls:-1 });
   body += T(state.label, tx, labelCY, { size:labelS, weight:700, fill:PURPLE, anchor:'start' });
@@ -244,7 +250,7 @@ function buildMobile(){
   const chipH=206, chipsY=H-100-chipH, chipsX=100, chipsW=W-200;
   const titleCY=300, labelCY=468;
   const desc0CY=548;
-  let body = `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#bgG)"/>`;
+  let body = bgRect(W, H);
   body += T(state.title, cx, titleCY, { size:titleS, weight:800, fill:'#191a1f', anchor:'middle', ls:-1 });
   body += T(state.label, cx, labelCY, { size:labelS, weight:700, fill:PURPLE, anchor:'middle' });
   dl.lines.forEach((ln,i)=> body += T(ln, cx, desc0CY+i*descLH, { size:dl.size, weight:400, fill:'#6d7480', anchor:'middle' }));
