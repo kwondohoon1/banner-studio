@@ -22,6 +22,8 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:150px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
 .imgbox.has{border-style:solid;border-color:#cfd1c9}
 .imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
+.bgrm{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;font-weight:700;color:#4f5148;cursor:pointer}
+.bgrm input{width:16px;height:16px;margin:0}
 .chip-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-top:8px}
 .chip-row input{margin:0}
 .chip-row .rm{border:1px solid #cfd1c9;background:#fff;border-radius:10px;width:38px;height:40px;cursor:pointer;color:#b23;font-weight:800;font-size:16px}
@@ -51,6 +53,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 
   <div class="step"><b>제품 이미지</b><span class="num">03 IMAGE</span></div>
   <label class="imgbox" id="imgBox"><input type="file" id="imgInput" accept="image/*" hidden><span id="imgHint">＋ 클릭 업로드 · 이미지를 드래그해서 넣기 (다나와 등)</span></label>
+  <label class="bgrm"><input type="checkbox" id="removeWhite" checked> 흰 배경 자동 제거 (누끼)</label>
 
   <div class="step"><b>특징 칩 (2~4개)</b><span class="num">04 CHIPS</span></div>
   <div id="chipList"></div>
@@ -88,8 +91,37 @@ const state = {
     { en:'Gaming', ko:'균형 잡힌 성능' },
     { en:'Creator', ko:'작업까지 완벽' }
   ],
-  img: '', imgW:0, imgH:0
+  img: '', imgW:0, imgH:0,
+  orig: '', bgRemove: true
 };
+
+/* ---------- 흰 배경 자동 제거 (누끼, 테두리부터 flood fill) ---------- */
+function colorDistance(a,b){ const dr=a[0]-b[0],dg=a[1]-b[1],db=a[2]-b[2]; return Math.sqrt(dr*dr+dg*dg+db*db); }
+function estimateEdgeColor(data,w,h){
+  let r=0,g=0,b=0,c=0; const sx=Math.max(1,Math.floor(w/80)), sy=Math.max(1,Math.floor(h/80));
+  const s=(x,y)=>{ const i=(y*w+x)*4; r+=data[i]; g+=data[i+1]; b+=data[i+2]; c++; };
+  for(let x=0;x<w;x+=sx){ s(x,0); s(x,h-1); } for(let y=0;y<h;y+=sy){ s(0,y); s(w-1,y); }
+  return [r/c,g/c,b/c];
+}
+function removeWhiteBackground(img){
+  const maxSide=1600, scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+  const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const cx=c.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0,w,h);
+  const im=cx.getImageData(0,0,w,h), d=im.data, bg=estimateEdgeColor(d,w,h);
+  const threshold=Math.max(34,Math.min(96,colorDistance(bg,[255,255,255])+42));
+  const visited=new Uint8Array(w*h), qx=[], qy=[];
+  const push=(x,y)=>{ const idx=y*w+x; if(!visited[idx]){ visited[idx]=1; qx.push(x); qy.push(y); } };
+  for(let x=0;x<w;x++){ push(x,0); push(x,h-1); } for(let y=0;y<h;y++){ push(0,y); push(w-1,y); }
+  let head=0;
+  while(head<qx.length){
+    const x=qx[head], y=qy[head++], i=(y*w+x)*4, col=[d[i],d[i+1],d[i+2]];
+    const nearBg=colorDistance(col,bg)<threshold || (d[i]>238&&d[i+1]>238&&d[i+2]>238);
+    if(!nearBg) continue; d[i+3]=0;
+    if(x>0)push(x-1,y); if(x<w-1)push(x+1,y); if(y>0)push(x,y-1); if(y<h-1)push(x,y+1);
+  }
+  cx.putImageData(im,0,0); return c;
+}
 
 /* ---------- 텍스트 측정 ---------- */
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
@@ -136,7 +168,7 @@ function containRect(iw, ih, bx, by, bw, bh){
 }
 function defs(){
   return `<defs>`+
-    `<linearGradient id="bgG" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#f8f9fc"/><stop offset="1" stop-color="#ecedf1"/></linearGradient>`+
+    `<linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#f4f5f7"/><stop offset="1" stop-color="#dcdee3"/></linearGradient>`+
     `<linearGradient id="cardG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f9"/><stop offset="1" stop-color="#e6eaf5"/></linearGradient>`+
     `<filter id="cardShadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="34" stdDeviation="42" flood-color="#b9c0d0" flood-opacity="0.5"/></filter>`+
     `<filter id="chipShadow" x="-45%" y="-45%" width="190%" height="210%"><feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#c3c9d5" flood-opacity="0.45"/></filter>`+
@@ -245,19 +277,27 @@ function buildChipUI(){
 }
 
 /* ---------- 이미지 처리 ---------- */
+// 원본(orig)에 누끼 여부를 적용해 표시 이미지 확정
+function applyImage(){
+  if(!state.orig){ return; }
+  const im = new Image();
+  im.onload = ()=>{
+    let dataUrl = state.orig, w = im.naturalWidth, h = im.naturalHeight;
+    if(state.bgRemove){
+      try { const cv = removeWhiteBackground(im); dataUrl = cv.toDataURL('image/png'); w = cv.width; h = cv.height; }
+      catch(e){ /* 실패 시 원본 사용 */ }
+    }
+    state.img = dataUrl; state.imgW = w; state.imgH = h;
+    const box=$('#imgBox'); box.classList.add('has'); box.style.backgroundImage=`url("${dataUrl}")`;
+    $('#imgHint').style.display='none';
+    render();
+  };
+  im.src = state.orig;
+}
 function readImage(file){
   if(!file || !/^image\//.test(file.type)){ setStatus('이미지 파일이 아니에요.'); return; }
   const r = new FileReader();
-  r.onload = ()=>{
-    const im = new Image();
-    im.onload = ()=>{
-      state.img = r.result; state.imgW = im.naturalWidth; state.imgH = im.naturalHeight;
-      const box=$('#imgBox'); box.classList.add('has'); box.style.backgroundImage=`url("${r.result}")`;
-      $('#imgHint').style.display='none';
-      render();
-    };
-    im.src = r.result;
-  };
+  r.onload = ()=>{ state.orig = r.result; applyImage(); };
   r.readAsDataURL(file);
 }
 
@@ -281,6 +321,7 @@ $('#title').addEventListener('input', e=>{ state.title=e.target.value; render();
 $('#label').addEventListener('input', e=>{ state.label=e.target.value; render(); });
 $('#desc').addEventListener('input', e=>{ state.desc=e.target.value; render(); });
 $('#imgInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) readImage(f); e.target.value=''; });
+$('#removeWhite').addEventListener('change', e=>{ state.bgRemove=e.target.checked; applyImage(); });
 $('#addChip').onclick = ()=>{ if(state.chips.length<4){ state.chips.push({en:'',ko:''}); buildChipUI(); render(); } };
 $('#tabPc').onclick = ()=>{ $('#tabPc').classList.add('on'); $('#tabMo').classList.remove('on'); $('#pvPc').classList.remove('hide'); $('#pvMo').classList.add('hide'); };
 $('#tabMo').onclick = ()=>{ $('#tabMo').classList.add('on'); $('#tabPc').classList.remove('on'); $('#pvMo').classList.remove('hide'); $('#pvPc').classList.add('hide'); };
