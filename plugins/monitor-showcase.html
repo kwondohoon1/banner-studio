@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>모니터 쇼케이스 배너</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top b{font-size:14px}.top small{font-size:9px;color:var(--muted);display:block;letter-spacing:.4px}
+main{padding:16px;max-width:560px}
+.step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.title-input,textarea,input[type=text]{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;outline:none}
+.title-input:focus,textarea:focus,input:focus{border-color:#6f7268;box-shadow:0 0 0 3px rgba(38,40,35,.07)}
+textarea{resize:vertical;min-height:64px;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:150px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
+.imgbox.has{border-style:solid;border-color:#cfd1c9}
+.imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
+.chip-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-top:8px}
+.chip-row input{margin:0}
+.chip-row .rm{border:1px solid #cfd1c9;background:#fff;border-radius:10px;width:38px;height:40px;cursor:pointer;color:#b23;font-weight:800;font-size:16px}
+.miniadd{margin-top:10px;border:1px dashed #b9bbb1;background:#fbfbf8;border-radius:12px;padding:10px;width:100%;cursor:pointer;font:inherit;color:#5b5d54;font-weight:700}
+.miniadd:disabled{opacity:.4;cursor:not-allowed}
+.hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.primary{width:100%;margin-top:18px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px;line-height:1.45}.status.show{display:block}
+.pv-tabs{display:flex;gap:6px;margin-top:16px}
+.pv-tabs button{flex:1;border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:9px;font:inherit;font-weight:700;cursor:pointer;color:#5b5d54}
+.pv-tabs button.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:10px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+.preview-shell.hide{display:none}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">M</div><div><b>모니터 쇼케이스 배너</b><small>PC 2176×1036 · MOBILE 1248×1817</small></div></header>
+<main>
+  <div class="step"><b>타이틀</b><span class="num">01 TITLE</span></div>
+  <input id="title" class="title-input" maxlength="30" value="Mini LED">
+
+  <div class="step"><b>보라 라벨 · 설명</b><span class="num">02 TEXT</span></div>
+  <input id="label" class="title-input" maxlength="30" value="균형 잡힌 성능" style="margin-bottom:8px">
+  <textarea id="desc" maxlength="120" placeholder="설명 (Enter로 줄바꿈)">높은 밝기와 정밀한 로컬디밍으로
+게임과 작업을 모두 만족하는 선택.</textarea>
+
+  <div class="step"><b>제품 이미지</b><span class="num">03 IMAGE</span></div>
+  <label class="imgbox" id="imgBox"><input type="file" id="imgInput" accept="image/*" hidden><span id="imgHint">＋ 클릭 업로드 · 이미지를 드래그해서 넣기 (다나와 등)</span></label>
+
+  <div class="step"><b>특징 칩 (2~4개)</b><span class="num">04 CHIPS</span></div>
+  <div id="chipList"></div>
+  <button class="miniadd" id="addChip">＋ 칩 추가</button>
+
+  <button class="primary" id="saveBtn">제작 (PC + 모바일)</button>
+  <div id="status" class="status"></div>
+
+  <div class="pv-tabs">
+    <button id="tabPc" class="on">PC 미리보기</button>
+    <button id="tabMo">모바일 미리보기</button>
+  </div>
+  <div class="preview-shell" id="pvPc"></div>
+  <div class="preview-shell hide" id="pvMo"></div>
+</main>
+
+<script src="image-drop.js"></script>
+<script>
+"use strict";
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt = n => Math.round(n*10)/10;
+const mctx = document.createElement('canvas').getContext('2d');
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+/* ---------- 상태 ---------- */
+const state = {
+  title: 'Mini LED',
+  label: '균형 잡힌 성능',
+  desc: '높은 밝기와 정밀한 로컬디밍으로\n게임과 작업을 모두 만족하는 선택.',
+  chips: [
+    { en:'HDR1000', ko:'높은 밝기' },
+    { en:'Mini LED', ko:'로컬디밍' },
+    { en:'Gaming', ko:'균형 잡힌 성능' },
+    { en:'Creator', ko:'작업까지 완벽' }
+  ],
+  img: '', imgW:0, imgH:0
+};
+
+/* ---------- 텍스트 측정 ---------- */
+const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
+function measure(t, size, weight){ mctx.font = `${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
+function fitSize(t, maxW, base, min, weight){ let s=base; while(s>min && measure(t,s,weight)>maxW) s--; return Math.max(min,s); }
+function greedyWrap(t, maxW, size, weight){
+  const words = String(t).split(/\s+/).filter(Boolean);
+  const lines=[]; let cur='';
+  for(const w of words){
+    const test = cur ? cur+' '+w : w;
+    if(cur && measure(test,size,weight)>maxW){ lines.push(cur); cur=w; }
+    else cur=test;
+  }
+  if(cur) lines.push(cur);
+  return lines.length?lines:[''];
+}
+// 설명: \n은 강제 줄바꿈, 없으면 2줄로 자동 줄바꿈. 가장 긴 줄이 폭을 넘으면 크기 축소
+function descLayout(t, maxW, base, min, weight){
+  let size = base;
+  for(;;){
+    const paras = String(t).split('\n');
+    let lines;
+    if(paras.length===1 && measure(paras[0],size,weight)>maxW) lines = greedyWrap(paras[0],maxW,size,weight);
+    else lines = paras;
+    const widest = Math.max(...lines.map(l=>measure(l,size,weight)));
+    if(widest<=maxW || size<=min) return { lines, size:Math.max(min,size) };
+    size -= 2;
+  }
+}
+
+/* ---------- SVG 프리미티브 ---------- */
+function T(str, x, y, o){ o=o||{};
+  const ls = o.ls ? ` letter-spacing="${o.ls}"` : '';
+  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${FONT}" font-size="${o.size||14}" `+
+    `font-weight="${o.weight||400}" fill="${o.fill||'#000'}" text-anchor="${o.anchor||'start'}" `+
+    `dominant-baseline="central"${ls}>${esc(str)}</text>`;
+}
+function IMG(href, x, y, w, h){
+  return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+function containRect(iw, ih, bx, by, bw, bh){
+  const s = Math.min(bw/iw, bh/ih); const w=iw*s, h=ih*s;
+  return { x:bx+(bw-w)/2, y:by+(bh-h)/2, w, h };
+}
+function defs(){
+  return `<defs>`+
+    `<linearGradient id="bgG" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#f8f9fc"/><stop offset="1" stop-color="#ecedf1"/></linearGradient>`+
+    `<linearGradient id="cardG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f9"/><stop offset="1" stop-color="#e6eaf5"/></linearGradient>`+
+    `<filter id="cardShadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="34" stdDeviation="42" flood-color="#b9c0d0" flood-opacity="0.5"/></filter>`+
+    `<filter id="chipShadow" x="-45%" y="-45%" width="190%" height="210%"><feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#c3c9d5" flood-opacity="0.45"/></filter>`+
+    `</defs>`;
+}
+
+/* ---------- 이미지 카드 ---------- */
+function imageCard(cx, cy, cw, ch){
+  const pad = cw*0.075;
+  let out = `<rect x="${fmt(cx)}" y="${fmt(cy)}" width="${fmt(cw)}" height="${fmt(ch)}" rx="44" fill="url(#cardG)" filter="url(#cardShadow)"/>`;
+  if(state.img && state.imgW && state.imgH){
+    const r = containRect(state.imgW, state.imgH, cx+pad, cy+pad, cw-2*pad, ch-2*pad);
+    out += IMG(state.img, r.x, r.y, r.w, r.h);
+  } else {
+    out += `<rect x="${fmt(cx+pad)}" y="${fmt(cy+pad)}" width="${fmt(cw-2*pad)}" height="${fmt(ch-2*pad)}" rx="20" fill="none" stroke="#b9c1d4" stroke-width="3" stroke-dasharray="16 14"/>`;
+    out += T('제품 이미지를 드롭하세요', cx+cw/2, cy+ch/2, { size:Math.round(cw*0.045), weight:700, fill:'#9aa2b4', anchor:'middle' });
+  }
+  return out;
+}
+
+/* ---------- 특징 칩 ---------- */
+function chipsGroup(x, y, totalW, chipH, align){
+  const n = state.chips.length;
+  const gap = Math.round(totalW*0.028);
+  const chipW = (totalW - gap*(n-1))/n;
+  const enBase = Math.round(chipH*0.30), koSize = Math.round(chipH*0.155), enMin = Math.round(enBase*0.5);
+  // 모든 칩에 동일한 영문 크기 적용(가장 긴 라벨 기준) → 시각적 일관성
+  const enS = state.chips.reduce((m,c)=> Math.min(m, fitSize(c.en||'', chipW-30, enBase, enMin, 800)), enBase);
+  let out='';
+  state.chips.forEach((c,i)=>{
+    const cx = x + i*(chipW+gap);
+    out += `<rect x="${fmt(cx)}" y="${fmt(y)}" width="${fmt(chipW)}" height="${fmt(chipH)}" rx="26" fill="#ffffff" filter="url(#chipShadow)"/>`;
+    out += T(c.en||'', cx+chipW/2, y+chipH*0.40, { size:enS, weight:800, fill:'#1b1b20', anchor:'middle' });
+    out += T(c.ko||'', cx+chipW/2, y+chipH*0.71, { size:koSize, weight:500, fill:'#8b93a0', anchor:'middle' });
+  });
+  return out;
+}
+
+/* ---------- 레이아웃별 SVG ---------- */
+const PURPLE = '#6c5ce7';
+function buildPC(){
+  const W=2176, H=1036;
+  const cardW=886, cardH=776, cardX=W-145-cardW, cardY=(H-cardH)/2;
+  const tx=150, maxW=cardX-tx-70;                 // 좌측 텍스트 컬럼
+  const titleS = fitSize(state.title, maxW, 132, 62, 800);
+  const labelS = 34;
+  const dl = descLayout(state.desc, maxW, 40, 26, 400);
+  const chipH = 158, chipsW = maxW;
+  const gap1=42, gap2=26, gap3=64, descLH=dl.size+26;
+  const descBlock = (dl.lines.length-1)*descLH + dl.size;
+  const total = titleS + gap1 + labelS + gap2 + descBlock + gap3 + chipH;
+  let top = (H-total)/2;
+  const titleCY = top + titleS/2;
+  const labelCY = titleCY + titleS/2 + gap1 + labelS/2;
+  const desc0CY = labelCY + labelS/2 + gap2 + dl.size/2;
+  const chipsY = desc0CY + (dl.lines.length-1)*descLH + dl.size/2 + gap3;
+  let body = `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#bgG)"/>`;
+  body += imageCard(cardX, cardY, cardW, cardH);
+  body += T(state.title, tx, titleCY, { size:titleS, weight:800, fill:'#191a1f', anchor:'start', ls:-1 });
+  body += T(state.label, tx, labelCY, { size:labelS, weight:700, fill:PURPLE, anchor:'start' });
+  dl.lines.forEach((ln,i)=> body += T(ln, tx, desc0CY+i*descLH, { size:dl.size, weight:400, fill:'#6d7480', anchor:'start' }));
+  body += chipsGroup(tx, chipsY, chipsW, chipH, 'left');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs()}${body}</svg>`;
+}
+function buildMobile(){
+  const W=1248, H=1817, cx=W/2;
+  const maxW = W-180;
+  const titleS = fitSize(state.title, maxW, 160, 82, 800);
+  const labelS = 36;
+  const dl = descLayout(state.desc, maxW, 46, 30, 400);
+  const descLH = dl.size+28;
+  const cardX=100, cardW=W-200, cardY=705, cardH=800;
+  const chipH=206, chipsY=H-100-chipH, chipsX=100, chipsW=W-200;
+  const titleCY=300, labelCY=468;
+  const desc0CY=548;
+  let body = `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#bgG)"/>`;
+  body += T(state.title, cx, titleCY, { size:titleS, weight:800, fill:'#191a1f', anchor:'middle', ls:-1 });
+  body += T(state.label, cx, labelCY, { size:labelS, weight:700, fill:PURPLE, anchor:'middle' });
+  dl.lines.forEach((ln,i)=> body += T(ln, cx, desc0CY+i*descLH, { size:dl.size, weight:400, fill:'#6d7480', anchor:'middle' }));
+  body += imageCard(cardX, cardY, cardW, cardH);
+  body += chipsGroup(chipsX, chipsY, chipsW, chipH, 'center');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs()}${body}</svg>`;
+}
+
+/* ---------- 렌더 ---------- */
+function render(){ $('#pvPc').innerHTML = buildPC(); $('#pvMo').innerHTML = buildMobile(); }
+
+/* ---------- 칩 UI ---------- */
+function buildChipUI(){
+  const list = $('#chipList'); list.innerHTML='';
+  state.chips.forEach((c,i)=>{
+    const row = document.createElement('div'); row.className='chip-row';
+    row.innerHTML = `<input type="text" maxlength="16" placeholder="영문 (예: HDR1000)" value="${esc(c.en)}" data-k="en" data-i="${i}">`+
+      `<input type="text" maxlength="16" placeholder="한글 (예: 높은 밝기)" value="${esc(c.ko)}" data-k="ko" data-i="${i}">`+
+      `<button class="rm" title="삭제" data-rm="${i}">×</button>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    const i=+e.target.dataset.i, k=e.target.dataset.k; state.chips[i][k]=e.target.value; render();
+  }));
+  list.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{
+    if(state.chips.length<=2){ setStatus('칩은 최소 2개예요.'); return; }
+    state.chips.splice(+b.dataset.rm,1); buildChipUI(); render();
+  });
+  $('#addChip').disabled = state.chips.length>=4;
+}
+
+/* ---------- 이미지 처리 ---------- */
+function readImage(file){
+  if(!file || !/^image\//.test(file.type)){ setStatus('이미지 파일이 아니에요.'); return; }
+  const r = new FileReader();
+  r.onload = ()=>{
+    const im = new Image();
+    im.onload = ()=>{
+      state.img = r.result; state.imgW = im.naturalWidth; state.imgH = im.naturalHeight;
+      const box=$('#imgBox'); box.classList.add('has'); box.style.backgroundImage=`url("${r.result}")`;
+      $('#imgHint').style.display='none';
+      render();
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+/* ---------- 저장 ---------- */
+function outputSVG(filename, svg){
+  if(inFrame) parent.postMessage({ pluginMessage:{ type:'save-svg', filename, svg } }, '*');
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200); }
+}
+function safeName(){ return (state.title||'monitor').trim().replace(/[^\w가-힣.-]+/g,'_').replace(/^_+|_+$/g,'') || 'monitor'; }
+function doSave(){
+  const base = safeName();
+  const pc = buildPC(), mo = buildMobile();
+  outputSVG(`${base}-pc.svg`, pc);
+  // 에디터로 두 장을 잇달아 보내면 각각 별도 페이지로 열림
+  setTimeout(()=> outputSVG(`${base}-mobile.svg`, mo), inFrame ? 250 : 60);
+  setStatus(inFrame ? 'PC·모바일 2장을 에디터로 보냈어요. (페이지 탭에서 확인)' : 'PC·모바일 SVG 2개를 저장했어요.');
+}
+
+/* ---------- 바인딩 ---------- */
+$('#title').addEventListener('input', e=>{ state.title=e.target.value; render(); });
+$('#label').addEventListener('input', e=>{ state.label=e.target.value; render(); });
+$('#desc').addEventListener('input', e=>{ state.desc=e.target.value; render(); });
+$('#imgInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) readImage(f); e.target.value=''; });
+$('#addChip').onclick = ()=>{ if(state.chips.length<4){ state.chips.push({en:'',ko:''}); buildChipUI(); render(); } };
+$('#tabPc').onclick = ()=>{ $('#tabPc').classList.add('on'); $('#tabMo').classList.remove('on'); $('#pvPc').classList.remove('hide'); $('#pvMo').classList.add('hide'); };
+$('#tabMo').onclick = ()=>{ $('#tabMo').classList.add('on'); $('#tabPc').classList.remove('on'); $('#pvMo').classList.remove('hide'); $('#pvPc').classList.add('hide'); };
+$('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기 (PC+모바일)' : '제작 → SVG 저장 (PC+모바일)';
+$('#saveBtn').onclick = doSave;
+window.addEventListener('message', e=>{ const m=e.data&&e.data.pluginMessage; if(m&&(m.type==='toast'||m.type==='error')) setStatus(m.message); });
+
+// 이미지 드래그&드롭 (파일 + 다나와 등 웹이미지)
+window.addEventListener('load', ()=>{
+  if(window.ImageDrop) ImageDrop.wire('imgInput', ['#imgBox','#pvPc','#pvMo'], setStatus);
+});
+
+buildChipUI();
+// 폰트 로드 후 정확한 측정으로 재렌더
+render();
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+</script>
+</body>
+</html>
