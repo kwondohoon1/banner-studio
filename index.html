@@ -166,6 +166,19 @@
     .body.plugins-open{grid-template-columns:210px minmax(0,1fr) 248px}
     .pluginDock{position:absolute;right:0;top:0;bottom:0;width:min(440px,calc(100vw - 52px));z-index:30;box-shadow:-18px 0 42px rgba(25,27,22,.13)}
   }
+  .pluginHelp{position:fixed;inset:0;background:rgba(18,19,16,.46);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+  .pluginHelp.show{display:flex}
+  .pluginHelpCard{position:relative;width:min(560px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:26px 26px 22px;box-shadow:0 24px 70px rgba(20,22,18,.35);font-size:14px;color:#20221d;line-height:1.5}
+  .pluginHelpCard h2{margin:0 0 8px;font-size:21px;font-weight:900}
+  .phLead{margin:0 0 18px;color:#4b4d45}
+  .phClose{position:absolute;right:14px;top:14px;width:32px;height:32px;border:0;border-radius:9px;background:#eceee8;color:#555;font-size:15px;cursor:pointer}
+  .phStep{display:flex;gap:13px;align-items:flex-start;margin:14px 0}
+  .phNum{flex:none;width:28px;height:28px;border-radius:50%;background:var(--dark,#20221d);color:#dfff43;display:grid;place-items:center;font-weight:900;font-size:14px}
+  .phBtns{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap}
+  .phBtn{display:inline-block;border:0;border-radius:10px;background:var(--dark,#20221d);color:#fff;padding:9px 15px;font-size:13px;font-weight:800;cursor:pointer;text-decoration:none}
+  .phBtn.ghost{background:#fff;color:#20221d;border:1.5px solid #cfd1c9}
+  .phEg{margin-top:9px;font-size:12.5px;color:#6a6d62;background:#f5f6f1;border-radius:10px;padding:9px 12px}
+  .phNote{margin-top:18px;font-size:12.5px;color:#5b5d54;background:#f1f4e6;border:1px solid #e0e6cf;border-radius:12px;padding:12px 14px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -186,7 +199,8 @@
     <button class="tb" id="zoomFit">맞춤</button>
     <div class="sep"></div>
     <div class="pluginTabs" id="pluginTabs"></div>
-    <button class="tb" id="addPluginBtn" title="플러그인 URL·경로로 추가">＋ 플러그인</button>
+    <button class="tb" id="addPluginBtn" title="HTML 파일을 선택해 임시 플러그인 추가 (이 브라우저에서만)">＋ 플러그인</button>
+    <button class="tb" id="pluginHelpBtn" title="플러그인 사용법" style="width:34px;padding:0;font-weight:900">?</button>
     <div class="spacer"></div>
     <div class="rightgroup">
       <span class="credit">developed by 권도훈</span>
@@ -196,6 +210,24 @@
     </div>
   </div>
   <div class="editorToast" id="editorToast" role="status" aria-live="polite"></div>
+  <div class="pluginHelp" id="pluginHelp">
+    <div class="pluginHelpCard">
+      <button class="phClose" id="phClose" title="닫기">✕</button>
+      <h2>플러그인, 이렇게 써요 🧩</h2>
+      <p class="phLead">플러그인은 <b>배너를 자동으로 만들어 주는 미니 도구</b>예요. 원하는 스타일의 플러그인이 없다면 <b>AI에게 만들어 달라고</b> 하면 됩니다.</p>
+
+      <div class="phStep"><span class="phNum">1</span><div><b>규칙 파일을 받으세요</b><br>아래 버튼으로 <b>플러그인 제작 규칙(PLUGIN_SPEC.md)</b>을 여세요.
+        <div class="phBtns"><a class="phBtn" id="phSpecLink" target="_blank" rel="noopener">📄 제작 규칙 열기(GitHub)</a></div></div></div>
+
+      <div class="phStep"><span class="phNum">2</span><div><b>AI에게 붙여넣으세요</b><br>ChatGPT · Gemini · Claude 중 아무거나 열고, <b>규칙 파일 내용</b>과 <b>원하는 배너 설명</b>을 함께 넣으세요.
+        <div class="phBtns"><button class="phBtn ghost" id="phCopyPrompt">📋 붙여넣을 문구 복사</button></div>
+        <div class="phEg">예) “첨부한 규칙대로, <b>여름 세일 배너</b> 플러그인을 만들어줘. 보라색 톤, 큰 제목, 쿠폰 3개.”</div></div></div>
+
+      <div class="phStep"><span class="phNum">3</span><div><b>받은 HTML을 올리세요</b><br>AI가 준 <b>HTML 파일</b>을 저장한 뒤, 위 <b>＋ 플러그인</b> 버튼을 눌러 그 파일을 선택하면 바로 사용할 수 있어요.</div></div>
+
+      <div class="phNote">💡 올린 플러그인은 <b>지금 이 브라우저에서만 임시로</b> 사용돼요. 모두가 쓰도록 <b>영구 등록</b>하는 건 관리자(개발자)가 코드에 반영합니다.</div>
+    </div>
+  </div>
 
   <!-- 본문 -->
   <div class="body" id="workspace">
@@ -331,16 +363,30 @@ function renderPluginTabs() {
     wrap.appendChild(btn);
   });
 }
+// 누구나 HTML 파일을 골라 "임시" 플러그인으로 추가 (이 브라우저에만 저장 · 코드/모두에게 반영 아님)
 function addPlugin() {
-  const url = prompt("추가할 플러그인 HTML의 경로 또는 URL\n예) plugins/my-banner.html  또는  https://example.com/plugin.html");
-  if (!url || !url.trim()) return;
-  const title = (prompt("플러그인 이름", "새 플러그인") || "새 플러그인").trim();
-  const list = customPlugins();
-  const id = "custom-" + Date.now();
-  list.push({ id, title, description: "사용자 추가 플러그인", file: url.trim(), custom: true });
-  localStorage.setItem(CUSTOM_PLUGINS_KEY, JSON.stringify(list));
-  applyPlugins();
-  openPlugin(id);
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".html,.htm,text/html";
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    if (!/\.html?$/i.test(f.name) && !/html/i.test(f.type)) { showToast("HTML 파일을 선택해 주세요.", true); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      const html = String(r.result || "");
+      const title = ((f.name.replace(/\.html?$/i, "") || "새 플러그인").trim() || "새 플러그인").slice(0, 24);
+      const id = "custom-" + Date.now();
+      const list = customPlugins();
+      list.push({ id, title, description: "임시 플러그인 (이 브라우저에서만)", html, custom: true });
+      try { localStorage.setItem(CUSTOM_PLUGINS_KEY, JSON.stringify(list)); }
+      catch (e) { showToast("플러그인이 너무 커서 저장 공간을 초과했어요.", true); return; }
+      applyPlugins();
+      openPlugin(id);
+      showToast("임시 플러그인을 추가했어요. (이 브라우저에서만 사용)");
+    };
+    r.readAsText(f);
+  };
+  inp.click();
 }
 function removeCustomPlugin(id) {
   localStorage.setItem(CUSTOM_PLUGINS_KEY, JSON.stringify(customPlugins().filter(p => p.id !== id)));
@@ -377,7 +423,9 @@ function pluginFrameFor(id) {
     fr = document.createElement("iframe");
     fr.title = (p && p.title) || "플러그인";
     fr.setAttribute("data-plugin", id);
-    fr.src = p ? p.file : "about:blank";
+    // 업로드된 임시 플러그인은 html 내용으로 blob URL 생성, 그 외는 경로/URL 사용
+    if (p && p.html) fr.src = URL.createObjectURL(new Blob([p.html], { type: "text/html" }));
+    else fr.src = p ? p.file : "about:blank";
     host.appendChild(fr);
   }
   return fr;
@@ -429,6 +477,28 @@ $("closePlugin").onclick = closePlugin;
 $("addPluginBtn").onclick = addPlugin;
 window.addEventListener("message", handlePluginMessage);
 loadManifest();
+
+/* ================= 플러그인 사용법 도움말 ================= */
+const PLUGIN_SPEC_URL = "https://github.com/kwondohoon1/banner-studio/blob/main/PLUGIN_SPEC.md";
+const PLUGIN_PROMPT = `너는 "배너 스튜디오" 에디터에 붙는 독립 배너 생성 플러그인(단일 HTML 파일)을 만든다.
+첨부한 PLUGIN_SPEC.md의 계약(단일 HTML, 편집가능 SVG 출력, 이미지 data URI 임베드, 저장 시 parent.postMessage({pluginMessage:{type:'save-svg', filename, svg}}))을 반드시 지켜라.
+결과는 다른 설명 없이 완성된 HTML 파일 하나로만 줘.
+
+만들 배너: << 여기에 원하는 배너를 자유롭게 적기 (예: 여름 세일 배너, 보라색 톤, 큰 제목, 쿠폰 3개) >>`;
+$("phSpecLink").href = PLUGIN_SPEC_URL;
+function openPluginHelp() { $("pluginHelp").classList.add("show"); }
+function closePluginHelp() { $("pluginHelp").classList.remove("show"); }
+$("pluginHelpBtn").onclick = openPluginHelp;
+$("phClose").onclick = closePluginHelp;
+$("pluginHelp").addEventListener("click", (e) => { if (e.target === $("pluginHelp")) closePluginHelp(); });
+$("phCopyPrompt").onclick = async () => {
+  try { await navigator.clipboard.writeText(PLUGIN_PROMPT); showToast("문구를 복사했어요. AI에 규칙 파일과 함께 붙여넣으세요."); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = PLUGIN_PROMPT; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); showToast("문구를 복사했어요."); } catch (e2) { showToast("복사에 실패했어요. 직접 선택해 복사해 주세요.", true); }
+    ta.remove();
+  }
+};
 
 /* ================= 파일 열기 ================= */
 $("openBtn").onclick = () => $("fileInput").click();
