@@ -270,24 +270,26 @@ function v8Decor(dna,P){const a='position:absolute;pointer-events:none;';
 function v8Product(P,dna){return state.files&&state.files[0]?`<img src="${state.files[0].url}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto">`:`<div style="width:100%;height:100%;border-radius:12px;background:linear-gradient(25deg,${P.accent},${hsl2hex((dna.hue+320)%360,70,60)})"></div>`}
 /* ---------- 추가 규격 (같은 디자인 느낌) : 자사몰 소배너 / 상단 띠배너 ---------- */
 function docBenefits(doc){const out=[];(doc.sections||[]).forEach(s=>{if(s.type==='offer'){if(s.badge)out.push(s.badge);(s.bullets||[]).forEach(b=>out.push(b))}if(s.type==='rewards'&&s.title)out.push(s.title);if(s.type==='features')(s.items||[]).forEach(i=>out.push(i))});return out.filter(Boolean).map(x=>String(x).replace(/\s+/g,' ').slice(0,18)).slice(0,3)}
-function v8SmallEvent(doc,dna){const {P}=dnaTokens(dna);const model=esc(doc.model||''),title=esc(doc.title||''),summary=esc(doc.summary||'');const tSize=(doc.title||'').length>10?30:38;
- return `<div class="v8-canvas" style="width:284px;height:400px;position:relative;overflow:hidden;background:linear-gradient(165deg,${P.heroA},${P.heroB});font-family:Pretendard,'Noto Sans KR',sans-serif;letter-spacing:-.02em;display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 16px;box-sizing:border-box">
-  <div style="display:inline-block;background:#fff;color:${P.accent};font-weight:900;font-size:12px;padding:5px 14px;border-radius:999px">${model}</div>
-  <div style="font-weight:900;font-size:${tSize}px;line-height:1.05;color:${P.ink};margin-top:10px">${title}</div>
-  ${summary?`<div style="font-size:12px;font-weight:700;color:${P.ink2||P.muted};margin-top:6px;line-height:1.35">${summary}</div>`:''}
-  <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;margin:10px 0">${v8Product(P,dna)}</div>
-  <div style="display:inline-block;background:${P.accent};color:#fff;font-weight:900;font-size:14px;padding:8px 20px;border-radius:10px">예약판매 OPEN</div>
+function v8SmallEvent(doc,dna){const {P}=dnaTokens(dna);const B=heroBg(dna,P);const model=esc(doc.model||''),title=esc(doc.title||''),summary=esc(doc.summary||'');const tSize=(doc.title||'').length>10?30:38;
+ return `<div class="v8-canvas" style="width:284px;height:400px;position:relative;overflow:hidden;${B.bg};font-family:Pretendard,'Noto Sans KR',sans-serif;letter-spacing:-.02em;display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 16px;box-sizing:border-box">
+  ${B.extra}
+  <div style="position:relative;display:inline-block;background:#fff;color:${P.accent};font-weight:900;font-size:12px;padding:5px 14px;border-radius:999px">${model}</div>
+  <div style="position:relative;font-weight:900;font-size:${tSize}px;line-height:1.05;color:${B.ink};margin-top:10px">${title}</div>
+  ${summary?`<div style="position:relative;font-size:12px;font-weight:700;color:${B.mut};margin-top:6px;line-height:1.35">${summary}</div>`:''}
+  <div style="position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;margin:10px 0">${v8Product(P,dna)}</div>
+  <div style="position:relative;display:inline-block;background:${P.accent};color:#fff;font-weight:900;font-size:14px;padding:8px 20px;border-radius:10px">예약판매 OPEN</div>
  </div>`}
-function v8TopStrip(doc,dna){const {P}=dnaTokens(dna);const model=esc(doc.model||''),title=esc(doc.title||''),summary=esc(doc.summary||'');const chips=docBenefits(doc);
+function v8TopStrip(doc,dna){const {P}=dnaTokens(dna);const B=heroBg(dna,P);const model=esc(doc.model||''),title=esc(doc.title||''),summary=esc(doc.summary||'');const chips=docBenefits(doc);
  const chipHtml=chips.length?`<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">${chips.map(c=>`<span style="background:#fff;color:${P.ink};font-weight:800;font-size:13px;padding:7px 13px;border-radius:9px;box-shadow:0 4px 12px rgba(10,20,40,.12)">${esc(c)}</span>`).join('')}</div>`:'';
- return `<div class="v8-canvas" style="width:860px;height:350px;position:relative;overflow:hidden;background:linear-gradient(120deg,${P.heroA},${P.heroB});font-family:Pretendard,'Noto Sans KR',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:24px;padding:28px 34px;box-sizing:border-box">
-  <div style="flex:1.15;display:flex;flex-direction:column;align-items:flex-start;min-width:0">
+ return `<div class="v8-canvas" style="width:860px;height:350px;position:relative;overflow:hidden;${B.bg};font-family:Pretendard,'Noto Sans KR',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:24px;padding:28px 34px;box-sizing:border-box">
+  ${B.extra}
+  <div style="position:relative;flex:1.15;display:flex;flex-direction:column;align-items:flex-start;min-width:0">
    <div style="display:inline-block;background:#fff;color:${P.accent};font-weight:900;font-size:15px;padding:6px 16px;border-radius:999px">${model}</div>
-   <div style="font-weight:900;font-size:52px;line-height:1.02;color:${P.ink};margin-top:10px">${title}</div>
-   ${summary?`<div style="font-size:15px;font-weight:700;color:${P.ink2||P.muted};margin-top:8px">${summary}</div>`:''}
+   <div style="font-weight:900;font-size:52px;line-height:1.02;color:${B.ink};margin-top:10px">${title}</div>
+   ${summary?`<div style="font-size:15px;font-weight:700;color:${B.mut};margin-top:8px">${summary}</div>`:''}
    ${chipHtml}
   </div>
-  <div style="flex:.85;height:100%;display:flex;align-items:center;justify-content:center;min-width:0">${v8Product(P,dna)}</div>
+  <div style="position:relative;flex:.85;height:100%;display:flex;align-items:center;justify-content:center;min-width:0">${v8Product(P,dna)}</div>
  </div>`}
 function v8HeroBg(dna,P){const h=dna.hue||222,g=`linear-gradient(160deg,${P.heroA},${P.heroB})`,abs='position:absolute;pointer-events:none;';
  const bgs=dna.bgStyle||'gradient';
@@ -299,6 +301,13 @@ function v8HeroBg(dna,P){const h=dna.hue||222,g=`linear-gradient(160deg,${P.hero
   return{css:`background:${g}`,extra:[[20,20],[44,20],[20,44],[68,44],[44,68]].map(v=>px('left:'+v[0]+'px','top:'+v[1]+'px',P.accent,.5)).join('')+[[20,60],[44,36],[68,60]].map(v=>px('right:'+v[0]+'px','bottom:'+v[1]+'px','#fff',.55)).join('')}}
  if(bgs==='mesh')return{css:`background:${g}`,extra:[[300,P.accent,.25,'right:-60px','top:-60px'],[240,'#fff',.35,'left:-60px','top:140px'],[260,hsl2hex((h+60)%360,80,70),.22,'left:35%','bottom:-90px']].map(v=>`<span style="${abs}width:${v[0]}px;height:${v[0]}px;border-radius:50%;background:${v[1]};opacity:${v[2]};filter:blur(80px);${v[3]};${v[4]}"></span>`).join('')};
  return{css:`background:${g}`}}
+/* 메인 히어로와 동일한 배경(업로드 배경/스타일별 배경 + 장식)을 계산 — 소배너/띠배너 공용 */
+function heroBg(dna,P){
+ const img=state.backgroundUrl,scr=P.dark?'6,10,18':'10,21,38',B=v8HeroBg(dna,P);
+ const bg=img?`background:linear-gradient(180deg,rgba(${scr},.60),rgba(${scr},.16) 45%,rgba(${scr},.62)),url(${img}) center/cover`:B.css;
+ const ink=img?'#fff':(B.ink||P.heroInk||P.ink),mut=img?'#dfe7f5':(B.mut||P.heroMut||P.muted);
+ return {bg,ink,mut,extra:B.extra||''};
+}
 function v8Hero(doc,dna,P,T,S){
  const date=doc.period||edDate(doc.sections||[]),img=state.backgroundUrl,scr=P.dark?'6,10,18':'10,21,38',B=v8HeroBg(dna,P);
  const bg=img?`background:linear-gradient(180deg,rgba(${scr},.60),rgba(${scr},.16) 45%,rgba(${scr},.62)),url(${img}) center/cover`:B.css;
