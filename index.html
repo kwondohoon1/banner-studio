@@ -1340,12 +1340,84 @@ function deleteSelection() {
   pushSnapshot();
 }
 
+/* ================= 복사 / 붙여넣기 (Ctrl+C · Ctrl+V · Ctrl+X) ================= */
+let clipboard = [];   // 선택 요소들의 outerHTML 배열
+let pasteCount = 0;   // 같은 클립보드를 반복 붙여넣을 때 겹치지 않도록 오프셋 증가
+function copySelection() {
+  if (!state.sels.length) return;
+  clipboard = state.sels.map(el => el.outerHTML);
+  pasteCount = 0;
+  showToast(`${clipboard.length}개 복사됨`);
+}
+function pasteClipboard() {
+  if (!clipboard.length || !state.svg) return;
+  pasteCount++;
+  const off = 16 * pasteCount;
+  const pasted = [];
+  clipboard.forEach(html => {
+    // svg 네임스페이스로 감싸 파싱(자식 요소만으론 네임스페이스 유실)
+    const doc = new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${html}</svg>`, "image/svg+xml");
+    const src = doc.documentElement.firstElementChild;
+    if (!src) return;
+    const node = document.importNode(src, true);
+    node.removeAttribute("data-eid");
+    state.svg.appendChild(node);
+    registerEl(node);   // 새 eid 부여 + 이벤트 바인딩 + state.els 등록
+    try { writeGeo(node, readGeo(node), off, off); } catch (e) {}
+    pasted.push(node);
+  });
+  if (pasted.length) { selectMany(pasted); pushSnapshot(); showToast(`${pasted.length}개 붙여넣기`); }
+}
+function cutSelection() {
+  if (!state.sels.length) return;
+  copySelection();
+  deleteSelection();
+}
+
+/* ================= 임시 캐시 (뒤로가기/새로고침 후 복원) ================= */
+const CACHE_KEY = "bs_editor_cache_v1";
+const CACHE_TTL = 1000 * 60 * 60 * 6;   // 6시간
+// undo/redo 스택은 용량이 커서 캐시에서 제외
+function slimData(d) { return d ? { html: d.html, vbW: d.vbW, vbH: d.vbH, zoom: d.zoom } : null; }
+function saveCache() {
+  try {
+    if (state.pageIndex >= 0 && state.svg) pages[state.pageIndex].data = getWorkingData();
+    const hasContent = pages.some(p => p.data && p.data.html);
+    if (!hasContent) { localStorage.removeItem(CACHE_KEY); return; }
+    const payload = { v: 1, ts: Date.now(), pageIndex: state.pageIndex, pages: pages.map(p => ({ name: p.name, data: slimData(p.data) })) };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  } catch (e) { /* 용량 초과 등은 조용히 무시 */ }
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return false;
+    const p = JSON.parse(raw);
+    if (!p || !Array.isArray(p.pages) || !p.pages.length) return false;
+    if (p.ts && Date.now() - p.ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return false; }
+    if (!p.pages.some(pg => pg.data && pg.data.html)) return false;
+    pages = p.pages.map(pg => ({ name: pg.name || "페이지", data: pg.data || null }));
+    state.pageIndex = Math.max(0, Math.min(p.pageIndex || 0, pages.length - 1));
+    setWorkingData(pages[state.pageIndex].data);
+    if (state.svg) pushSnapshot(true);   // 복원된 상태를 되돌리기 기준으로 시드
+    renderTabs();
+    return true;
+  } catch (e) { return false; }
+}
+let _cacheT;
+function scheduleCacheSave() { clearTimeout(_cacheT); _cacheT = setTimeout(saveCache, 800); }
+window.addEventListener("beforeunload", saveCache);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveCache(); });
+
 document.addEventListener("keydown", (e) => {
   const typing = /input|textarea|select/i.test(document.activeElement.tagName);
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
   if (typing) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a" && state.svg) { e.preventDefault(); selectMany(state.els.filter(el => el.style.display !== "none")); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") { e.preventDefault(); copySelection(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") { e.preventDefault(); pasteClipboard(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") { e.preventDefault(); cutSelection(); return; }
   if (!state.sels.length) return;
   if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); state.sels.length > 1 ? deleteSelection() : deleteEl(state.sel); return; }
   const step = e.shiftKey ? 10 : 1;
@@ -1368,6 +1440,7 @@ function pushSnapshot(initial) {
   if (state.undo.length > 100) state.undo.shift();
   state.redo = [];
   refreshUndoButtons();
+  if (typeof scheduleCacheSave === "function") scheduleCacheSave();
 }
 function restore(snap, stackFrom, stackTo) {
   const doc = new DOMParser().parseFromString(snap, "image/svg+xml");
@@ -1473,8 +1546,9 @@ function toHex(c) {
   return "#000000";
 }
 
-/* 시작: 빈 페이지 1개 */
-newBlankPage();
+/* 시작: 캐시가 있으면 복원, 없으면 빈 페이지 1개 */
+if (loadCache()) showToast("이전 작업을 불러왔어요.");
+else newBlankPage();
 </script>
 </body>
 </html>
