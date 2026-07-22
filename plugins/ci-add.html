@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CI추가</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top b{font-size:14px}.top small{font-size:9px;color:var(--muted);display:block;letter-spacing:.4px}
+main{padding:16px;max-width:520px}
+.step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:150px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
+.imgbox.has{border-style:solid;border-color:#cfd1c9}
+.imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.corner{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.corner button{border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:10px;font:inherit;font-weight:700;cursor:pointer;color:#5b5d54}
+.corner button.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+label.chk{display:flex;align-items:center;gap:8px;font-weight:700;color:#4f5148;cursor:pointer}
+label.chk input{width:16px;height:16px}
+input[type=range]{flex:1}
+input[type=color]{width:38px;height:32px;border:1px solid #cfd1c9;border-radius:8px;background:#fff;cursor:pointer}
+.hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.primary{width:100%;margin-top:18px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px;line-height:1.45}.status.show{display:block}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:14px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">CI</div><div><b>CI추가</b><small>제품 이미지에 한성컴퓨터 CI 자동 삽입 · 1000×1000</small></div></header>
+<main>
+  <div class="step"><b>제품 이미지 (1000×1000 권장)</b><span class="num">01 IMAGE</span></div>
+  <label class="imgbox" id="imgBox"><input type="file" id="imgInput" accept="image/*" hidden><span id="imgHint">＋ 클릭 업로드 · 이미지를 드래그해서 넣기 (다나와 등)</span></label>
+
+  <div class="step"><b>CI 삽입</b><span class="num">02 CI</span></div>
+  <label class="chk"><input type="checkbox" id="ciOn" checked> 한성컴퓨터 CI 넣기 (기본 삽입)</label>
+  <div class="corner" id="cornerSel">
+    <button data-c="tl">↖ 좌상단</button>
+    <button data-c="tr" class="on">↗ 우상단 (완성본)</button>
+    <button data-c="bl">↙ 좌하단</button>
+    <button data-c="br">↘ 우하단</button>
+  </div>
+  <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">크기</span><input type="range" id="ciScale" min="0.6" max="1.6" step="0.05" value="1"><span id="ciScaleV" style="width:38px;text-align:right;font-weight:700">100%</span></div>
+  <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">색상</span><input type="color" id="ciColor" value="#0b0b0b"><span class="hint" style="margin:0">어두운 제품 위에는 흰색(#ffffff)으로</span></div>
+
+  <button class="primary" id="saveBtn">제작</button>
+  <div id="status" class="status"></div>
+  <div class="preview-shell" id="preview"></div>
+</main>
+
+<script src="image-drop.js"></script>
+<script>
+"use strict";
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt = n => Math.round(n*100)/100;
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+const state = { img:'', imgW:0, imgH:0, ciOn:true, corner:'tr', ciScale:1, ciColor:'#0b0b0b' };
+
+const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
+const CI_TAGLINE = '좋은컴퓨터를만드는사람들';
+const CI_MAIN = '한성컴퓨터';
+
+/* 한성컴퓨터 CI (편집가능 SVG 텍스트) — 완성본 기준 우상단 배치/크기 */
+function ciSVG(){
+  if(!state.ciOn) return '';
+  const W=1000,H=1000,m=38,s=state.ciScale,c=state.ciColor;
+  const right = state.corner==='tr'||state.corner==='br';
+  const top   = state.corner==='tl'||state.corner==='tr';
+  const anchor = right ? 'end' : 'start';
+  const x = right ? (W-m) : m;
+  let tagY, mainY;
+  if(top){ tagY = m + 30*s; mainY = m + 90*s; }
+  else   { mainY = H - m - 12*s; tagY = mainY - 60*s; }
+  const tagFS = 14.5*s, mainFS = 48*s;
+  return `<g>`+
+    `<text x="${fmt(x)}" y="${fmt(tagY)}" font-family="${FONT}" font-size="${fmt(tagFS)}" font-weight="600" fill="${c}" text-anchor="${anchor}" letter-spacing="${fmt(1.8*s)}">${esc(CI_TAGLINE)}</text>`+
+    `<text x="${fmt(x)}" y="${fmt(mainY)}" font-family="${FONT}" font-size="${fmt(mainFS)}" font-weight="800" fill="${c}" text-anchor="${anchor}" letter-spacing="${fmt(-1.5*s)}">${esc(CI_MAIN)}</text>`+
+  `</g>`;
+}
+
+function buildSVG(){
+  const W=1000,H=1000;
+  const body=[];
+  body.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`);
+  if(state.img && state.imgW && state.imgH){
+    body.push(`<image href="${state.img}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid meet"/>`);
+  } else {
+    body.push(`<rect x="60" y="60" width="${W-120}" height="${H-120}" rx="20" fill="none" stroke="#c9cdd6" stroke-width="3" stroke-dasharray="16 14"/>`);
+    body.push(`<text x="${W/2}" y="${H/2}" font-family="${FONT}" font-size="34" font-weight="700" fill="#9aa2b4" text-anchor="middle" dominant-baseline="central">제품 이미지를 드롭하세요</text>`);
+  }
+  body.push(ciSVG());
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body.join('')}</svg>`;
+}
+function render(){ $('#preview').innerHTML = buildSVG(); }
+
+/* 이미지 처리 */
+function readImage(file){
+  if(!file || !/^image\//.test(file.type)){ setStatus('이미지 파일이 아니에요.'); return; }
+  const r = new FileReader();
+  r.onload = ()=>{
+    const im = new Image();
+    im.onload = ()=>{
+      state.img = r.result; state.imgW = im.naturalWidth; state.imgH = im.naturalHeight;
+      const box=$('#imgBox'); box.classList.add('has'); box.style.backgroundImage=`url("${r.result}")`;
+      $('#imgHint').style.display='none'; render();
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+/* 저장 */
+function outputSVG(filename, svg){
+  if(inFrame) parent.postMessage({ pluginMessage:{ type:'save-svg', filename, svg } }, '*');
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200); }
+}
+
+/* 바인딩 */
+$('#imgInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) readImage(f); e.target.value=''; });
+$('#ciOn').addEventListener('change', e=>{ state.ciOn=e.target.checked; render(); });
+$('#cornerSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  state.corner=b.dataset.c;
+  $('#cornerSel').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+  render();
+});
+$('#ciScale').addEventListener('input', e=>{ state.ciScale=parseFloat(e.target.value); $('#ciScaleV').textContent=Math.round(state.ciScale*100)+'%'; render(); });
+$('#ciColor').addEventListener('input', e=>{ state.ciColor=e.target.value; render(); });
+$('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기' : '제작 → SVG 저장';
+$('#saveBtn').onclick = ()=>{
+  const svg = buildSVG();
+  outputSVG('ci-product-1000.svg', svg);
+  setStatus(inFrame ? '에디터로 보냈어요.' : 'SVG를 저장했어요.');
+};
+window.addEventListener('message', e=>{ const m=e.data&&e.data.pluginMessage; if(m&&(m.type==='toast'||m.type==='error')) setStatus(m.message); });
+window.addEventListener('load', ()=>{ if(window.ImageDrop) ImageDrop.wire('imgInput', ['#imgBox','#preview'], setStatus); });
+
+render();
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+</script>
+</body>
+</html>
