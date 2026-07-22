@@ -39,16 +39,19 @@ input[type=color]{width:38px;height:32px;border:1px solid #cfd1c9;border-radius:
   <div class="step"><b>제품 이미지 (1000×1000 권장)</b><span class="num">01 IMAGE</span></div>
   <label class="imgbox" id="imgBox"><input type="file" id="imgInput" accept="image/*" hidden><span id="imgHint">＋ 클릭 업로드 · 이미지를 드래그해서 넣기 (다나와 등)</span></label>
 
-  <div class="step"><b>CI 삽입</b><span class="num">02 CI</span></div>
-  <label class="chk"><input type="checkbox" id="ciOn" checked> 한성컴퓨터 CI 넣기 (기본 삽입)</label>
+  <div class="step"><b>CI 이미지 (직접 업로드)</b><span class="num">02 CI</span></div>
+  <label class="imgbox" id="ciBox" style="min-height:104px"><input type="file" id="ciInput" accept="image/*" hidden><span id="ciHint">＋ CI 이미지를 업로드 · 드래그해서 넣기<br><span style="font-size:11px;color:#b6b8af">미업로드 시 기본 텍스트 CI 사용 · 배경 투명(PNG) 권장</span></span></label>
+  <label class="chk" style="margin-top:10px"><input type="checkbox" id="ciOn" checked> CI 넣기</label>
+
+  <div class="step"><b>CI 위치 · 크기</b><span class="num">03 PLACE</span></div>
   <div class="corner" id="cornerSel">
     <button data-c="tl">↖ 좌상단</button>
     <button data-c="tr" class="on">↗ 우상단 (완성본)</button>
     <button data-c="bl">↙ 좌하단</button>
     <button data-c="br">↘ 우하단</button>
   </div>
-  <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">크기</span><input type="range" id="ciScale" min="0.6" max="1.6" step="0.05" value="1"><span id="ciScaleV" style="width:38px;text-align:right;font-weight:700">100%</span></div>
-  <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">색상</span><input type="color" id="ciColor" value="#0b0b0b"><span class="hint" style="margin:0">어두운 제품 위에는 흰색(#ffffff)으로</span></div>
+  <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">크기</span><input type="range" id="ciScale" min="0.5" max="2" step="0.05" value="1"><span id="ciScaleV" style="width:38px;text-align:right;font-weight:700">100%</span></div>
+  <div class="row" id="colorRow"><span style="width:52px;color:#5b5d54;font-weight:700">색상</span><input type="color" id="ciColor" value="#0b0b0b"><span class="hint" style="margin:0">기본 텍스트 CI 전용 · 어두운 제품엔 흰색</span></div>
 
   <button class="primary" id="saveBtn">제작</button>
   <div id="status" class="status"></div>
@@ -64,7 +67,8 @@ const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt
 const fmt = n => Math.round(n*100)/100;
 function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
 
-const state = { img:'', imgW:0, imgH:0, ciOn:true, corner:'tr', ciScale:1, ciColor:'#0b0b0b' };
+const state = { img:'', imgW:0, imgH:0, ci:'', ciW:0, ciH:0, ciOn:true, corner:'tr', ciScale:1, ciColor:'#0b0b0b' };
+const CI_BASE_W = 232;   // 업로드 CI 기본 가로폭(px, scale 1 기준) — 완성본 로고 폭에 맞춤
 
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
 const CI_TAGLINE = '좋은컴퓨터를만드는사람들';
@@ -76,6 +80,14 @@ function ciSVG(){
   const W=1000,H=1000,m=38,s=state.ciScale,c=state.ciColor;
   const right = state.corner==='tr'||state.corner==='br';
   const top   = state.corner==='tl'||state.corner==='tr';
+  // 업로드한 CI 이미지가 있으면 그 이미지를 코너에 배치 (원본 비율 유지)
+  if(state.ci && state.ciW && state.ciH){
+    const w = CI_BASE_W * s, h = w * (state.ciH/state.ciW);
+    const x = right ? (W-m-w) : m;
+    const y = top ? m : (H-m-h);
+    return `<image href="${state.ci}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="xMidYMid meet"/>`;
+  }
+  // 미업로드 시: 기본 텍스트 CI (편집가능)
   const anchor = right ? 'end' : 'start';
   const x = right ? (W-m) : m;
   let tagY, mainY;
@@ -118,6 +130,22 @@ function readImage(file){
   };
   r.readAsDataURL(file);
 }
+/* CI 이미지 직접 업로드 */
+function readCI(file){
+  if(!file || !/^image\//.test(file.type)){ setStatus('이미지 파일이 아니에요.'); return; }
+  const r = new FileReader();
+  r.onload = ()=>{
+    const im = new Image();
+    im.onload = ()=>{
+      state.ci = r.result; state.ciW = im.naturalWidth; state.ciH = im.naturalHeight;
+      const box=$('#ciBox'); box.classList.add('has'); box.style.backgroundImage=`url("${r.result}")`;
+      $('#ciHint').style.display='none'; if(!state.ciOn){ state.ciOn=true; $('#ciOn').checked=true; }
+      render();
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
 
 /* 저장 */
 function outputSVG(filename, svg){
@@ -127,6 +155,7 @@ function outputSVG(filename, svg){
 
 /* 바인딩 */
 $('#imgInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) readImage(f); e.target.value=''; });
+$('#ciInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) readCI(f); e.target.value=''; });
 $('#ciOn').addEventListener('change', e=>{ state.ciOn=e.target.checked; render(); });
 $('#cornerSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   state.corner=b.dataset.c;
@@ -142,7 +171,7 @@ $('#saveBtn').onclick = ()=>{
   setStatus(inFrame ? '에디터로 보냈어요.' : 'SVG를 저장했어요.');
 };
 window.addEventListener('message', e=>{ const m=e.data&&e.data.pluginMessage; if(m&&(m.type==='toast'||m.type==='error')) setStatus(m.message); });
-window.addEventListener('load', ()=>{ if(window.ImageDrop) ImageDrop.wire('imgInput', ['#imgBox','#preview'], setStatus); });
+window.addEventListener('load', ()=>{ if(window.ImageDrop){ ImageDrop.wire('imgInput', ['#imgBox','#preview'], setStatus); ImageDrop.wire('ciInput', ['#ciBox'], setStatus); } });
 
 render();
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(render);
