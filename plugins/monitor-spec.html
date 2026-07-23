@@ -231,6 +231,15 @@ $('#saveBtn').onclick=()=>{ outputSVG('monitor-spec-1000.svg', buildSVG(false));
 window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message);});
 window.addEventListener('load',()=>{ if(window.ImageDrop){ ImageDrop.wire('imgInput',['#imgBox'],setStatus); ImageDrop.wire('ciInput',['#ciBox'],setStatus); } });
 
+// 기본 CI(한성컴퓨터) 이미지를 레포에서 직접 불러와 data URI로 임베드
+(function loadDefaultCI(){
+  fetch('assets/hansung-ci.jpg').then(r=>{ if(!r.ok) throw 0; return r.blob(); }).then(blob=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const im=new Image(); im.onload=()=>{ if(state.ci) return; state.ci=fr.result; state.ciW=im.naturalWidth; state.ciH=im.naturalHeight; const b=$('#ciBox'); if(b){ b.classList.add('has'); b.style.backgroundImage=`url("${fr.result}")`; } const h=$('#ciHint'); if(h) h.style.display='none'; render(); }; im.src=fr.result; };
+    fr.readAsDataURL(blob);
+  }).catch(()=>{});
+})();
+
 render();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(render);
 </script>
