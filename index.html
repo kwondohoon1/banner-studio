@@ -102,6 +102,16 @@
   .iconHint{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.5;padding:4px 2px}
   .stageWrap.panready{cursor:grab}
   .stageWrap.panning,.stageWrap.panning *{cursor:grabbing !important}
+  .stageWrap.erasing,.stageWrap.erasing *{cursor:crosshair !important}
+  .ctxMenu{position:fixed;z-index:300;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(25,27,22,.2);padding:5px;display:none;min-width:210px}
+  .ctxMenu.show{display:block}
+  .ctxMenu button{display:flex;gap:8px;align-items:center;width:100%;border:0;background:none;padding:9px 11px;border-radius:8px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--text);text-align:left}
+  .ctxMenu button:hover{background:#f0f1eb}
+  .eraserBar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:300;background:var(--dark);color:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.32);padding:10px 14px;display:none;align-items:center;gap:12px;font-size:12px;font-weight:600}
+  .eraserBar.show{display:flex}
+  .eraserBar label{display:flex;align-items:center;gap:7px}
+  .eraserBar input[type=range]{width:120px}
+  .eraserBar button{border:0;border-radius:8px;background:var(--lime);color:#20221d;font-weight:800;padding:7px 12px;cursor:pointer}
   #stage{position:relative;transform-origin:0 0;margin:40px}
   #stage svg{display:block;box-shadow:0 18px 48px rgba(25,27,22,.17);background:#fff}
   #stage svg *{cursor:pointer}
@@ -1312,6 +1322,17 @@ function renderProps() {
       <div class="colorRow"><input type="color" data-p="fill" value="${toHex(fill)}"><input type="text" data-p="fill" value="${toHex(fill)}"></div>`;
   }
 
+  // 선(테두리): 이미지·텍스트를 제외한 도형류
+  if (t !== "text" && t !== "image") {
+    const sc = el.getAttribute("stroke");
+    const scol = (sc && sc !== "none") ? toHex(sc) : "#000000";
+    const sw = parseFloat(el.getAttribute("stroke-width")) || 0;
+    html += `<div class="grp">선(테두리)</div>
+      <label>선 색상</label>
+      <div class="colorRow"><input type="color" data-p="stroke" value="${scol}"><input type="text" data-p="stroke" value="${scol}"></div>
+      <label>선 굵기</label><input type="number" data-p="stroke-width" value="${round(sw, 1)}" min="0" step="1">`;
+  }
+
   // 공통: 투명도 + 위치
   const op = el.getAttribute("opacity");
   const bb = safeBBox(el);
@@ -1376,11 +1397,27 @@ function applyProp(el, prop, inp, box) {
     const lbl = inp.previousElementSibling;
     if (lbl && lbl.tagName === "LABEL") lbl.textContent = `투명도 (${Math.round(+val * 100)}%)`;
   }
-  else if (prop === "fill") {
+  else if (prop === "fill" || prop === "stroke") {
     val = toHex(val);
-    el.setAttribute("fill", val);
+    el.setAttribute(prop, val);
     // color/text 두 입력 동기화
-    box.querySelectorAll("[data-p=fill]").forEach(o => { if (o !== inp) o.value = val; });
+    box.querySelectorAll(`[data-p="${prop}"]`).forEach(o => { if (o !== inp) o.value = val; });
+    // 선 색을 정했는데 굵기가 0이면 보이도록 최소 굵기 부여
+    if (prop === "stroke" && !(parseFloat(el.getAttribute("stroke-width")) > 0)) {
+      el.setAttribute("stroke-width", 2);
+      const wi = box.querySelector('[data-p="stroke-width"]'); if (wi) wi.value = 2;
+    }
+  }
+  else if (prop === "stroke-width") {
+    if (val === "" || +val === 0) { el.setAttribute("stroke-width", 0); }
+    else {
+      el.setAttribute("stroke-width", val);
+      // 굵기만 주고 색이 없으면 색 입력값(기본 검정)으로 채움
+      const cur = el.getAttribute("stroke");
+      if (!cur || cur === "none") {
+        const si = box.querySelector('[data-p="stroke"]'); el.setAttribute("stroke", si ? si.value : "#000000");
+      }
+    }
   }
   else if (prop === "font-family") {
     el.setAttribute("font-family", val + ", sans-serif");
@@ -1620,6 +1657,142 @@ function toHex(c) {
   if (m) { const p = m[1].split(",").map(x => parseFloat(x)); return "#" + p.slice(0, 3).map(n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0")).join(""); }
   return "#000000";
 }
+
+/* ================= 이미지 지우개 (우클릭 → 드래그로 잘라내기) ================= */
+// 우클릭 메뉴 + 지우개 툴바를 동적 생성
+const ctxMenu = document.createElement("div"); ctxMenu.className = "ctxMenu"; ctxMenu.id = "ctxMenu";
+ctxMenu.innerHTML = `<button id="ctxErase">🧽 지우개로 지우기 <span style="opacity:.55;margin-left:auto;font-size:11px">드래그로 잘라내기</span></button>`;
+document.body.appendChild(ctxMenu);
+const eraserBar = document.createElement("div"); eraserBar.className = "eraserBar"; eraserBar.id = "eraserBar";
+eraserBar.innerHTML = `🧽 지우개 — 이미지 위를 드래그해 지우기 <label>브러시 <input type="range" id="eraserSize" min="6" max="160" step="2" value="34"><span id="eraserSizeV">34</span></label> <button id="eraserDone">완료 (Esc)</button>`;
+document.body.appendChild(eraserBar);
+
+let eraserMode = false, eraserImg = null, erasing = false, curErasePath = null, eraserSize = 34, eraseSeq = 0;
+
+function screenToUser(cx, cy) {
+  const m = state.svg.getScreenCTM().inverse();
+  const pt = state.svg.createSVGPoint(); pt.x = cx; pt.y = cy;
+  const s = pt.matrixTransform(m); return { x: s.x, y: s.y };
+}
+function hideCtx() { ctxMenu.classList.remove("show"); }
+function ensureEraseMask(img) {
+  let defs = state.svg.querySelector("defs");
+  if (!defs) { defs = document.createElementNS(SVGNS, "defs"); state.svg.insertBefore(defs, state.svg.firstChild); }
+  let id = img.getAttribute("data-erase-mask");
+  let mask = id ? state.svg.querySelector('mask[id="' + id + '"]') : null;
+  if (!mask) {
+    id = "em" + Date.now().toString(36) + (eraseSeq++);
+    mask = document.createElementNS(SVGNS, "mask");
+    mask.setAttribute("id", id); mask.setAttribute("maskUnits", "userSpaceOnUse");
+    const bb = safeBBox(img);
+    const bg = document.createElementNS(SVGNS, "rect");
+    bg.setAttribute("x", bb.x - 2); bg.setAttribute("y", bb.y - 2);
+    bg.setAttribute("width", bb.width + 4); bg.setAttribute("height", bb.height + 4);
+    bg.setAttribute("fill", "#fff");
+    mask.appendChild(bg); defs.appendChild(mask);
+    img.setAttribute("mask", "url(#" + id + ")"); img.setAttribute("data-erase-mask", id);
+  }
+  return mask;
+}
+function enterEraser(img) {
+  if (!img || img.tagName !== "image") return;
+  eraserMode = true; eraserImg = img; select(img);
+  $("stageWrap").classList.add("erasing"); eraserBar.classList.add("show");
+  showToast("지우개: 이미지 위를 드래그해서 지우세요. (완료: Esc)");
+}
+function exitEraser() {
+  if (!eraserMode) return;
+  const img = eraserImg;
+  eraserMode = false; eraserImg = null; erasing = false; curErasePath = null;
+  $("stageWrap").classList.remove("erasing"); eraserBar.classList.remove("show");
+  if (img) bakeErase(img);
+}
+function parsePathPts(d) {
+  const n = (d || "").match(/-?[\d.]+/g) || []; const p = [];
+  for (let i = 0; i + 1 < n.length; i += 2) p.push([+n[i], +n[i + 1]]);
+  return p;
+}
+// 지운 결과를 비트맵에 구워 넣어(이동/내보내기에도 유지) 마스크 제거
+function bakeErase(img) {
+  const id = img.getAttribute("data-erase-mask");
+  const mask = id && state.svg.querySelector('mask[id="' + id + '"]');
+  const cleanup = () => { if (mask) mask.remove(); img.removeAttribute("mask"); img.removeAttribute("data-erase-mask"); };
+  if (!mask) return;
+  const strokes = [...mask.querySelectorAll("path")].map(p => ({ pts: parsePathPts(p.getAttribute("d")), w: parseFloat(p.getAttribute("stroke-width")) || eraserSize }));
+  if (!strokes.length) { cleanup(); return; }
+  const bb = safeBBox(img);
+  const href = img.getAttribute("href") || img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+  const im = new Image();
+  im.onload = () => {
+    try {
+      const nw = im.naturalWidth || bb.width, nh = im.naturalHeight || bb.height, Q = 2;
+      const par = img.getAttribute("preserveAspectRatio") || "xMidYMid meet";
+      const scale = /slice/.test(par) ? Math.max(bb.width / nw, bb.height / nh) : Math.min(bb.width / nw, bb.height / nh);
+      const dw = nw * scale, dh = nh * scale, ox = (bb.width - dw) / 2, oy = (bb.height - dh) / 2;
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(bb.width * Q)); c.height = Math.max(1, Math.round(bb.height * Q));
+      const cx = c.getContext("2d");
+      cx.drawImage(im, ox * Q, oy * Q, dw * Q, dh * Q);
+      cx.globalCompositeOperation = "destination-out";
+      cx.lineCap = "round"; cx.lineJoin = "round"; cx.strokeStyle = "#000";
+      strokes.forEach(s => {
+        if (!s.pts.length) return;
+        cx.lineWidth = s.w * Q; cx.beginPath();
+        cx.moveTo((s.pts[0][0] - bb.x) * Q, (s.pts[0][1] - bb.y) * Q);
+        if (s.pts.length === 1) cx.lineTo((s.pts[0][0] - bb.x) * Q + 0.1, (s.pts[0][1] - bb.y) * Q);
+        else s.pts.slice(1).forEach(p => cx.lineTo((p[0] - bb.x) * Q, (p[1] - bb.y) * Q));
+        cx.stroke();
+      });
+      const url = c.toDataURL("image/png");
+      img.setAttribute("href", url);
+      img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", url);
+      img.setAttribute("x", round(bb.x, 1)); img.setAttribute("y", round(bb.y, 1));
+      img.setAttribute("width", round(bb.width, 1)); img.setAttribute("height", round(bb.height, 1));
+      img.setAttribute("preserveAspectRatio", "none");
+      cleanup(); updateOverlay(); pushSnapshot();
+    } catch (err) { /* CORS 등 실패: 마스크(비파괴) 유지 */ pushSnapshot(); }
+  };
+  im.onerror = () => { /* 유지 */ };
+  im.src = href;
+}
+
+// 우클릭: 선택(또는 우클릭)된 이미지에 지우개 메뉴
+$("stageWrap").addEventListener("contextmenu", (e) => {
+  let img = (state.sel && state.sel.tagName === "image") ? state.sel : (e.target.closest ? e.target.closest("image") : null);
+  if (!img) { hideCtx(); return; }
+  e.preventDefault();
+  select(img);
+  ctxMenu.style.left = e.clientX + "px"; ctxMenu.style.top = e.clientY + "px"; ctxMenu.classList.add("show");
+});
+document.getElementById("ctxErase").onclick = () => { hideCtx(); if (state.sel && state.sel.tagName === "image") enterEraser(state.sel); };
+document.addEventListener("mousedown", (e) => { if (!ctxMenu.contains(e.target)) hideCtx(); }, true);
+$("stageWrap").addEventListener("scroll", hideCtx);
+document.getElementById("eraserDone").onclick = exitEraser;
+document.getElementById("eraserSize").addEventListener("input", (e) => { eraserSize = +e.target.value; document.getElementById("eraserSizeV").textContent = e.target.value; });
+document.addEventListener("keydown", (e) => { if (eraserMode && e.key === "Escape") { e.preventDefault(); exitEraser(); } });
+
+// 지우개 드래그 (캡처 단계에서 선택/이동보다 먼저 가로챔)
+$("stageWrap").addEventListener("mousedown", (e) => {
+  if (!eraserMode || e.button !== 0 || !eraserImg) return;
+  e.preventDefault(); e.stopPropagation();
+  erasing = true;
+  const mask = ensureEraseMask(eraserImg);
+  const p = screenToUser(e.clientX, e.clientY);
+  curErasePath = document.createElementNS(SVGNS, "path");
+  curErasePath.setAttribute("d", `M ${round(p.x, 1)} ${round(p.y, 1)}`);
+  curErasePath.setAttribute("stroke", "#000");
+  curErasePath.setAttribute("stroke-width", eraserSize);
+  curErasePath.setAttribute("fill", "none");
+  curErasePath.setAttribute("stroke-linecap", "round");
+  curErasePath.setAttribute("stroke-linejoin", "round");
+  mask.appendChild(curErasePath);
+}, true);
+document.addEventListener("mousemove", (e) => {
+  if (!erasing || !curErasePath) return;
+  const p = screenToUser(e.clientX, e.clientY);
+  curErasePath.setAttribute("d", curErasePath.getAttribute("d") + ` L ${round(p.x, 1)} ${round(p.y, 1)}`);
+});
+document.addEventListener("mouseup", () => { if (erasing) { erasing = false; curErasePath = null; } });
 
 /* 시작: 캐시가 있으면 복원, 없으면 빈 페이지 1개 */
 if (loadCache()) showToast("이전 작업을 불러왔어요.");
