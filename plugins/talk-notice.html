@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>톡톡안내</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top b{font-size:14px}.top small{font-size:9px;color:var(--muted);display:block;letter-spacing:.4px}
+main{padding:16px;max-width:540px}
+.step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:120px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
+.imgbox.has{border-style:solid;border-color:#cfd1c9}
+.imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
+.row{display:flex;gap:8px;align-items:center;margin-top:10px}
+input[type=range]{flex:1}
+label.chk{display:flex;align-items:center;gap:8px;font-weight:700;color:#4f5148;cursor:pointer}
+label.chk input{width:16px;height:16px}
+.hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.primary{width:100%;margin-top:18px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px;line-height:1.45}.status.show{display:block}
+.pv-tabs{display:flex;gap:6px;margin-top:16px}
+.pv-tabs button{flex:1;border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:9px;font:inherit;font-weight:700;cursor:pointer;color:#5b5d54}
+.pv-tabs button.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:10px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+.preview-shell.hide{display:none}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">TT</div><div><b>톡톡안내</b><small>이미지형 628×628(1:1) · 상품리스트형 628×270(≈2.4:1)</small></div></header>
+<main>
+  <div class="step"><b>제품 이미지</b><span class="num">01 PRODUCT</span></div>
+  <label class="imgbox" id="prodBox"><input type="file" id="prodInput" accept="image/*" hidden><span id="prodHint">＋ 제품 이미지 업로드 · 드래그해서 넣기</span></label>
+  <label class="chk" style="margin-top:8px"><input type="checkbox" id="cutout" checked> 흰 배경 자동 제거 (누끼) — 배경 위에 자연스럽게</label>
+
+  <div class="step"><b>배경 이미지 <small style="color:var(--muted);font-weight:500">선택</small></b><span class="num">02 BG</span></div>
+  <label class="imgbox" id="bgBox" style="min-height:96px"><input type="file" id="bgInput" accept="image/*" hidden><span id="bgHint">＋ 배경 이미지 업로드(선택) · 미입력 시 연한 하늘색</span></label>
+
+  <div class="step"><b>제품 크기</b><span class="num">03 SIZE</span></div>
+  <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">크기</span><input type="range" id="prodScale" min="0.6" max="1.15" step="0.05" value="1"><span id="prodScaleV" style="width:38px;text-align:right;font-weight:700">100%</span></div>
+
+  <button class="primary" id="saveBtn">제작 (이미지형 + 상품리스트형)</button>
+  <div id="status" class="status"></div>
+
+  <div class="pv-tabs">
+    <button id="tabImg" class="on">이미지형 (1:1)</button>
+    <button id="tabList">상품리스트형 (2.4:1)</button>
+  </div>
+  <div class="preview-shell" id="pvImg"></div>
+  <div class="preview-shell hide" id="pvList"></div>
+</main>
+
+<script src="image-drop.js"></script>
+<script>
+"use strict";
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const fmt = n => Math.round(n*100)/100;
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+const state = { prod:'', prodW:0, prodH:0, prodOrig:'', cutout:true, bg:'', bgW:0, bgH:0, prodScale:1 };
+
+/* ---------- 흰 배경 제거 (누끼) ---------- */
+function colorDistance(a,b){ const dr=a[0]-b[0],dg=a[1]-b[1],db=a[2]-b[2]; return Math.sqrt(dr*dr+dg*dg+db*db); }
+function estimateEdgeColor(data,w,h){ let r=0,g=0,b=0,c=0; const sx=Math.max(1,Math.floor(w/80)),sy=Math.max(1,Math.floor(h/80));
+  const s=(x,y)=>{const i=(y*w+x)*4;r+=data[i];g+=data[i+1];b+=data[i+2];c++;};
+  for(let x=0;x<w;x+=sx){s(x,0);s(x,h-1);} for(let y=0;y<h;y+=sy){s(0,y);s(w-1,y);} return [r/c,g/c,b/c]; }
+function removeWhiteBackground(img){
+  const maxSide=1600, scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+  const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const cx=c.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0,w,h);
+  const im=cx.getImageData(0,0,w,h), d=im.data, bg=estimateEdgeColor(d,w,h);
+  const threshold=Math.max(34,Math.min(96,colorDistance(bg,[255,255,255])+42));
+  const visited=new Uint8Array(w*h), qx=[], qy=[];
+  const push=(x,y)=>{const idx=y*w+x;if(!visited[idx]){visited[idx]=1;qx.push(x);qy.push(y);}};
+  for(let x=0;x<w;x++){push(x,0);push(x,h-1);} for(let y=0;y<h;y++){push(0,y);push(w-1,y);}
+  let head=0;
+  while(head<qx.length){ const x=qx[head],y=qy[head++],i=(y*w+x)*4,col=[d[i],d[i+1],d[i+2]];
+    const nearBg=colorDistance(col,bg)<threshold||(d[i]>238&&d[i+1]>238&&d[i+2]>238);
+    if(!nearBg)continue; d[i+3]=0;
+    if(x>0)push(x-1,y); if(x<w-1)push(x+1,y); if(y>0)push(x,y-1); if(y<h-1)push(x,y+1); }
+  cx.putImageData(im,0,0); return c;
+}
+
+/* ---------- SVG 조립 ---------- */
+function containRect(iw,ih,bx,by,bw,bh){ const s=Math.min(bw/iw,bh/ih),w=iw*s,h=ih*s; return {x:bx+(bw-w)/2,y:by+(bh-h)/2,w,h}; }
+function dims(mode){ return mode==='list'?{W:628,H:270}:{W:628,H:628}; }
+function prodBoxOf(mode){ const s=state.prodScale;
+  const base = mode==='list'?{x:40,y:26,w:548,h:218}:{x:64,y:64,w:500,h:500};
+  // 크기 슬라이더: 중심 기준 스케일
+  const cx=base.x+base.w/2, cy=base.y+base.h/2, w=base.w*s, h=base.h*s;
+  return {x:cx-w/2,y:cy-h/2,w,h};
+}
+function bgSVG(W,H){
+  if(state.bg && state.bgW && state.bgH){
+    return `<image href="${state.bg}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>`;
+  }
+  // 기본: 엄청 연한 하늘색 (부드러운 그라데이션)
+  return `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#sky)"/>`;
+}
+function buildSVG(mode){
+  const {W,H}=dims(mode), body=[];
+  body.push(bgSVG(W,H));
+  if(state.prod && state.prodW && state.prodH){
+    const b=prodBoxOf(mode), r=containRect(state.prodW,state.prodH,b.x,b.y,b.w,b.h);
+    body.push(`<image href="${state.prod}" x="${fmt(r.x)}" y="${fmt(r.y)}" width="${fmt(r.w)}" height="${fmt(r.h)}" preserveAspectRatio="xMidYMid meet"/>`);
+  } else {
+    const b=prodBoxOf(mode);
+    body.push(`<rect x="${fmt(b.x)}" y="${fmt(b.y)}" width="${fmt(b.w)}" height="${fmt(b.h)}" rx="16" fill="none" stroke="#b6cfe0" stroke-width="3" stroke-dasharray="14 12"/>`);
+    body.push(`<text x="${W/2}" y="${H/2}" font-family="Pretendard,'Noto Sans KR',sans-serif" font-size="${mode==='list'?26:30}" font-weight="700" fill="#9db6cc" text-anchor="middle" dominant-baseline="central">제품 이미지를 넣어주세요</text>`);
+  }
+  const defs = `<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4fafe"/><stop offset="1" stop-color="#e4f1fb"/></linearGradient></defs>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}${body.join('')}</svg>`;
+}
+function render(){ $('#pvImg').innerHTML=buildSVG('image'); $('#pvList').innerHTML=buildSVG('list'); }
+
+/* ---------- 이미지 처리 ---------- */
+function applyProd(){
+  if(!state.prodOrig) return;
+  const im=new Image();
+  im.onload=()=>{
+    let dataUrl=state.prodOrig,w=im.naturalWidth,h=im.naturalHeight;
+    if(state.cutout){ try{ const cv=removeWhiteBackground(im); dataUrl=cv.toDataURL('image/png'); w=cv.width; h=cv.height; }catch(e){} }
+    state.prod=dataUrl; state.prodW=w; state.prodH=h;
+    const box=$('#prodBox'); box.classList.add('has'); box.style.backgroundImage=`url("${dataUrl}")`; $('#prodHint').style.display='none';
+    render();
+  };
+  im.src=state.prodOrig;
+}
+function readProd(file){ if(!file||!/^image\//.test(file.type)){setStatus('이미지 파일이 아니에요.');return;} const r=new FileReader(); r.onload=()=>{ state.prodOrig=r.result; applyProd(); }; r.readAsDataURL(file); }
+function readBg(file){ if(!file||!/^image\//.test(file.type)){setStatus('이미지 파일이 아니에요.');return;} const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>{ state.bg=r.result;state.bgW=im.naturalWidth;state.bgH=im.naturalHeight; const b=$('#bgBox');b.classList.add('has');b.style.backgroundImage=`url("${r.result}")`;$('#bgHint').style.display='none'; render(); }; im.src=r.result; }; r.readAsDataURL(file); }
+
+/* ---------- 저장 (두 장 동시) ---------- */
+function outputSVG(filename,svg){ if(inFrame) parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*'); else { const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1200);} }
+function doSave(){
+  outputSVG('톡톡안내_이미지형_628x628.svg', buildSVG('image'));
+  setTimeout(()=> outputSVG('톡톡안내_상품리스트형_628x270.svg', buildSVG('list')), inFrame?250:60);
+  setStatus(inFrame?'이미지형·상품리스트형 2장을 에디터로 보냈어요. (페이지 탭 확인)':'2장을 저장했어요.');
+}
+
+/* ---------- 바인딩 ---------- */
+$('#prodInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readProd(f);e.target.value='';});
+$('#bgInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readBg(f);e.target.value='';});
+$('#cutout').addEventListener('change',e=>{state.cutout=e.target.checked;applyProd();});
+$('#prodScale').addEventListener('input',e=>{state.prodScale=parseFloat(e.target.value);$('#prodScaleV').textContent=Math.round(state.prodScale*100)+'%';render();});
+$('#tabImg').onclick=()=>{$('#tabImg').classList.add('on');$('#tabList').classList.remove('on');$('#pvImg').classList.remove('hide');$('#pvList').classList.add('hide');};
+$('#tabList').onclick=()=>{$('#tabList').classList.add('on');$('#tabImg').classList.remove('on');$('#pvList').classList.remove('hide');$('#pvImg').classList.add('hide');};
+$('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기 (2장)' : '제작 → SVG 저장 (2장)';
+$('#saveBtn').onclick=doSave;
+window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message);});
+window.addEventListener('load',()=>{ if(window.ImageDrop){ ImageDrop.wire('prodInput',['#prodBox','#pvImg','#pvList'],setStatus); ImageDrop.wire('bgInput',['#bgBox'],setStatus); } });
+
+render();
+</script>
+</body>
+</html>

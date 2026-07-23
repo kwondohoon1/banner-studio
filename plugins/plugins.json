@@ -6,5 +6,6 @@
   { "id": "pixel-preorder", "title": "픽셀예약판매", "description": "픽셀아트 예약판매 배너(1254×1254)", "file": "plugins/pixel-preorder.html" },
   { "id": "monitor-showcase", "title": "쿠팡브랜드샵", "description": "쿠팡브랜드샵 배너 (PC 2176×1036 + 모바일 1248×1817)", "file": "plugins/monitor-showcase.html" },
   { "id": "ci-add", "title": "CI추가", "description": "제품 이미지(1000×1000)에 한성컴퓨터 CI 자동 삽입", "file": "plugins/ci-add.html" },
-  { "id": "monitor-spec", "title": "모니터스펙", "description": "모니터 이미지+스펙 → 화면에 스펙 뱃지 얹은 스펙이미지(범위 드래그 지정)", "file": "plugins/monitor-spec.html" }
+  { "id": "monitor-spec", "title": "모니터스펙", "description": "모니터 이미지+스펙 → 화면에 스펙 뱃지 얹은 스펙이미지(범위 드래그 지정)", "file": "plugins/monitor-spec.html" },
+  { "id": "talk-notice", "title": "톡톡안내", "description": "제품+배경 → 이미지형(628×628)·상품리스트형(628×270) 2장", "file": "plugins/talk-notice.html" }
 ]
