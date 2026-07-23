@@ -73,7 +73,13 @@
   .layer.hidden .nm{opacity:.4;text-decoration:line-through}
 
   /* ---- 캔버스 ---- */
-  .center{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .center{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+  #gridLayer{position:absolute;left:0;top:0;pointer-events:none;z-index:5;
+    background-image:linear-gradient(rgba(70,110,170,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(70,110,170,.18) 1px,transparent 1px);
+    background-size:25px 25px,25px 25px}
+  .gridToggle{position:absolute;left:12px;bottom:12px;z-index:20;border:1px solid var(--line);background:var(--panel);color:var(--muted);
+    border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(25,27,22,.1)}
+  .gridToggle.on{background:var(--dark);color:#fff;border-color:var(--dark)}
   .center>.stageWrap{flex:1}
   .pageTabs{display:flex;align-items:center;gap:4px;padding:5px 8px 0;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;min-height:36px;flex:none}
   .pageTab{display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--panel2);cursor:pointer;white-space:nowrap;font-size:12px;color:var(--muted);max-width:180px}
@@ -276,6 +282,7 @@
         </div>
       </div>
     </div>
+    <button class="gridToggle" id="gridToggle" title="격자무늬(위치 맞춤용) 켜기/끄기">▦ 격자</button>
     </div>
 
     <!-- 우: 속성 -->
@@ -315,6 +322,7 @@ const state = {
   els: [],             // 선택 가능한 요소 목록
   undo: [], redo: [],  // 스냅샷 스택(문자열)
   pageIndex: -1,       // 현재 페이지 인덱스
+  gridOn: false,       // 격자(위치 맞춤용) 표시 여부
 };
 let pages = [];        // 포토샵식 페이지 목록: {name, data|null} (활성 페이지 데이터는 작업세트에 라이브)
 
@@ -815,6 +823,70 @@ function bindSelectable() {
   renderLayers();
 }
 
+/* ================= 리치 텍스트(멀티라인 + 스페이스 보존 + 부분 색상) ================= */
+// 현재 text 요소 → { text:"줄1\n줄2", runs:[{start,end,fill}], baseFill }
+function richModel(el) {
+  const lineTspans = [...el.children].filter(n => n.tagName === "tspan");
+  let lines;
+  if (lineTspans.length) {
+    lines = lineTspans.map(ln => {
+      let text = ""; const fills = [];
+      ln.childNodes.forEach(node => {
+        if (node.nodeType === 3) { const t = node.nodeValue.replace(/​/g, ""); text += t; for (let i = 0; i < t.length; i++) fills.push(null); }
+        else if (node.tagName === "tspan") { const f = node.getAttribute("fill"); const t = node.textContent; text += t; for (let i = 0; i < t.length; i++) fills.push(f || null); }
+      });
+      return { text, fills };
+    });
+  } else {
+    const t = el.textContent || ""; lines = [{ text: t, fills: t.split("").map(() => null) }];
+  }
+  let full = "", gf = [];
+  lines.forEach((l, i) => { if (i) { full += "\n"; gf.push(undefined); } full += l.text; gf.push(...l.fills); });
+  return { text: full, runs: fillsToRuns(gf), baseFill: toHex(el.getAttribute("fill") || "#000000") };
+}
+function runsToFills(runs, len) { const a = new Array(len).fill(null); (runs || []).forEach(r => { for (let i = Math.max(0, r.start); i < Math.min(len, r.end); i++) a[i] = r.fill; }); return a; }
+function fillsToRuns(a) {
+  const runs = []; let cur = null;
+  for (let i = 0; i < a.length; i++) {
+    const f = a[i];
+    if (f) { if (cur && cur.fill === f && cur.end === i) cur.end = i + 1; else { if (cur) runs.push(cur); cur = { start: i, end: i + 1, fill: f }; } }
+    else if (cur) { runs.push(cur); cur = null; }
+  }
+  if (cur) runs.push(cur);
+  return runs;
+}
+// text 요소를 멀티라인 tspan 구조로 재구성 (스페이스 보존)
+function applyRich(el, text, runs) {
+  const x = ((el.getAttribute("x") || "0").trim().split(/\s+/)[0]) || "0";
+  const fs = parseFloat(el.getAttribute("font-size")) || 16;
+  const lineH = fs * 1.28;
+  while (el.firstChild) el.removeChild(el.firstChild);
+  el.setAttribute("xml:space", "preserve");
+  const fillAt = i => { for (const r of (runs || [])) { if (i >= r.start && i < r.end) return r.fill; } return null; };
+  const lines = String(text == null ? "" : text).split("\n");
+  let gi = 0;
+  lines.forEach((line, li) => {
+    const ln = document.createElementNS(SVGNS, "tspan");
+    ln.setAttribute("x", x);
+    ln.setAttribute("dy", li === 0 ? "0" : String(round(lineH, 2)));
+    if (line.length === 0) { ln.appendChild(document.createTextNode("​")); }
+    else {
+      let seg = "", segFill = fillAt(gi);
+      const flush = (fill) => { if (!seg) return; if (fill) { const ts = document.createElementNS(SVGNS, "tspan"); ts.setAttribute("fill", fill); ts.textContent = seg; ln.appendChild(ts); } else { ln.appendChild(document.createTextNode(seg)); } seg = ""; };
+      for (let i = 0; i < line.length; i++) { const f = fillAt(gi + i); if (f !== segFill) { flush(segFill); segFill = f; } seg += line[i]; }
+      flush(segFill);
+    }
+    el.appendChild(ln);
+    gi += line.length + 1;
+  });
+}
+// 텍스트 내용을 바꾸되(runs는 새 길이에 맞게 클램프) 재구성
+function setTextContentRich(el, newText) {
+  const m = richModel(el);
+  const runs = (m.runs || []).map(r => ({ start: r.start, end: Math.min(r.end, newText.length), fill: r.fill })).filter(r => r.start < r.end && r.start < newText.length);
+  applyRich(el, newText, runs);
+}
+
 /* ================= 텍스트 더블클릭 즉석 편집 ================= */
 function onTextDblClick(e) {
   e.stopPropagation(); e.preventDefault();
@@ -837,24 +909,27 @@ function startInlineEdit(el) {
   const anchor = el.getAttribute("text-anchor");
   const align = anchor === "middle" ? "center" : anchor === "end" ? "right" : "left";
 
-  const inp = document.createElement("input");
-  inp.type = "text";
+  const model0 = richModel(el);
+  const inp = document.createElement("textarea");
   inp.className = "inlineEdit";
-  inp.value = el.textContent;
+  inp.value = model0.text;
+  inp.rows = Math.max(1, model0.text.split("\n").length);
   // 실제 텍스트와 동일한 폰트·굵기·색·자간·정렬로 → 제자리에서 고치는 느낌
   Object.assign(inp.style, {
     left: b.x + "px", top: b.y + "px",
-    width: Math.max(24, b.w) + "px", height: b.h + "px", lineHeight: b.h + "px",
+    width: Math.max(40, b.w) + "px",
     fontSize: Math.max(8, fs) + "px", fontFamily: family, fontWeight: weight,
-    color: fill, letterSpacing: ls + "px", textAlign: align, caretColor: "var(--accent)"
+    color: fill, letterSpacing: ls + "px", textAlign: align, caretColor: "var(--accent)",
+    lineHeight: "1.28", whiteSpace: "pre", overflow: "hidden", resize: "none"
   });
   // 편집 중 원본 텍스트는 숨겨 이중 표시 방지
   el.style.visibility = "hidden";
   ov.appendChild(inp);
   inp.focus(); inp.select();
 
-  const grow = () => {  // 내용에 맞춰 폭 확장하며 앵커(정렬 기준점) 유지
-    const w = Math.max(24, b.w, inp.scrollWidth + 4);
+  const grow = () => {  // 내용에 맞춰 폭·높이 확장하며 앵커(정렬 기준점) 유지
+    inp.style.height = "auto"; inp.style.height = (inp.scrollHeight) + "px";
+    const w = Math.max(40, b.w, inp.scrollWidth + 6);
     if (align === "center") inp.style.left = (b.x + b.w / 2 - w / 2) + "px";
     else if (align === "right") inp.style.left = (b.x + b.w - w) + "px";
     inp.style.width = w + "px";
@@ -865,8 +940,8 @@ function startInlineEdit(el) {
   const commit = (save) => {
     if (done) return; done = true;
     el.style.visibility = "";
-    if (save && inp.value !== el.textContent) {
-      el.textContent = inp.value;
+    if (save && inp.value !== model0.text) {
+      setTextContentRich(el, inp.value);
       renderLayers(); renderProps(); pushSnapshot();
     }
     inp.remove();
@@ -875,8 +950,9 @@ function startInlineEdit(el) {
   inp.addEventListener("input", grow);
   inp.addEventListener("keydown", (ev) => {
     ev.stopPropagation();
-    if (ev.key === "Enter") { ev.preventDefault(); commit(true); }
-    else if (ev.key === "Escape") { ev.preventDefault(); commit(false); }
+    // 엔터 = 줄바꿈(기본 동작 유지) · Esc 취소 · Ctrl+Enter 완료
+    if (ev.key === "Escape") { ev.preventDefault(); commit(false); }
+    else if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); commit(true); }
   });
   inp.addEventListener("blur", () => commit(true));
 }
@@ -1163,7 +1239,7 @@ function intersectsRect(a, b) {
 /* 요소 종류별 위치 읽기/쓰기(델타 적용) */
 function readGeo(el) {
   const t = el.tagName;
-  if (t === "text") return { type: "xy", x: numList(el.getAttribute("x")), y: numList(el.getAttribute("y")) };
+  if (t === "text") return { type: "xy", x: numList(el.getAttribute("x")), y: numList(el.getAttribute("y")), tsx: [...el.querySelectorAll(":scope>tspan")].map(ts => parseFloat(ts.getAttribute("x"))) };
   if (t === "ellipse" || t === "circle") return { type: "c", cx: +el.getAttribute("cx") || 0, cy: +el.getAttribute("cy") || 0 };
   if (t === "rect" || t === "image") return { type: "xy1", x: +el.getAttribute("x") || 0, y: +el.getAttribute("y") || 0 };
   if (t === "line") return { type: "line", x1: +el.getAttribute("x1") || 0, y1: +el.getAttribute("y1") || 0, x2: +el.getAttribute("x2") || 0, y2: +el.getAttribute("y2") || 0 };
@@ -1174,6 +1250,11 @@ function writeGeo(el, geo, dx, dy) {
   if (geo.type === "xy") {
     el.setAttribute("x", geo.x.map(v => v + dx).join(" "));
     el.setAttribute("y", geo.y.map(v => v + dy).join(" "));
+    // 멀티라인 텍스트: 줄(tspan)의 x도 함께 이동
+    if (geo.tsx && geo.tsx.length) {
+      const ts = [...el.querySelectorAll(":scope>tspan")];
+      ts.forEach((t, i) => { if (geo.tsx[i] != null && !isNaN(geo.tsx[i])) t.setAttribute("x", geo.tsx[i] + dx); });
+    }
   } else if (geo.type === "xy1") {
     el.setAttribute("x", geo.x + dx); el.setAttribute("y", geo.y + dy);
   } else if (geo.type === "c") {
@@ -1287,8 +1368,9 @@ function renderProps() {
     const fw = el.getAttribute("font-weight") || "400";
     const fill = toHex(el.getAttribute("fill") || "#000000");
     const ls = parseFloat(el.getAttribute("letter-spacing")) || 0;
+    const rm = richModel(el);
     html += `<div class="grp">텍스트</div>
-      <label>내용</label><textarea data-p="text">${escapeHtml(el.textContent)}</textarea>
+      <label>내용 <small style="color:var(--muted);font-weight:500">Enter 줄바꿈 · 스페이스 유지</small></label><textarea id="txtArea" data-p="text" rows="3" style="white-space:pre">${escapeHtml(rm.text)}</textarea>
       <label>폰트</label>
       <select data-p="font-family">${FONTS.map(f => `<option ${f === fam ? "selected" : ""}>${f}</option>`).join("")}</select>
       <div class="row2">
@@ -1299,8 +1381,11 @@ function renderProps() {
       <div class="segbtns" data-seg="font-weight">
         ${[["300", "얇게"], ["400", "보통"], ["600", "약간"], ["700", "굵게"], ["800", "매우"]].map(([v, n]) => `<button data-v="${v}" class="${String(fw) === v ? "on" : ""}">${n}</button>`).join("")}
       </div>
-      <label>색상</label>
-      <div class="colorRow"><input type="color" data-p="fill" value="${fill}"><input type="text" data-p="fill" value="${fill}"></div>`;
+      <label>색상 (전체)</label>
+      <div class="colorRow"><input type="color" data-p="fill" value="${fill}"><input type="text" data-p="fill" value="${fill}"></div>
+      <label>부분 색상 <small style="color:var(--muted);font-weight:500">위 내용에서 원하는 글자를 드래그 선택 후 적용</small></label>
+      <div class="colorRow"><input type="color" id="partColor" value="#e23744"><button class="tb" id="partApply" style="flex:1">선택 글자에 적용</button></div>
+      <button class="tb" id="partClear" style="width:100%;margin-top:6px">부분 색상 모두 지우기</button>`;
   } else if (t === "rect" || t === "image") {
     html += `<div class="grp">${t === "rect" ? "사각형" : "이미지"}</div>`;
     if (t === "rect") {
@@ -1384,6 +1469,25 @@ function bindProps(box, el) {
     writeGeo(el, readGeo(el), dx, dy);
     updateOverlay(); pushSnapshot();
   }));
+  // 부분 색상 (선택 글자에 색 적용)
+  const partApply = box.querySelector("#partApply");
+  if (partApply) partApply.onclick = () => {
+    const ta = box.querySelector("#txtArea"); const col = box.querySelector("#partColor").value;
+    if (!ta) return;
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    if (s == null || s === e) { showToast("색을 넣을 글자를 먼저 드래그해 선택하세요.", true); return; }
+    const m = richModel(el);
+    const fills = runsToFills(m.runs, m.text.length);
+    for (let i = s; i < e; i++) fills[i] = col;
+    applyRich(el, m.text, fillsToRuns(fills));
+    updateOverlay(); pushSnapshot();
+    ta.focus(); ta.setSelectionRange(s, e);
+  };
+  const partClear = box.querySelector("#partClear");
+  if (partClear) partClear.onclick = () => {
+    const m = richModel(el); applyRich(el, m.text, []);
+    updateOverlay(); pushSnapshot();
+  };
   // 삭제
   const del = box.querySelector("[data-del]");
   if (del) del.onclick = () => deleteEl(el);
@@ -1391,7 +1495,11 @@ function bindProps(box, el) {
 
 function applyProp(el, prop, inp, box) {
   let val = inp.value;
-  if (prop === "text") { el.textContent = val; renderLayers(); }
+  if (prop === "text") { setTextContentRich(el, val); renderLayers(); }
+  else if (prop === "font-size" && el.tagName === "text") {
+    el.setAttribute("font-size", val);
+    const m = richModel(el); applyRich(el, m.text, m.runs);   // 줄간격 재계산
+  }
   else if (prop === "opacity") {
     el.setAttribute("opacity", val);
     const lbl = inp.previousElementSibling;
@@ -1581,10 +1689,22 @@ function refreshUndoButtons() {
 $("undoBtn").onclick = undo;
 $("redoBtn").onclick = redo;
 
+/* ================= 격자(위치 맞춤용 · 편집 방해 없음) ================= */
+function ensureGrid() {
+  const stage = $("stage"); if (!stage) return;
+  let g = stage.querySelector("#gridLayer");
+  if (!state.svg) { if (g) g.remove(); return; }
+  if (!g) { g = document.createElement("div"); g.id = "gridLayer"; stage.appendChild(g); }
+  g.style.width = state.vbW + "px"; g.style.height = state.vbH + "px";
+  g.style.display = state.gridOn ? "block" : "none";
+}
+$("gridToggle").onclick = () => { state.gridOn = !state.gridOn; $("gridToggle").classList.toggle("on", state.gridOn); ensureGrid(); };
+
 /* ================= 줌 ================= */
 function applyZoom() {
   $("stage").style.transform = `scale(${state.zoom})`;
   $("zoomLbl").textContent = Math.round(state.zoom * 100) + "%";
+  ensureGrid();
   updateOverlay();
 }
 function setZoom(z) { state.zoom = Math.min(4, Math.max(0.05, z)); applyZoom(); }
