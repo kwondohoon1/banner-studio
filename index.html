@@ -345,10 +345,36 @@ let EDITOR_PLUGINS = builtinPlugins.slice();
 const CUSTOM_PLUGINS_KEY = "bs-custom-plugins";
 const pluginState = { active: null };
 
-/* 매니페스트(plugins/plugins.json) + 사용자 추가 플러그인(localStorage) 병합 */
-function customPlugins() {
-  try { return JSON.parse(localStorage.getItem(CUSTOM_PLUGINS_KEY) || "[]"); }
-  catch (e) { return []; }
+/* ---- 사용자 추가 플러그인 저장: IndexedDB(대용량) ---- */
+// localStorage(약 5MB)는 이미지·폰트가 인라인된 큰 플러그인 HTML을 담기엔 작아
+// "저장 공간 초과"가 났음 → IndexedDB(수십~수백 MB)로 저장한다.
+const IDB_NAME = "banner-studio", IDB_STORE = "plugins";
+let customPluginsCache = [];
+function idbOpen() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(IDB_NAME, 1);
+    r.onupgradeneeded = () => { const db = r.result; if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE, { keyPath: "id" }); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+function idbAll() { return idbOpen().then(db => new Promise((res, rej) => { const rq = db.transaction(IDB_STORE, "readonly").objectStore(IDB_STORE).getAll(); rq.onsuccess = () => res(rq.result || []); rq.onerror = () => rej(rq.error); })); }
+function idbPut(o) { return idbOpen().then(db => new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, "readwrite"); tx.objectStore(IDB_STORE).put(o); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); })); }
+function idbDel(id) { return idbOpen().then(db => new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, "readwrite"); tx.objectStore(IDB_STORE).delete(id); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); })); }
+
+function customPlugins() { return customPluginsCache; }
+async function loadCustomPlugins() {
+  let list = [];
+  try { list = await idbAll(); } catch (e) { list = []; }
+  // 구버전 localStorage 저장분 → IDB로 1회 이전 후 삭제(공간 확보)
+  try {
+    const old = JSON.parse(localStorage.getItem(CUSTOM_PLUGINS_KEY) || "[]");
+    if (old && old.length) {
+      for (const p of old) { if (!list.find(x => x.id === p.id)) { try { await idbPut(p); list.push(p); } catch (e) {} } }
+      localStorage.removeItem(CUSTOM_PLUGINS_KEY);
+    }
+  } catch (e) {}
+  customPluginsCache = list;
+  applyPlugins();
 }
 function applyPlugins() {
   EDITOR_PLUGINS = builtinPlugins.concat(customPlugins());
@@ -361,6 +387,7 @@ async function loadManifest() {
     if (r.ok) { const d = await r.json(); if (Array.isArray(d) && d.length) builtinPlugins = d; }
   } catch (e) { /* file:// 등: 내장 기본값 사용 */ }
   applyPlugins();
+  loadCustomPlugins();   // 사용자 추가 플러그인(IndexedDB)도 불러와 병합
 }
 function renderPluginTabs() {
   const wrap = $("pluginTabs");
@@ -399,20 +426,21 @@ function addPlugin() {
       const html = String(r.result || "");
       const title = ((f.name.replace(/\.html?$/i, "") || "새 플러그인").trim() || "새 플러그인").slice(0, 24);
       const id = "custom-" + Date.now();
-      const list = customPlugins();
-      list.push({ id, title, description: "임시 플러그인 (이 브라우저에서만)", html, custom: true });
-      try { localStorage.setItem(CUSTOM_PLUGINS_KEY, JSON.stringify(list)); }
-      catch (e) { showToast("플러그인이 너무 커서 저장 공간을 초과했어요.", true); return; }
-      applyPlugins();
-      openPlugin(id);
-      showToast("임시 플러그인을 추가했어요. (이 브라우저에서만 사용)");
+      const obj = { id, title, description: "임시 플러그인 (이 브라우저에서만)", html, custom: true };
+      idbPut(obj).then(() => {
+        customPluginsCache.push(obj);
+        applyPlugins();
+        openPlugin(id);
+        showToast("임시 플러그인을 추가했어요. (이 브라우저에서만 사용)");
+      }).catch(() => showToast("플러그인 저장에 실패했어요. 브라우저 저장소를 확인해 주세요.", true));
     };
     r.readAsText(f);
   };
   inp.click();
 }
 function removeCustomPlugin(id) {
-  localStorage.setItem(CUSTOM_PLUGINS_KEY, JSON.stringify(customPlugins().filter(p => p.id !== id)));
+  idbDel(id).catch(() => {});
+  customPluginsCache = customPluginsCache.filter(p => p.id !== id);
   if (pluginState.active === id) closePlugin();
   applyPlugins();
 }
