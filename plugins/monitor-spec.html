@@ -107,7 +107,8 @@ const state = {
 
 function measure(t,size,weight){ mctx.font=`${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
 function T(str,x,y,o){ o=o||{}; const ls=o.ls?` letter-spacing="${o.ls}"`:''; const it=o.italic?` font-style="italic"`:''; const ff=o.font||FONT;
-  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${ff}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}" dominant-baseline="${o.baseline||'alphabetic'}"${it}${ls}>${esc(str)}</text>`; }
+  const st=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||2)}" paint-order="stroke" stroke-linejoin="round"`:'';
+  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${ff}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}" dominant-baseline="${o.baseline||'alphabetic'}"${it}${st}${ls}>${esc(str)}</text>`; }
 function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||3)}"`:''; const f=o.filter?` filter="${o.filter}"`:'';
   return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}${f}/>`; }
 function IMG(href,x,y,w,h,par){ return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="${par||'xMidYMid meet'}"/>`; }
@@ -134,26 +135,26 @@ function badges(){
     if(state.inch) out+=T(state.inch,bx+bw/2,by+10*k+62*k,{size:57*k,weight:900,fill:'#111214',anchor:'middle'});
     if(state.cm) out+=T(state.cm,bx+bw/2,by+130*k,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
   }
-  // 2) 패널기술(무지개 링 + 텍스트) — 우상단
+  // 2) 패널기술(무지개 링 + 텍스트) — 우상단 (흰 글자 + 검정 테두리로 강조)
   if(state.tech||state.tech2){
-    const rightX=S.x+S.w-m, topY=S.y+m, f1=0.115*u, f2=0.06*u;
+    const rightX=S.x+S.w-m, topY=S.y+m, f1=0.155*u, f2=0.08*u;
     const t1w=state.tech?measure(state.tech,f1,800):0;
-    const rd=0.145*u, gap=0.02*u;
+    const rd=f1*1.22, gap=0.025*u;
     const ringOn = state.techRing && state.ringImg;
     const grpW = (ringOn?rd+gap:0)+t1w;
     let gx=rightX-grpW, cy=topY+rd/2;
     if(ringOn){ out+=IMG(state.ringImg,gx,topY,rd,rd,'xMidYMid meet'); gx+=rd+gap; }
-    if(state.tech) out+=T(state.tech,gx,cy+f1*0.36,{size:f1,weight:800,fill:'#fff',anchor:'start'});
-    if(state.tech2) out+=T(state.tech2,rightX,topY+rd+f2*0.9,{size:f2,weight:700,fill:'#fff',anchor:'end'});
+    if(state.tech) out+=T(state.tech,gx,cy+f1*0.36,{size:f1,weight:800,fill:'#fff',anchor:'start',stroke:'#000',sw:f1*0.075});
+    if(state.tech2) out+=T(state.tech2,rightX,topY+rd+f2*0.95,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
   }
-  // 3) QHD 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY)
+  // 3) QHD 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY) — 다른 요소와 균형 맞춰 축소
   let leftEnd = S.x + m;
   if(state.grade){
-    const ew=241*k, ex=S.x+m, etop=bottomY-178*k;
-    out+=rrect(ex+2*k,etop,236*k,103*k,10*k,{fill:'none',stroke:'#fff',sw:stroke});
-    out+=T(state.grade,ex+ew/2,etop+84*k,{size:76*k,weight:900,fill:'#fff',anchor:'middle'});
-    out+=standIcon(ex+ew/2,etop+104*k,k);
-    if(state.res) out+=T(state.res,ex+ew/2,bottomY,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
+    const qk=k*0.82, ew=241*qk, ex=S.x+m, etop=bottomY-178*qk;
+    out+=rrect(ex+2*qk,etop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
+    out+=T(state.grade,ex+ew/2,etop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
+    out+=standIcon(ex+ew/2,etop+104*qk,qk);
+    if(state.res) out+=T(state.res,ex+ew/2,bottomY,{size:42*qk,weight:800,fill:'#fff',anchor:'middle'});
     leftEnd = ex+ew;
   }
   // 4) 16:9 요소 — 우하단 (테두리 박스 / 위 16:9 / 아래 흰 스트립+검정 평면, 밑단=bottomY)
@@ -170,11 +171,11 @@ function badges(){
   }
   // 5) 주사율/응답 — 좌우 사이 가운데, 밑단=bottomY (HY견고딕 이탤릭, 응답 #75c289)
   if(state.hz||state.ms){
-    const availL=leftEnd+0.03*u, availR=rightStart-0.03*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
-    let big=105*k, sm=58*k;
+    const availL=leftEnd+0.018*u, availR=rightStart-0.018*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
+    let big=128*k, sm=80*k;
     const build=()=>{ const g=[];
       if(state.hz){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
-      if(state.hz&&state.ms)g.push({gap:big*0.75});
+      if(state.hz&&state.ms)g.push({gap:big*0.42});
       if(state.ms){const s=splitNum(state.ms);g.push({t:s.n,size:big,mint:true});if(s.u)g.push({t:s.u,size:sm,mint:true});}
       return g; };
     let segs=build();
