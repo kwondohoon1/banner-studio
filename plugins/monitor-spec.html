@@ -93,7 +93,7 @@ function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='statu
 
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
 const FONT_HZ = "'HY견고딕','HYGothic-Medium','HY Gothic','Pretendard','Noto Sans KR',sans-serif";
-const MINT='#46e3a0', BLACK='#111214';
+const MINT='#75c289', BLACK='#111214';
 const RS = { x:52, y:176, w:896, h:566 };  // 기본 화면(디스플레이) 사각형
 
 const state = {
@@ -174,17 +174,16 @@ function badges(){
     let big=0.135*u, sm=0.078*u;
     const build=()=>{ const g=[];
       if(state.hz){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
-      if(state.hz&&state.ms)g.push({sw:true});
+      if(state.hz&&state.ms)g.push({gap:big*0.95});
       if(state.ms){const s=splitNum(state.ms);g.push({t:s.n,size:big,mint:true});if(s.u)g.push({t:s.u,size:sm,mint:true});}
       return g; };
     let segs=build();
-    const swW=()=>big*2.0;
-    const totalW=()=>segs.reduce((a,g)=>a+(g.sw?swW():measure(g.t,g.size,900)),0);
+    const totalW=()=>segs.reduce((a,g)=>a+(g.gap!=null?g.gap:measure(g.t,g.size,900)),0);
     let t=totalW();
     if(t>availW){ const k=availW/t; big*=k; sm*=k; segs=build(); t=totalW(); }
     const by=bandCy+big*0.34; let x=availC-t/2;
     segs.forEach(g=>{
-      if(g.sw){ out+=swoosh(x+big*0.35, by-big*0.42, big*1.35, '#fff'); x+=swW(); return; }
+      if(g.gap!=null){ x+=g.gap; return; }
       out+=T(g.t,x,by,{size:g.size,weight:900,fill:g.mint?MINT:'#fff',anchor:'start',italic:true,font:FONT_HZ});
       x+=measure(g.t,g.size,900);
     });
