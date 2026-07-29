@@ -92,6 +92,7 @@ const mctx = document.createElement('canvas').getContext('2d');
 function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
 
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
+const FONT_HZ = "'HY견고딕','HYGothic-Medium','HY Gothic','Pretendard','Noto Sans KR',sans-serif";
 const MINT='#46e3a0', BLACK='#111214';
 const RS = { x:52, y:176, w:896, h:566 };  // 기본 화면(디스플레이) 사각형
 
@@ -104,8 +105,8 @@ const state = {
 };
 
 function measure(t,size,weight){ mctx.font=`${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
-function T(str,x,y,o){ o=o||{}; const ls=o.ls?` letter-spacing="${o.ls}"`:'';
-  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${FONT}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}" dominant-baseline="${o.baseline||'alphabetic'}"${ls}>${esc(str)}</text>`; }
+function T(str,x,y,o){ o=o||{}; const ls=o.ls?` letter-spacing="${o.ls}"`:''; const it=o.italic?` font-style="italic"`:''; const ff=o.font||FONT;
+  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${ff}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}" dominant-baseline="${o.baseline||'alphabetic'}"${it}${ls}>${esc(str)}</text>`; }
 function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||3)}"`:''; const f=o.filter?` filter="${o.filter}"`:'';
   return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}${f}/>`; }
 function IMG(href,x,y,w,h,par){ return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="${par||'xMidYMid meet'}"/>`; }
@@ -145,32 +146,48 @@ function badges(){
     if(state.tech) out+=T(state.tech,gx,cy+f1*0.36,{size:f1,weight:800,fill:'#fff',anchor:'start'});
     if(state.tech2) out+=T(state.tech2,rightX,topY+rd+f2*0.9,{size:f2,weight:700,fill:'#fff',anchor:'end'});
   }
-  // 3) 해상도 등급(QHD) 박스 + 아이콘 + 해상도 — 좌하단
+  // ===== 하단 스펙 행: 좌(QHD)·중앙(240Hz/응답)·우(화면비) 컬럼 =====
+  const bandCy = S.y + S.h - 0.135*u;   // 하단 행 세로 중앙
+  // 3) 해상도 등급(QHD) 박스 + 아이콘 + 해상도 — 좌
+  let leftEnd = S.x + m;
   if(state.grade){
-    const gw=0.26*u, gh=0.17*u, gx=S.x+m, gy=S.y+S.h-0.36*u;
-    out+=rrect(gx,gy,gw,gh,0.035*u,{fill:'none',stroke:'#fff',sw:0.014*u});
-    out+=T(state.grade,gx+gw/2,gy+0.075*u,{size:0.078*u,weight:900,fill:'#fff',anchor:'middle'});
-    out+=monitorIcon(gx+gw/2,gy+gh-0.045*u,0.075*u,'#fff');
-    if(state.res) out+=T(state.res,gx,gy+gh+0.06*u,{size:0.05*u,weight:800,fill:'#fff',anchor:'start'});
+    const gw=0.24*u, gh=0.15*u, gx=S.x+m, gy=bandCy-gh-0.05*u;
+    out+=rrect(gx,gy,gw,gh,0.03*u,{fill:'none',stroke:'#fff',sw:0.013*u});
+    out+=T(state.grade,gx+gw/2,gy+0.07*u,{size:0.07*u,weight:900,fill:'#fff',anchor:'middle'});
+    out+=monitorIcon(gx+gw/2,gy+gh-0.038*u,0.066*u,'#fff');
+    let resW=0;
+    if(state.res){ const rf=0.046*u; out+=T(state.res,gx+gw/2,gy+gh+0.055*u,{size:rf,weight:800,fill:'#fff',anchor:'middle'}); resW=measure(state.res,rf,800); }
+    leftEnd = gx + Math.max(gw, resW);
   }
-  // 4) 주사율/응답속도 — 하단 중앙 (응답은 민트)
-  if(state.hz||state.ms){
-    const by=S.y+S.h-0.09*u, cx=S.x+0.52*S.w, big=0.16*u, sm=0.088*u;
-    const segs=[];
-    if(state.hz){ const s=splitNum(state.hz); segs.push({t:s.n,size:big,fill:'#fff',w:900}); if(s.u)segs.push({t:s.u,size:sm,fill:'#fff',w:900}); }
-    if(state.hz&&state.ms) segs.push({sw:true});
-    if(state.ms){ const s=splitNum(state.ms); segs.push({t:s.n,size:big,fill:MINT,w:900}); if(s.u)segs.push({t:s.u,size:sm,fill:MINT,w:900}); }
-    const swW=0.42*u, gap=0.10*u;
-    let total=0; segs.forEach(g=> total += g.sw? (swW+gap*2) : measure(g.t,g.size,g.w));
-    let x=cx-total/2;
-    segs.forEach(g=>{ if(g.sw){ out+=swoosh(x+gap,by-big*0.32,0.34*u,'#fff'); x+=swW+gap*2; return; } out+=T(g.t,x,by,{size:g.size,weight:g.w,fill:g.fill,anchor:'start'}); x+=measure(g.t,g.size,g.w); });
-  }
-  // 5) 화면비 / 패널 — 우하단 박스
+  // 5) 화면비 / 패널 — 우 박스
+  let rightStart = S.x+S.w-m;
   if(state.ratio||state.panel){
-    const bw=0.21*u, bh=0.20*u, bx=S.x+S.w-m-bw, by=S.y+S.h-0.06*u-bh;
-    out+=rrect(bx,by,bw,bh,0.035*u,{fill:'none',stroke:'#fff',sw:0.014*u});
-    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+0.085*u,{size:0.075*u,weight:900,fill:'#fff',anchor:'middle'});
-    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-0.05*u,{size:0.058*u,weight:800,fill:'#fff',anchor:'middle',ls:2});
+    const bw=0.19*u, bh=0.19*u, bx=S.x+S.w-m-bw, by=bandCy-bh/2;
+    out+=rrect(bx,by,bw,bh,0.03*u,{fill:'none',stroke:'#fff',sw:0.013*u});
+    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+0.08*u,{size:0.068*u,weight:900,fill:'#fff',anchor:'middle'});
+    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-0.042*u,{size:0.052*u,weight:800,fill:'#fff',anchor:'middle',ls:2});
+    rightStart = bx;
+  }
+  // 4) 주사율/응답 — 좌우 사이 가운데 (HY견고딕 이탤릭, 응답 민트)
+  if(state.hz||state.ms){
+    const availL=leftEnd+0.03*u, availR=rightStart-0.03*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
+    let big=0.135*u, sm=0.078*u;
+    const build=()=>{ const g=[];
+      if(state.hz){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
+      if(state.hz&&state.ms)g.push({sw:true});
+      if(state.ms){const s=splitNum(state.ms);g.push({t:s.n,size:big,mint:true});if(s.u)g.push({t:s.u,size:sm,mint:true});}
+      return g; };
+    let segs=build();
+    const swW=()=>big*2.0;
+    const totalW=()=>segs.reduce((a,g)=>a+(g.sw?swW():measure(g.t,g.size,900)),0);
+    let t=totalW();
+    if(t>availW){ const k=availW/t; big*=k; sm*=k; segs=build(); t=totalW(); }
+    const by=bandCy+big*0.34; let x=availC-t/2;
+    segs.forEach(g=>{
+      if(g.sw){ out+=swoosh(x+big*0.35, by-big*0.42, big*1.35, '#fff'); x+=swW(); return; }
+      out+=T(g.t,x,by,{size:g.size,weight:900,fill:g.mint?MINT:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+      x+=measure(g.t,g.size,900);
+    });
   }
   return out;
 }
@@ -198,6 +215,10 @@ function buildSVG(withGuide){
   } else {
     body.push(`<text x="${W/2}" y="${H/2}" font-family="${FONT}" font-size="34" font-weight="700" fill="#9aa2b4" text-anchor="middle" dominant-baseline="central">모니터 이미지를 넣어주세요</text>`);
   }
+  // 화면 하단 검정 그라데이션(스크림) — 스펙이 잘 보이도록
+  const S=state.screen;
+  body.push(`<defs><linearGradient id="specScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101012" stop-opacity="0"/><stop offset="0.55" stop-color="#101012" stop-opacity="0.28"/><stop offset="1" stop-color="#101012" stop-opacity="0.72"/></linearGradient></defs>`);
+  body.push(`<rect x="${fmt(S.x)}" y="${fmt(S.y+S.h*0.46)}" width="${fmt(S.w)}" height="${fmt(S.h*0.54)}" fill="url(#specScrim)"/>`);
   body.push(badges());
   body.push(warrantySVG());
   body.push(ciSVG());
