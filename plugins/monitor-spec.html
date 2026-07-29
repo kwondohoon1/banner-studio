@@ -130,8 +130,8 @@ function badges(){
     const bw=0.44*u, bh=state.cm?0.34*u:0.24*u, bx=S.x+m, by=S.y+m;
     out+=rrect(bx,by,bw,bh,0.05*u,{fill:BLACK});
     const ip=0.035*u, ibx=bx+ip, iby=by+ip, ibw=bw-2*ip, ibh=state.cm?0.185*u:bh-2*ip;
-    out+=rrect(ibx,iby,ibw,ibh,0.03*u,{fill:'none',stroke:'#fff',sw:0.014*u});
-    if(state.inch) out+=T(state.inch,ibx+ibw/2,iby+ibh/2+0.055*u,{size:0.15*u,weight:900,fill:'#fff',anchor:'middle'});
+    out+=rrect(ibx,iby,ibw,ibh,0.03*u,{fill:'#ffffff'});   // 위: 흰색 채움 박스
+    if(state.inch) out+=T(state.inch,ibx+ibw/2,iby+ibh/2+0.055*u,{size:0.15*u,weight:900,fill:'#111214',anchor:'middle'});  // 검정 인치(Pretendard)
     if(state.cm) out+=T(state.cm,bx+bw/2,by+bh-0.05*u,{size:0.062*u,weight:800,fill:'#fff',anchor:'middle'});
   }
   // 2) 패널기술(무지개 링 + 텍스트) — 우상단
@@ -151,21 +151,21 @@ function badges(){
   // 3) 해상도 등급(QHD) 박스 + 아이콘 + 해상도 — 좌
   let leftEnd = S.x + m;
   if(state.grade){
-    const gw=0.24*u, gh=0.15*u, gx=S.x+m, gy=bandCy-gh-0.05*u;
-    out+=rrect(gx,gy,gw,gh,0.03*u,{fill:'none',stroke:'#fff',sw:0.013*u});
-    out+=T(state.grade,gx+gw/2,gy+0.07*u,{size:0.07*u,weight:900,fill:'#fff',anchor:'middle'});
+    const gw=0.26*u, gh=0.17*u, gx=S.x+m, gy=bandCy-gh-0.045*u;
+    out+=rrect(gx,gy,gw,gh,0.03*u,{fill:'none',stroke:'#fff',sw:0.014*u});   // 흰 테두리 박스
+    out+=T(state.grade,gx+gw/2,gy+0.078*u,{size:0.078*u,weight:900,fill:'#fff',anchor:'middle'});
     out+=monitorIcon(gx+gw/2,gy+gh-0.038*u,0.066*u,'#fff');
     let resW=0;
-    if(state.res){ const rf=0.046*u; out+=T(state.res,gx+gw/2,gy+gh+0.055*u,{size:rf,weight:800,fill:'#fff',anchor:'middle'}); resW=measure(state.res,rf,800); }
-    leftEnd = gx + Math.max(gw, resW);
+    if(state.res){ const rf=0.052*u; out+=T(state.res,gx+gw/2,gy+gh+0.06*u,{size:rf,weight:800,fill:'#fff',anchor:'middle'}); resW=measure(state.res,rf,800); }
+    leftEnd = gx+Math.max(gw,resW);
   }
   // 5) 화면비 / 패널 — 우 박스
   let rightStart = S.x+S.w-m;
   if(state.ratio||state.panel){
-    const bw=0.19*u, bh=0.19*u, bx=S.x+S.w-m-bw, by=bandCy-bh/2;
-    out+=rrect(bx,by,bw,bh,0.03*u,{fill:'none',stroke:'#fff',sw:0.013*u});
-    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+0.08*u,{size:0.068*u,weight:900,fill:'#fff',anchor:'middle'});
-    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-0.042*u,{size:0.052*u,weight:800,fill:'#fff',anchor:'middle',ls:2});
+    const bw=0.20*u, bh=0.20*u, bx=S.x+S.w-m-bw, by=bandCy-bh/2;
+    out+=rrect(bx,by,bw,bh,0.03*u,{fill:'none',stroke:'#fff',sw:0.014*u});   // 흰 테두리 박스
+    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+0.088*u,{size:0.072*u,weight:900,fill:'#fff',anchor:'middle'});
+    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-0.048*u,{size:0.055*u,weight:800,fill:'#fff',anchor:'middle',ls:2});
     rightStart = bx;
   }
   // 4) 주사율/응답 — 좌우 사이 가운데 (HY견고딕 이탤릭, 응답 민트)
