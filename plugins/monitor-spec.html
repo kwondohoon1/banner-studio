@@ -102,7 +102,7 @@ const state = {
   inch:'27"', cm:'67.3cm', grade:'QHD', res:'2560X1440', hz:'240Hz', ms:'0.03ms', ratio:'16:9', panel:'평면',
   tech:'LED', tech2:'', techRing:true, warrantyOn:true,
   screen:{...RS}, showGuide:true, ciOn:true,
-  ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0, standImg:''
+  ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0, standImg:'', imgFit:null
 };
 
 function measure(t,size,weight){ mctx.font=`${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
@@ -181,8 +181,9 @@ function badges(){
       return g; };
     let segs=build();
     const totalW=()=>segs.reduce((a,g)=>a+(g.gap!=null?g.gap:measure(g.t,g.size,900)),0);
+    // HY견고딕 이탤릭은 측정(Pretendard)보다 넓게 렌더됨 → 8% 안전폭으로 16:9 박스에 닿지 않게
     let t=totalW();
-    if(t>availW){ const f=availW/t; big*=f; sm*=f; segs=build(); t=totalW(); }
+    if(t*1.08>availW){ const f=availW/(t*1.08); big*=f; sm*=f; segs=build(); t=totalW(); }
     let x=availC-t/2;
     out+=`<g filter="url(#hzShadow)">`;
     segs.forEach(g=>{
@@ -214,7 +215,9 @@ function buildSVG(withGuide){
   const W=1000,H=1000, body=[];
   body.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`);
   if(state.img && state.imgW && state.imgH){
-    body.push(IMG(state.img,0,0,W,H,'xMidYMid meet'));
+    const f=state.imgFit;
+    if(f) body.push(IMG(state.img,f.x,f.y,1000*f.s,1000*f.s,'xMidYMid meet'));
+    else body.push(IMG(state.img,0,0,W,H,'xMidYMid meet'));
   } else {
     body.push(`<text x="${W/2}" y="${H/2}" font-family="${FONT}" font-size="34" font-weight="700" fill="#9aa2b4" text-anchor="middle" dominant-baseline="central">모니터 이미지를 넣어주세요</text>`);
   }
@@ -250,6 +253,17 @@ function autoDetectScreen(){
       cx.drawImage(im,(N-dw)/2,(N-dh)/2,dw,dh);
       const d=cx.getImageData(0,0,N,N).data;
       const isBg=i=> d[i]>235&&d[i+1]>235&&d[i+2]>235;
+      const K=1000/N;
+      // (A) 전체 제품(모니터+스탠드) bbox → 캔버스에 꽉 차게 확대 (TFG32Q14FMW 비율)
+      let cx0=N,cy0=N,cx1=-1,cy1=-1;
+      for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=(y*N+x)*4;if(!isBg(i)){if(x<cx0)cx0=x;if(x>cx1)cx1=x;if(y<cy0)cy0=y;if(y>cy1)cy1=y;}}
+      if(cx1<0){ setStatus('모니터를 인식하지 못했어요.'); return; }
+      const CB={x:cx0*K,y:cy0*K,w:(cx1-cx0+1)*K,h:(cy1-cy0+1)*K};
+      const TX=28,TW=944,TY=170,TB=975,TH=TB-TY;   // 목표 영역: 위 CI 공간 남기고 좌우 꽉 차게
+      let fs2=Math.min(TW/CB.w, TH/CB.h); fs2=Math.min(fs2,2.2);
+      const offX=(TX+TW/2)-(CB.x+CB.w/2)*fs2;
+      const offY=(TY+TH/2)-(CB.y+CB.h/2)*fs2;
+      state.imgFit={s:fs2,x:offX,y:offY};
       // 행별 비배경 폭 → 가장 넓은 연속 구간이 패널(스탠드는 좁음)
       const rows=[];
       for(let y=0;y<N;y++){ let x0=-1,x1=-1; for(let x=0;x<N;x++){ const i=(y*N+x)*4; if(!isBg(i)){ if(x0<0)x0=x; x1=x; } } rows.push({x0,x1,w:x0<0?0:x1-x0+1}); }
@@ -273,10 +287,9 @@ function autoDetectScreen(){
       if(right-r>capX) r=right-Math.round(capX*0.4);
       if(t-top>capY) t=top+Math.round(capY*0.5);
       if(bot-b>capY) b=bot-Math.round(capY*0.5);
-      const K=1000/N;
-      state.screen={x:l*K,y:t*K,w:(r-l)*K,h:(b-t)*K};
+      state.screen={x:(l*K)*fs2+offX, y:(t*K)*fs2+offY, w:(r-l)*K*fs2, h:(b-t)*K*fs2};
       render();
-      setStatus('모니터 테두리를 인식해 화면 영역을 자동으로 잡았어요. (미세조정: 범위 지정)');
+      setStatus('모니터를 꽉 차게 배치하고 화면 영역을 자동으로 잡았어요. (미세조정: 범위 지정)');
     }catch(e){ /* 실패 시 조용히 기본값 유지 */ }
   };
   im.src=state.img;
