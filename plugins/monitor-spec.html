@@ -12,10 +12,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto S
 .top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
 .logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
 .top b{font-size:14px}.top small{font-size:9px;color:var(--muted);display:block;letter-spacing:.4px}
-main{padding:16px;max-width:540px}
+main{padding:16px;max-width:560px}
 .step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
 .num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
-.imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:140px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
+.imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:130px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
 .imgbox.has{border-style:solid;border-color:#cfd1c9}
 .imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
@@ -26,7 +26,7 @@ input[type=text]:focus{border-color:#6f7268}
 .rowbtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .sbtn{border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:9px 13px;font:inherit;font-weight:700;cursor:pointer;color:#5b5d54}
 .sbtn.on{background:var(--dark);color:#fff;border-color:var(--dark)}
-label.chk{display:flex;align-items:center;gap:8px;font-weight:700;color:#4f5148;cursor:pointer;margin-top:8px}
+label.chk{display:flex;align-items:center;gap:8px;font-weight:700;color:#4f5148;cursor:pointer}
 label.chk input{width:16px;height:16px}
 .hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.55}
 .primary{width:100%;margin-top:18px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
@@ -35,7 +35,7 @@ label.chk input{width:16px;height:16px}
 .preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
 #selCatcher{position:absolute;inset:8px;display:none;cursor:crosshair;border-radius:8px}
 #selCatcher.on{display:block}
-#selRect{position:absolute;border:2px dashed #e23; background:rgba(238,51,51,.08);display:none;pointer-events:none;z-index:2}
+#selRect{position:absolute;border:2px dashed #e23;background:rgba(238,51,51,.08);display:none;pointer-events:none;z-index:2}
 </style>
 </head>
 <body>
@@ -46,15 +46,19 @@ label.chk input{width:16px;height:16px}
 
   <div class="step"><b>스펙 입력 <small style="color:var(--muted);font-weight:500">빈칸은 자동 생략</small></b><span class="num">02 SPEC</span></div>
   <div class="grid2">
-    <div class="fld"><label>인치</label><input type="text" id="f_inch" value='32"'></div>
-    <div class="fld"><label>cm</label><input type="text" id="f_cm" value="80cm"></div>
+    <div class="fld"><label>인치</label><input type="text" id="f_inch" value='27"'></div>
+    <div class="fld"><label>cm</label><input type="text" id="f_cm" value="67.3cm"></div>
     <div class="fld"><label>해상도 등급</label><input type="text" id="f_grade" value="QHD"></div>
     <div class="fld"><label>해상도</label><input type="text" id="f_res" value="2560X1440"></div>
-    <div class="fld"><label>주사율</label><input type="text" id="f_hz" value="144Hz"></div>
-    <div class="fld"><label>응답속도 (민트)</label><input type="text" id="f_ms" value="1ms"></div>
+    <div class="fld"><label>주사율</label><input type="text" id="f_hz" value="240Hz"></div>
+    <div class="fld"><label>응답속도 (민트)</label><input type="text" id="f_ms" value="0.03ms"></div>
     <div class="fld"><label>화면비</label><input type="text" id="f_ratio" value="16:9"></div>
     <div class="fld"><label>패널</label><input type="text" id="f_panel" value="평면"></div>
+    <div class="fld"><label>패널기술 (예: LED·OLED)</label><input type="text" id="f_tech" value="LED"></div>
+    <div class="fld"><label>패널기술 2줄 (예: 576 Zones)</label><input type="text" id="f_tech2" value=""></div>
   </div>
+  <label class="chk" style="margin-top:10px"><input type="checkbox" id="techRing" checked> 패널기술 앞 무지개 링(O) 표시</label>
+  <label class="chk" style="margin-top:8px"><input type="checkbox" id="warrantyOn" checked> 3년 무상보증 뱃지(좌하단)</label>
 
   <div class="step"><b>화면 범위 지정 <small style="color:var(--muted);font-weight:500">스펙이 얹힐 화면 영역</small></b><span class="num">03 SCREEN</span></div>
   <div class="hint">아래 미리보기에서 <b>범위 지정</b>을 누르고 모니터 <b>화면(디스플레이) 영역</b>을 드래그하세요. 그 영역에 맞춰 스펙이 정확히 배치됩니다.</div>
@@ -65,7 +69,6 @@ label.chk input{width:16px;height:16px}
   </div>
 
   <div class="step"><b>CI (한성컴퓨터)</b><span class="num">04 CI</span></div>
-  <label class="imgbox" id="ciBox" style="min-height:92px"><input type="file" id="ciInput" accept="image/*" hidden><span id="ciHint">＋ CI 이미지 업로드(선택) · 미업로드 시 기본 텍스트 CI</span></label>
   <label class="chk"><input type="checkbox" id="ciOn" checked> CI 넣기 (우상단)</label>
 
   <button class="primary" id="saveBtn">제작</button>
@@ -89,109 +92,114 @@ const mctx = document.createElement('canvas').getContext('2d');
 function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
 
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
-const MINT = '#5fe6b0', BLACK='#141414';
-// 참고 완성본(1000×1000)에서 측정한 화면(디스플레이) 사각형
-const RS = { x:52, y:176, w:896, h:566 };
+const MINT='#46e3a0', BLACK='#111214';
+const RS = { x:52, y:176, w:896, h:566 };  // 기본 화면(디스플레이) 사각형
 
 const state = {
   img:'', imgW:0, imgH:0,
-  inch:'32"', cm:'80cm', grade:'QHD', res:'2560X1440', hz:'144Hz', ms:'1ms', ratio:'16:9', panel:'평면',
-  screen: { ...RS }, showGuide:true,
-  ci:'', ciW:0, ciH:0, ciOn:true
+  inch:'27"', cm:'67.3cm', grade:'QHD', res:'2560X1440', hz:'240Hz', ms:'0.03ms', ratio:'16:9', panel:'평면',
+  tech:'LED', tech2:'', techRing:true, warrantyOn:true,
+  screen:{...RS}, showGuide:true, ciOn:true,
+  ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0
 };
-
-/* 참고 화면(RS) → 현재 화면(state.screen) 아핀 매핑 */
-function M(){ const S=state.screen; return {
-  X:(rx)=>S.x+(rx-RS.x)*(S.w/RS.w),
-  Y:(ry)=>S.y+(ry-RS.y)*(S.h/RS.h),
-  W:(rw)=>rw*(S.w/RS.w),
-  H:(rh)=>rh*(S.h/RS.h),
-  F:(rf)=>rf*(S.h/RS.h)
-};}
 
 function measure(t,size,weight){ mctx.font=`${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
 function T(str,x,y,o){ o=o||{}; const ls=o.ls?` letter-spacing="${o.ls}"`:'';
-  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${FONT}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}"${o.baseline?` dominant-baseline="${o.baseline}"`:''}${ls}>${esc(str)}</text>`; }
-function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||3)}"`:'';
-  return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}/>`; }
-// 숫자+단위 분리 (144Hz → 144 / Hz)
+  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${FONT}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}" dominant-baseline="${o.baseline||'alphabetic'}"${ls}>${esc(str)}</text>`; }
+function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||3)}"`:''; const f=o.filter?` filter="${o.filter}"`:'';
+  return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}${f}/>`; }
+function IMG(href,x,y,w,h,par){ return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="${par||'xMidYMid meet'}"/>`; }
 function splitNum(v){ const m=String(v||'').match(/^\s*([\d.,]+)\s*(.*)$/); return m?{n:m[1],u:m[2]}:{n:String(v||''),u:''}; }
+// 작은 모니터 아이콘(글리프)
+function monitorIcon(cx,cy,w,col){ const h=w*0.62; return `<g fill="none" stroke="${col}" stroke-width="${fmt(w*0.07)}">`+
+  `<rect x="${fmt(cx-w/2)}" y="${fmt(cy-h/2)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(w*0.06)}"/>`+
+  `<line x1="${fmt(cx)}" y1="${fmt(cy+h/2)}" x2="${fmt(cx)}" y2="${fmt(cy+h/2+w*0.14)}"/>`+
+  `<line x1="${fmt(cx-w*0.18)}" y1="${fmt(cy+h/2+w*0.14)}" x2="${fmt(cx+w*0.18)}" y2="${fmt(cy+h/2+w*0.14)}"/></g>`; }
+// 스피드(잔상) 스우시
+function swoosh(x,y,u,col){ const L=u*1.1; return `<g stroke="${col}" stroke-width="${fmt(u*0.09)}" stroke-linecap="round" opacity="0.95">`+
+  `<line x1="${fmt(x)}" y1="${fmt(y)}" x2="${fmt(x+L)}" y2="${fmt(y)}"/>`+
+  `<line x1="${fmt(x+u*0.18)}" y1="${fmt(y+u*0.28)}" x2="${fmt(x+L*0.82)}" y2="${fmt(y+u*0.28)}"/>`+
+  `<line x1="${fmt(x+u*0.40)}" y1="${fmt(y-u*0.28)}" x2="${fmt(x+L*0.72)}" y2="${fmt(y-u*0.28)}"/></g>`; }
 
 /* ---------- 스펙 뱃지 (화면 영역 기준) ---------- */
 function badges(){
-  const m=M(); let out='';
-  const sc = state.screen.h/RS.h;   // 균일 스케일
-
-  // 1) 인치 / cm  — 좌상단 검정 박스
-  if(state.inch || state.cm){
-    const bw=m.W(174), hasCm=!!state.cm, bh=m.H(hasCm?152:104);
-    const bx=m.X(66), by=m.Y(212);
-    out+=rrect(bx,by,bw,bh,m.F(20),{fill:BLACK});
-    out+=T(state.inch,bx+bw/2,by+m.H(hasCm?86:70),{size:m.F(92),weight:900,fill:'#fff',anchor:'middle',baseline:'alphabetic'});
-    if(hasCm) out+=T(state.cm,bx+bw/2,by+bh-m.H(30),{size:m.F(40),weight:800,fill:'#fff',anchor:'middle',baseline:'alphabetic'});
+  const S=state.screen, u=S.h, m=0.05*u; let out='';
+  // 1) 인치 / cm — 좌상단 검정 박스 (인치는 흰 테두리 서브박스)
+  if(state.inch||state.cm){
+    const bw=0.44*u, bh=state.cm?0.34*u:0.24*u, bx=S.x+m, by=S.y+m;
+    out+=rrect(bx,by,bw,bh,0.05*u,{fill:BLACK});
+    const ip=0.035*u, ibx=bx+ip, iby=by+ip, ibw=bw-2*ip, ibh=state.cm?0.185*u:bh-2*ip;
+    out+=rrect(ibx,iby,ibw,ibh,0.03*u,{fill:'none',stroke:'#fff',sw:0.014*u});
+    if(state.inch) out+=T(state.inch,ibx+ibw/2,iby+ibh/2+0.055*u,{size:0.15*u,weight:900,fill:'#fff',anchor:'middle'});
+    if(state.cm) out+=T(state.cm,bx+bw/2,by+bh-0.05*u,{size:0.062*u,weight:800,fill:'#fff',anchor:'middle'});
   }
-  // 2) 해상도 등급(QHD) 박스 + 해상도
+  // 2) 패널기술(무지개 링 + 텍스트) — 우상단
+  if(state.tech||state.tech2){
+    const rightX=S.x+S.w-m, topY=S.y+m, f1=0.115*u, f2=0.06*u;
+    const t1w=state.tech?measure(state.tech,f1,800):0;
+    const rd=0.145*u, gap=0.02*u;
+    const ringOn = state.techRing && state.ringImg;
+    const grpW = (ringOn?rd+gap:0)+t1w;
+    let gx=rightX-grpW, cy=topY+rd/2;
+    if(ringOn){ out+=IMG(state.ringImg,gx,topY,rd,rd,'xMidYMid meet'); gx+=rd+gap; }
+    if(state.tech) out+=T(state.tech,gx,cy+f1*0.36,{size:f1,weight:800,fill:'#fff',anchor:'start'});
+    if(state.tech2) out+=T(state.tech2,rightX,topY+rd+f2*0.9,{size:f2,weight:700,fill:'#fff',anchor:'end'});
+  }
+  // 3) 해상도 등급(QHD) 박스 + 아이콘 + 해상도 — 좌하단
   if(state.grade){
-    const bx=m.X(66), by=m.Y(544), bw=m.W(136), bh=m.H(96);
-    out+=rrect(bx,by,bw,bh,m.F(16),{fill:'none',stroke:'#fff',sw:m.F(3.5)});
-    out+=T(state.grade,bx+bw/2,by+m.H(44),{size:m.F(44),weight:900,fill:'#fff',anchor:'middle',baseline:'alphabetic'});
-    // 작은 모니터 아이콘
-    const ix=bx+bw/2, iy=by+m.H(66), iw=m.W(40), ih=m.H(24);
-    out+=rrect(ix-iw/2,iy,iw,ih,m.F(3),{fill:'none',stroke:'#fff',sw:m.F(2.5)});
-    out+=rrect(ix-m.W(7),iy+ih,m.W(14),m.H(6),m.F(1),{fill:'#fff'});
-    if(state.res) out+=T(state.res,bx,by+bh+m.H(34),{size:m.F(30),weight:800,fill:'#fff',anchor:'start',baseline:'alphabetic'});
+    const gw=0.26*u, gh=0.17*u, gx=S.x+m, gy=S.y+S.h-0.36*u;
+    out+=rrect(gx,gy,gw,gh,0.035*u,{fill:'none',stroke:'#fff',sw:0.014*u});
+    out+=T(state.grade,gx+gw/2,gy+0.075*u,{size:0.078*u,weight:900,fill:'#fff',anchor:'middle'});
+    out+=monitorIcon(gx+gw/2,gy+gh-0.045*u,0.075*u,'#fff');
+    if(state.res) out+=T(state.res,gx,gy+gh+0.06*u,{size:0.05*u,weight:800,fill:'#fff',anchor:'start'});
   }
-  // 3) 144Hz 1ms — 하단 중앙, 인라인
-  if(state.hz || state.ms){
-    const cx=m.X(560), by=m.Y(690);
+  // 4) 주사율/응답속도 — 하단 중앙 (응답은 민트)
+  if(state.hz||state.ms){
+    const by=S.y+S.h-0.09*u, cx=S.x+0.52*S.w, big=0.16*u, sm=0.088*u;
     const segs=[];
-    if(state.hz){ const s=splitNum(state.hz); segs.push({t:s.n,size:m.F(80),fill:'#fff',w:900}); if(s.u)segs.push({t:s.u,size:m.F(44),fill:'#fff',w:900}); }
-    if(state.hz && state.ms) segs.push({gap:m.W(26)});
-    if(state.ms){ const s=splitNum(state.ms); segs.push({t:s.n,size:m.F(80),fill:MINT,w:900}); if(s.u)segs.push({t:s.u,size:m.F(44),fill:MINT,w:900}); }
-    let total=0; segs.forEach(g=> total += g.gap!=null?g.gap:measure(g.t,g.size,g.w));
+    if(state.hz){ const s=splitNum(state.hz); segs.push({t:s.n,size:big,fill:'#fff',w:900}); if(s.u)segs.push({t:s.u,size:sm,fill:'#fff',w:900}); }
+    if(state.hz&&state.ms) segs.push({sw:true});
+    if(state.ms){ const s=splitNum(state.ms); segs.push({t:s.n,size:big,fill:MINT,w:900}); if(s.u)segs.push({t:s.u,size:sm,fill:MINT,w:900}); }
+    const swW=0.42*u, gap=0.10*u;
+    let total=0; segs.forEach(g=> total += g.sw? (swW+gap*2) : measure(g.t,g.size,g.w));
     let x=cx-total/2;
-    segs.forEach(g=>{ if(g.gap!=null){ x+=g.gap; return; } out+=T(g.t,x,by,{size:g.size,weight:g.w,fill:g.fill,anchor:'start',baseline:'alphabetic'}); x+=measure(g.t,g.size,g.w); });
+    segs.forEach(g=>{ if(g.sw){ out+=swoosh(x+gap,by-big*0.32,0.34*u,'#fff'); x+=swW+gap*2; return; } out+=T(g.t,x,by,{size:g.size,weight:g.w,fill:g.fill,anchor:'start'}); x+=measure(g.t,g.size,g.w); });
   }
-  // 4) 화면비 / 패널 — 우측 박스
-  if(state.ratio || state.panel){
-    const bw=m.W(136), bh=m.H(state.panel?124:80), bx=m.X(942)-bw, by=m.Y(598);
-    out+=rrect(bx,by,bw,bh,m.F(16),{fill:'none',stroke:'#fff',sw:m.F(3.5)});
-    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+m.H(52),{size:m.F(44),weight:900,fill:'#fff',anchor:'middle',baseline:'alphabetic'});
-    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-m.H(28),{size:m.F(34),weight:800,fill:'#fff',anchor:'middle',baseline:'alphabetic'});
+  // 5) 화면비 / 패널 — 우하단 박스
+  if(state.ratio||state.panel){
+    const bw=0.21*u, bh=0.20*u, bx=S.x+S.w-m-bw, by=S.y+S.h-0.06*u-bh;
+    out+=rrect(bx,by,bw,bh,0.035*u,{fill:'none',stroke:'#fff',sw:0.014*u});
+    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+0.085*u,{size:0.075*u,weight:900,fill:'#fff',anchor:'middle'});
+    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-0.05*u,{size:0.058*u,weight:800,fill:'#fff',anchor:'middle',ls:2});
   }
   return out;
 }
 
-/* ---------- CI (우상단) ---------- */
+/* ---------- 캔버스 레벨: 보증 뱃지(좌하단) + CI(우상단) ---------- */
+function warrantySVG(){
+  if(!state.warrantyOn || !state.warImg) return '';
+  const s=210, x=40, y=1000-40-s*(state.warH/state.warW);
+  return IMG(state.warImg,x,y,s,s*(state.warH/state.warW),'xMidYMid meet');
+}
 function ciSVG(){
   if(!state.ciOn) return '';
   const W=1000,m=38;
-  if(state.ci && state.ciW && state.ciH){
-    const w=232, h=w*(state.ciH/state.ciW), x=W-m-w, y=m;
-    return `<image href="${state.ci}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="xMidYMid meet"/>`;
-  }
+  if(state.ci && state.ciW && state.ciH){ const w=232,h=w*(state.ciH/state.ciW); return IMG(state.ci,W-m-w,m,w,h,'xMidYMid meet'); }
   const x=W-m;
-  return `<g>`+
-    T('좋은컴퓨터를만드는사람들',x,68,{size:14.5,weight:600,fill:'#0b0b0b',anchor:'end',baseline:'alphabetic',ls:1.8})+
-    T('한성컴퓨터',x,128,{size:48,weight:800,fill:'#0b0b0b',anchor:'end',baseline:'alphabetic',ls:-1.5})+
-  `</g>`;
+  return `<g>`+T('좋은컴퓨터를만드는사람들',x,68,{size:14.5,weight:600,fill:'#0b0b0b',anchor:'end',ls:1.8})+T('한성컴퓨터',x,128,{size:48,weight:800,fill:'#0b0b0b',anchor:'end',ls:-1.5})+`</g>`;
 }
-
-function guideSVG(){
-  if(!state.showGuide) return '';
-  const S=state.screen;
-  return `<rect x="${fmt(S.x)}" y="${fmt(S.y)}" width="${fmt(S.w)}" height="${fmt(S.h)}" fill="none" stroke="#e23" stroke-width="2" stroke-dasharray="12 10" opacity=".8"/>`;
-}
+function guideSVG(){ if(!state.showGuide) return ''; const S=state.screen; return `<rect x="${fmt(S.x)}" y="${fmt(S.y)}" width="${fmt(S.w)}" height="${fmt(S.h)}" fill="none" stroke="#e23" stroke-width="2" stroke-dasharray="12 10" opacity=".8"/>`; }
 
 function buildSVG(withGuide){
   const W=1000,H=1000, body=[];
   body.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`);
   if(state.img && state.imgW && state.imgH){
-    body.push(`<image href="${state.img}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid meet"/>`);
+    body.push(IMG(state.img,0,0,W,H,'xMidYMid meet'));
   } else {
     body.push(`<text x="${W/2}" y="${H/2}" font-family="${FONT}" font-size="34" font-weight="700" fill="#9aa2b4" text-anchor="middle" dominant-baseline="central">모니터 이미지를 넣어주세요</text>`);
   }
   body.push(badges());
+  body.push(warrantySVG());
   body.push(ciSVG());
   if(withGuide) body.push(guideSVG());
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body.join('')}</svg>`;
@@ -199,46 +207,39 @@ function buildSVG(withGuide){
 function render(){ $('#preview').innerHTML = buildSVG(true); }
 
 /* ---------- 이미지 ---------- */
-function readTo(file, onload){
-  if(!file || !/^image\//.test(file.type)){ setStatus('이미지 파일이 아니에요.'); return; }
-  const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>onload(r.result,im.naturalWidth,im.naturalHeight); im.src=r.result; }; r.readAsDataURL(file);
-}
-function readImage(f){ readTo(f,(d,w,h)=>{ state.img=d;state.imgW=w;state.imgH=h; const b=$('#imgBox');b.classList.add('has');b.style.backgroundImage=`url("${d}")`;$('#imgHint').style.display='none'; render(); }); }
-function readCI(f){ readTo(f,(d,w,h)=>{ state.ci=d;state.ciW=w;state.ciH=h; const b=$('#ciBox');b.classList.add('has');b.style.backgroundImage=`url("${d}")`;$('#ciHint').style.display='none'; if(!state.ciOn){state.ciOn=true;$('#ciOn').checked=true;} render(); }); }
+function readImage(file){ if(!file||!/^image\//.test(file.type)){setStatus('이미지 파일이 아니에요.');return;} const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>{ state.img=r.result;state.imgW=im.naturalWidth;state.imgH=im.naturalHeight; const b=$('#imgBox');b.classList.add('has');b.style.backgroundImage=`url("${r.result}")`;$('#imgHint').style.display='none'; render(); }; im.src=r.result; }; r.readAsDataURL(file); }
+function loadAsset(path, onload){ fetch(path).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{ const fr=new FileReader(); fr.onload=()=>{ const im=new Image(); im.onload=()=>onload(fr.result,im.naturalWidth,im.naturalHeight); im.src=fr.result; }; fr.readAsDataURL(b); }).catch(()=>{}); }
 
-/* ---------- 화면 범위 드래그 지정 ---------- */
+/* ---------- 화면 범위 드래그 ---------- */
 let selMode=false, dragStart=null;
-function toSvgXY(clientX,clientY){ const r=$('#selCatcher').getBoundingClientRect(); const k=1000/r.width; return { x:Math.max(0,Math.min(1000,(clientX-r.left)*k)), y:Math.max(0,Math.min(1000,(clientY-r.top)*k)) }; }
-function setSelMode(on){ selMode=on; $('#selCatcher').classList.toggle('on',on); $('#selBtn').classList.toggle('on',on); if(!on) $('#selRect').style.display='none'; setStatus(on?'모니터 화면 영역을 드래그하세요.':''); }
+function toSvgXY(cx,cy){ const r=$('#selCatcher').getBoundingClientRect(); const k=1000/r.width; return {x:Math.max(0,Math.min(1000,(cx-r.left)*k)),y:Math.max(0,Math.min(1000,(cy-r.top)*k))}; }
+function setSelMode(on){ selMode=on; $('#selCatcher').classList.toggle('on',on); $('#selBtn').classList.toggle('on',on); if(!on)$('#selRect').style.display='none'; setStatus(on?'모니터 화면 영역을 드래그하세요.':''); }
 $('#selBtn').onclick=()=>setSelMode(!selMode);
 $('#selReset').onclick=()=>{ state.screen={...RS}; render(); setStatus('화면 영역을 기본값으로 되돌렸어요.'); };
-$('#selCatcher').addEventListener('mousedown',e=>{ if(!selMode)return; e.preventDefault(); const shell=$('#pvShell').getBoundingClientRect(); dragStart={cx:e.clientX,cy:e.clientY}; const sr=$('#selRect'); sr.style.display='block'; sr.style.left=(e.clientX-shell.left)+'px'; sr.style.top=(e.clientY-shell.top)+'px'; sr.style.width='0px'; sr.style.height='0px'; });
-document.addEventListener('mousemove',e=>{ if(!selMode||!dragStart)return; const shell=$('#pvShell').getBoundingClientRect(); const x1=Math.min(dragStart.cx,e.clientX),y1=Math.min(dragStart.cy,e.clientY),x2=Math.max(dragStart.cx,e.clientX),y2=Math.max(dragStart.cy,e.clientY); const sr=$('#selRect'); sr.style.left=(x1-shell.left)+'px'; sr.style.top=(y1-shell.top)+'px'; sr.style.width=(x2-x1)+'px'; sr.style.height=(y2-y1)+'px'; });
-document.addEventListener('mouseup',e=>{ if(!selMode||!dragStart)return; const a=toSvgXY(Math.min(dragStart.cx,e.clientX),Math.min(dragStart.cy,e.clientY)), b=toSvgXY(Math.max(dragStart.cx,e.clientX),Math.max(dragStart.cy,e.clientY)); dragStart=null; const w=b.x-a.x,h=b.y-a.y; if(w>40&&h>40){ state.screen={x:a.x,y:a.y,w,h}; render(); setStatus('화면 영역을 지정했어요.'); } setSelMode(false); });
+$('#selCatcher').addEventListener('mousedown',e=>{ if(!selMode)return; e.preventDefault(); const sh=$('#pvShell').getBoundingClientRect(); dragStart={cx:e.clientX,cy:e.clientY}; const sr=$('#selRect'); sr.style.display='block'; sr.style.left=(e.clientX-sh.left)+'px'; sr.style.top=(e.clientY-sh.top)+'px'; sr.style.width='0px'; sr.style.height='0px'; });
+document.addEventListener('mousemove',e=>{ if(!selMode||!dragStart)return; const sh=$('#pvShell').getBoundingClientRect(); const x1=Math.min(dragStart.cx,e.clientX),y1=Math.min(dragStart.cy,e.clientY),x2=Math.max(dragStart.cx,e.clientX),y2=Math.max(dragStart.cy,e.clientY); const sr=$('#selRect'); sr.style.left=(x1-sh.left)+'px'; sr.style.top=(y1-sh.top)+'px'; sr.style.width=(x2-x1)+'px'; sr.style.height=(y2-y1)+'px'; });
+document.addEventListener('mouseup',e=>{ if(!selMode||!dragStart)return; const a=toSvgXY(Math.min(dragStart.cx,e.clientX),Math.min(dragStart.cy,e.clientY)),b=toSvgXY(Math.max(dragStart.cx,e.clientX),Math.max(dragStart.cy,e.clientY)); dragStart=null; const w=b.x-a.x,h=b.y-a.y; if(w>40&&h>40){ state.screen={x:a.x,y:a.y,w,h}; render(); setStatus('화면 영역을 지정했어요.'); } setSelMode(false); });
 
 /* ---------- 저장 ---------- */
 function outputSVG(filename,svg){ if(inFrame) parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*'); else { const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1200);} }
 
 /* ---------- 바인딩 ---------- */
 const bind=(id,key)=>$(id).addEventListener('input',e=>{ state[key]=e.target.value; render(); });
-bind('#f_inch','inch');bind('#f_cm','cm');bind('#f_grade','grade');bind('#f_res','res');bind('#f_hz','hz');bind('#f_ms','ms');bind('#f_ratio','ratio');bind('#f_panel','panel');
+bind('#f_inch','inch');bind('#f_cm','cm');bind('#f_grade','grade');bind('#f_res','res');bind('#f_hz','hz');bind('#f_ms','ms');bind('#f_ratio','ratio');bind('#f_panel','panel');bind('#f_tech','tech');bind('#f_tech2','tech2');
+$('#techRing').addEventListener('change',e=>{state.techRing=e.target.checked;render();});
+$('#warrantyOn').addEventListener('change',e=>{state.warrantyOn=e.target.checked;render();});
 $('#imgInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readImage(f);e.target.value='';});
-$('#ciInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readCI(f);e.target.value='';});
 $('#ciOn').addEventListener('change',e=>{state.ciOn=e.target.checked;render();});
 $('#showGuide').addEventListener('change',e=>{state.showGuide=e.target.checked;render();});
 $('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기' : '제작 → SVG 저장';
 $('#saveBtn').onclick=()=>{ outputSVG('monitor-spec-1000.svg', buildSVG(false)); setStatus(inFrame?'에디터로 보냈어요.':'SVG를 저장했어요.'); };
 window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message);});
-window.addEventListener('load',()=>{ if(window.ImageDrop){ ImageDrop.wire('imgInput',['#imgBox'],setStatus); ImageDrop.wire('ciInput',['#ciBox'],setStatus); } });
+window.addEventListener('load',()=>{ if(window.ImageDrop) ImageDrop.wire('imgInput',['#imgBox'],setStatus); });
 
-// 기본 CI(한성컴퓨터) 이미지를 레포에서 직접 불러와 data URI로 임베드
-(function loadDefaultCI(){
-  fetch('assets/hansung-ci.jpg').then(r=>{ if(!r.ok) throw 0; return r.blob(); }).then(blob=>{
-    const fr=new FileReader();
-    fr.onload=()=>{ const im=new Image(); im.onload=()=>{ if(state.ci) return; state.ci=fr.result; state.ciW=im.naturalWidth; state.ciH=im.naturalHeight; const b=$('#ciBox'); if(b){ b.classList.add('has'); b.style.backgroundImage=`url("${fr.result}")`; } const h=$('#ciHint'); if(h) h.style.display='none'; render(); }; im.src=fr.result; };
-    fr.readAsDataURL(blob);
-  }).catch(()=>{});
-})();
+// 레포의 에셋(무지개 링·골드 보증뱃지·CI)을 data URI로 임베드
+loadAsset('assets/rainbow-ring.png',(d,w,h)=>{ state.ringImg=d;state.ringW=w;state.ringH=h; render(); });
+loadAsset('assets/warranty-3y.png',(d,w,h)=>{ state.warImg=d;state.warW=w;state.warH=h; render(); });
+loadAsset('assets/hansung-ci.jpg',(d,w,h)=>{ if(state.ci)return; state.ci=d;state.ciW=w;state.ciH=h; render(); });
 
 render();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(render);
