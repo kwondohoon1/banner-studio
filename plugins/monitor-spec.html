@@ -63,6 +63,7 @@ label.chk input{width:16px;height:16px}
   <div class="step"><b>화면 범위 지정 <small style="color:var(--muted);font-weight:500">스펙이 얹힐 화면 영역</small></b><span class="num">03 SCREEN</span></div>
   <div class="hint">아래 미리보기에서 <b>범위 지정</b>을 누르고 모니터 <b>화면(디스플레이) 영역</b>을 드래그하세요. 그 영역에 맞춰 스펙이 정확히 배치됩니다.</div>
   <div class="rowbtns">
+    <button class="sbtn" id="autoBtn">🎯 자동 인식 (테두리 기준)</button>
     <button class="sbtn" id="selBtn">🖱 범위 지정</button>
     <button class="sbtn" id="selReset">기본값</button>
     <label class="chk" style="margin:0"><input type="checkbox" id="showGuide" checked> 영역 가이드 표시</label>
@@ -101,7 +102,7 @@ const state = {
   inch:'27"', cm:'67.3cm', grade:'QHD', res:'2560X1440', hz:'240Hz', ms:'0.03ms', ratio:'16:9', panel:'평면',
   tech:'LED', tech2:'', techRing:true, warrantyOn:true,
   screen:{...RS}, showGuide:true, ciOn:true,
-  ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0
+  ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0, standImg:''
 };
 
 function measure(t,size,weight){ mctx.font=`${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
@@ -111,20 +112,18 @@ function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" st
   return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}${f}/>`; }
 function IMG(href,x,y,w,h,par){ return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="${par||'xMidYMid meet'}"/>`; }
 function splitNum(v){ const m=String(v||'').match(/^\s*([\d.,]+)\s*(.*)$/); return m?{n:m[1],u:m[2]}:{n:String(v||''),u:''}; }
-// 작은 모니터 아이콘(글리프) — 시트 실측 비율(109×47)
-function monitorIcon(cx,topY,w,h,col,sw){
-  const scrH=h*0.66;
-  return `<g fill="none" stroke="${col}" stroke-width="${fmt(sw)}">`+
-    `<rect x="${fmt(cx-w/2)}" y="${fmt(topY)}" width="${fmt(w)}" height="${fmt(scrH)}" rx="${fmt(w*0.03)}"/>`+
-    `<line x1="${fmt(cx)}" y1="${fmt(topY+scrH)}" x2="${fmt(cx)}" y2="${fmt(topY+h*0.85)}"/>`+
-    `<line x1="${fmt(cx-w*0.17)}" y1="${fmt(topY+h*0.93)}" x2="${fmt(cx+w*0.17)}" y2="${fmt(topY+h*0.93)}"/></g>`;
+// QHD 박스 아래 스탠드+받침 (박스 자체가 모니터 화면이 되는 디자인) — 시트 원본 PNG 사용
+function standIcon(cx,topY,k){
+  if(state.standImg) return IMG(state.standImg, cx-33.5*k, topY, 67*k, 23*k, 'xMidYMid meet');
+  return `<g fill="#fff"><rect x="${fmt(cx-13.5*k)}" y="${fmt(topY)}" width="${fmt(27*k)}" height="${fmt(14*k)}"/>`+
+    `<rect x="${fmt(cx-32.5*k)}" y="${fmt(topY+16*k)}" width="${fmt(65*k)}" height="${fmt(6*k)}" rx="${fmt(3*k)}"/></g>`;
 }
 
 /* ---------- 스펙 뱃지 — 시트(제목없음) 실측값 기반, 하단 밑단 정렬 ----------
    시트 실측(px): QHD요소 241×179(박스236×103·선4·QHD글자76·아이콘109×47·해상도42)
    16:9요소 175×110(16:9글자70 / 아래 흰스트립44에 검정 평면38) · 27"배지 219×144(흰박스200×76·인치57·cm42) */
 function badges(){
-  const S=state.screen, u=S.h, k=u/600, m=0.045*u; let out='';
+  const S=state.screen, u=S.h, k=u/520, m=0.045*u; let out='';
   const stroke=4*k;
   const bottomY = S.y + S.h - 0.085*u;   // 하단 요소 공통 밑단
   // 1) 27" 배지 — 좌상단 (검정 배지 + 흰 채움 박스 + 검정 인치 / 흰 cm)
@@ -153,7 +152,7 @@ function badges(){
     const ew=241*k, ex=S.x+m, etop=bottomY-178*k;
     out+=rrect(ex+2*k,etop,236*k,103*k,10*k,{fill:'none',stroke:'#fff',sw:stroke});
     out+=T(state.grade,ex+ew/2,etop+84*k,{size:76*k,weight:900,fill:'#fff',anchor:'middle'});
-    out+=monitorIcon(ex+ew/2,etop+106*k,109*k,47*k,'#fff',stroke);
+    out+=standIcon(ex+ew/2,etop+104*k,k);
     if(state.res) out+=T(state.res,ex+ew/2,bottomY,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
     leftEnd = ex+ew;
   }
@@ -183,11 +182,13 @@ function badges(){
     let t=totalW();
     if(t>availW){ const f=availW/t; big*=f; sm*=f; segs=build(); t=totalW(); }
     let x=availC-t/2;
+    out+=`<g filter="url(#hzShadow)">`;
     segs.forEach(g=>{
       if(g.gap!=null){ x+=g.gap; return; }
       out+=T(g.t,x,bottomY,{size:g.size,weight:900,fill:g.mint?MINT:'#fff',anchor:'start',italic:true,font:FONT_HZ});
       x+=measure(g.t,g.size,900);
     });
+    out+=`</g>`;
   }
   return out;
 }
@@ -217,7 +218,8 @@ function buildSVG(withGuide){
   }
   // 화면 하단 검정 그라데이션(스크림) — 스펙이 잘 보이도록
   const S=state.screen;
-  body.push(`<defs><linearGradient id="specScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101012" stop-opacity="0"/><stop offset="0.55" stop-color="#101012" stop-opacity="0.28"/><stop offset="1" stop-color="#101012" stop-opacity="0.72"/></linearGradient></defs>`);
+  body.push(`<defs><linearGradient id="specScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101012" stop-opacity="0"/><stop offset="0.55" stop-color="#101012" stop-opacity="0.28"/><stop offset="1" stop-color="#101012" stop-opacity="0.72"/></linearGradient>`+
+    `<filter id="hzShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="2" dy="3" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.45"/></filter></defs>`);
   body.push(`<rect x="${fmt(S.x)}" y="${fmt(S.y+S.h*0.46)}" width="${fmt(S.w)}" height="${fmt(S.h*0.54)}" fill="url(#specScrim)"/>`);
   body.push(badges());
   body.push(warrantySVG());
@@ -228,13 +230,61 @@ function buildSVG(withGuide){
 function render(){ $('#preview').innerHTML = buildSVG(true); }
 
 /* ---------- 이미지 ---------- */
-function readImage(file){ if(!file||!/^image\//.test(file.type)){setStatus('이미지 파일이 아니에요.');return;} const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>{ state.img=r.result;state.imgW=im.naturalWidth;state.imgH=im.naturalHeight; const b=$('#imgBox');b.classList.add('has');b.style.backgroundImage=`url("${r.result}")`;$('#imgHint').style.display='none'; render(); }; im.src=r.result; }; r.readAsDataURL(file); }
+function readImage(file){ if(!file||!/^image\//.test(file.type)){setStatus('이미지 파일이 아니에요.');return;} const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>{ state.img=r.result;state.imgW=im.naturalWidth;state.imgH=im.naturalHeight; const b=$('#imgBox');b.classList.add('has');b.style.backgroundImage=`url("${r.result}")`;$('#imgHint').style.display='none'; render(); autoDetectScreen(); }; im.src=r.result; }; r.readAsDataURL(file); }
 function loadAsset(path, onload){ fetch(path).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{ const fr=new FileReader(); fr.onload=()=>{ const im=new Image(); im.onload=()=>onload(fr.result,im.naturalWidth,im.naturalHeight); im.src=fr.result; }; fr.readAsDataURL(b); }).catch(()=>{}); }
+
+/* ---------- 모니터 테두리 자동 인식 ---------- */
+// 흰 배경 제품컷에서 모니터 패널(베젤 포함) 사각형을 찾고, 베젤 두께만큼 안쪽으로 들어가 화면 영역을 잡는다
+function autoDetectScreen(){
+  if(!state.img) return;
+  const im=new Image();
+  im.onload=()=>{
+    try{
+      const N=250, cv=document.createElement('canvas'); cv.width=N; cv.height=N;
+      const cx=cv.getContext('2d',{willReadFrequently:true});
+      cx.fillStyle='#fff'; cx.fillRect(0,0,N,N);
+      const s=Math.min(1000/im.naturalWidth,1000/im.naturalHeight);
+      const dw=im.naturalWidth*s/1000*N, dh=im.naturalHeight*s/1000*N;
+      cx.drawImage(im,(N-dw)/2,(N-dh)/2,dw,dh);
+      const d=cx.getImageData(0,0,N,N).data;
+      const isBg=i=> d[i]>235&&d[i+1]>235&&d[i+2]>235;
+      // 행별 비배경 폭 → 가장 넓은 연속 구간이 패널(스탠드는 좁음)
+      const rows=[];
+      for(let y=0;y<N;y++){ let x0=-1,x1=-1; for(let x=0;x<N;x++){ const i=(y*N+x)*4; if(!isBg(i)){ if(x0<0)x0=x; x1=x; } } rows.push({x0,x1,w:x0<0?0:x1-x0+1}); }
+      const maxW=Math.max(...rows.map(r=>r.w));
+      if(maxW<N*0.3){ setStatus('모니터를 인식하지 못했어요. 범위 지정으로 직접 잡아주세요.'); return; }
+      let top=0; while(top<N&&rows[top].w<maxW*0.8) top++;
+      let bot=top; while(bot+1<N&&rows[bot+1].w>=maxW*0.72) bot++;
+      if(bot-top<N*0.08){ setStatus('모니터를 인식하지 못했어요. 범위 지정으로 직접 잡아주세요.'); return; }
+      const seg=rows.slice(top,bot+1);
+      const left=Math.min(...seg.map(r=>r.x0)), right=Math.max(...seg.map(r=>r.x1));
+      // 베젤 인셋: 중앙 행/열에서 어두운 픽셀(베젤)을 통과
+      const midY=(top+bot)>>1, midX=(left+right)>>1;
+      const dark=(x,y)=>{ const i=(y*N+x)*4; return d[i]+d[i+1]+d[i+2]<180; };
+      let l=left; while(l<midX&&dark(l,midY)) l++;
+      let r=right; while(r>midX&&dark(r,midY)) r--;
+      let t=top; while(t<midY&&dark(midX,t)) t++;
+      let b=bot; while(b>midY&&dark(midX,b)) b--;
+      // 화면 내용이 어두워 과도하게 들어간 경우 제한
+      const capX=(right-left)*0.06, capY=(bot-top)*0.09;
+      if(l-left>capX) l=left+Math.round(capX*0.4);
+      if(right-r>capX) r=right-Math.round(capX*0.4);
+      if(t-top>capY) t=top+Math.round(capY*0.5);
+      if(bot-b>capY) b=bot-Math.round(capY*0.5);
+      const K=1000/N;
+      state.screen={x:l*K,y:t*K,w:(r-l)*K,h:(b-t)*K};
+      render();
+      setStatus('모니터 테두리를 인식해 화면 영역을 자동으로 잡았어요. (미세조정: 범위 지정)');
+    }catch(e){ /* 실패 시 조용히 기본값 유지 */ }
+  };
+  im.src=state.img;
+}
 
 /* ---------- 화면 범위 드래그 ---------- */
 let selMode=false, dragStart=null;
 function toSvgXY(cx,cy){ const r=$('#selCatcher').getBoundingClientRect(); const k=1000/r.width; return {x:Math.max(0,Math.min(1000,(cx-r.left)*k)),y:Math.max(0,Math.min(1000,(cy-r.top)*k))}; }
 function setSelMode(on){ selMode=on; $('#selCatcher').classList.toggle('on',on); $('#selBtn').classList.toggle('on',on); if(!on)$('#selRect').style.display='none'; setStatus(on?'모니터 화면 영역을 드래그하세요.':''); }
+$('#autoBtn').onclick=()=>{ if(!state.img){ setStatus('먼저 모니터 이미지를 넣어주세요.'); return; } autoDetectScreen(); };
 $('#selBtn').onclick=()=>setSelMode(!selMode);
 $('#selReset').onclick=()=>{ state.screen={...RS}; render(); setStatus('화면 영역을 기본값으로 되돌렸어요.'); };
 $('#selCatcher').addEventListener('mousedown',e=>{ if(!selMode)return; e.preventDefault(); const sh=$('#pvShell').getBoundingClientRect(); dragStart={cx:e.clientX,cy:e.clientY}; const sr=$('#selRect'); sr.style.display='block'; sr.style.left=(e.clientX-sh.left)+'px'; sr.style.top=(e.clientY-sh.top)+'px'; sr.style.width='0px'; sr.style.height='0px'; });
@@ -259,6 +309,7 @@ window.addEventListener('load',()=>{ if(window.ImageDrop) ImageDrop.wire('imgInp
 
 // 레포의 에셋(무지개 링·골드 보증뱃지·CI)을 data URI로 임베드
 loadAsset('assets/rainbow-ring.png',(d,w,h)=>{ state.ringImg=d;state.ringW=w;state.ringH=h; render(); });
+loadAsset('assets/qhd-stand.png',(d)=>{ state.standImg=d; render(); });
 loadAsset('assets/warranty-3y.png',(d,w,h)=>{ state.warImg=d;state.warW=w;state.warH=h; render(); });
 loadAsset('assets/hansung-ci.jpg',(d,w,h)=>{ if(state.ci)return; state.ci=d;state.ciW=w;state.ciH=h; render(); });
 
