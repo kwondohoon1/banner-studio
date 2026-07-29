@@ -111,28 +111,29 @@ function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" st
   return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}${f}/>`; }
 function IMG(href,x,y,w,h,par){ return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="${par||'xMidYMid meet'}"/>`; }
 function splitNum(v){ const m=String(v||'').match(/^\s*([\d.,]+)\s*(.*)$/); return m?{n:m[1],u:m[2]}:{n:String(v||''),u:''}; }
-// 작은 모니터 아이콘(글리프)
-function monitorIcon(cx,cy,w,col){ const h=w*0.62; return `<g fill="none" stroke="${col}" stroke-width="${fmt(w*0.07)}">`+
-  `<rect x="${fmt(cx-w/2)}" y="${fmt(cy-h/2)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(w*0.06)}"/>`+
-  `<line x1="${fmt(cx)}" y1="${fmt(cy+h/2)}" x2="${fmt(cx)}" y2="${fmt(cy+h/2+w*0.14)}"/>`+
-  `<line x1="${fmt(cx-w*0.18)}" y1="${fmt(cy+h/2+w*0.14)}" x2="${fmt(cx+w*0.18)}" y2="${fmt(cy+h/2+w*0.14)}"/></g>`; }
-// 스피드(잔상) 스우시
-function swoosh(x,y,u,col){ const L=u*1.1; return `<g stroke="${col}" stroke-width="${fmt(u*0.09)}" stroke-linecap="round" opacity="0.95">`+
-  `<line x1="${fmt(x)}" y1="${fmt(y)}" x2="${fmt(x+L)}" y2="${fmt(y)}"/>`+
-  `<line x1="${fmt(x+u*0.18)}" y1="${fmt(y+u*0.28)}" x2="${fmt(x+L*0.82)}" y2="${fmt(y+u*0.28)}"/>`+
-  `<line x1="${fmt(x+u*0.40)}" y1="${fmt(y-u*0.28)}" x2="${fmt(x+L*0.72)}" y2="${fmt(y-u*0.28)}"/></g>`; }
+// 작은 모니터 아이콘(글리프) — 시트 실측 비율(109×47)
+function monitorIcon(cx,topY,w,h,col,sw){
+  const scrH=h*0.66;
+  return `<g fill="none" stroke="${col}" stroke-width="${fmt(sw)}">`+
+    `<rect x="${fmt(cx-w/2)}" y="${fmt(topY)}" width="${fmt(w)}" height="${fmt(scrH)}" rx="${fmt(w*0.03)}"/>`+
+    `<line x1="${fmt(cx)}" y1="${fmt(topY+scrH)}" x2="${fmt(cx)}" y2="${fmt(topY+h*0.85)}"/>`+
+    `<line x1="${fmt(cx-w*0.17)}" y1="${fmt(topY+h*0.93)}" x2="${fmt(cx+w*0.17)}" y2="${fmt(topY+h*0.93)}"/></g>`;
+}
 
-/* ---------- 스펙 뱃지 (화면 영역 기준) ---------- */
+/* ---------- 스펙 뱃지 — 시트(제목없음) 실측값 기반, 하단 밑단 정렬 ----------
+   시트 실측(px): QHD요소 241×179(박스236×103·선4·QHD글자76·아이콘109×47·해상도42)
+   16:9요소 175×110(16:9글자70 / 아래 흰스트립44에 검정 평면38) · 27"배지 219×144(흰박스200×76·인치57·cm42) */
 function badges(){
-  const S=state.screen, u=S.h, m=0.05*u; let out='';
-  // 1) 인치 / cm — 좌상단 검정 박스 (인치는 흰 테두리 서브박스)
+  const S=state.screen, u=S.h, k=u/600, m=0.045*u; let out='';
+  const stroke=4*k;
+  const bottomY = S.y + S.h - 0.085*u;   // 하단 요소 공통 밑단
+  // 1) 27" 배지 — 좌상단 (검정 배지 + 흰 채움 박스 + 검정 인치 / 흰 cm)
   if(state.inch||state.cm){
-    const bw=0.44*u, bh=state.cm?0.34*u:0.24*u, bx=S.x+m, by=S.y+m;
-    out+=rrect(bx,by,bw,bh,0.05*u,{fill:BLACK});
-    const ip=0.035*u, ibx=bx+ip, iby=by+ip, ibw=bw-2*ip, ibh=state.cm?0.185*u:bh-2*ip;
-    out+=rrect(ibx,iby,ibw,ibh,0.03*u,{fill:'#ffffff'});   // 위: 흰색 채움 박스
-    if(state.inch) out+=T(state.inch,ibx+ibw/2,iby+ibh/2+0.055*u,{size:0.15*u,weight:900,fill:'#111214',anchor:'middle'});  // 검정 인치(Pretendard)
-    if(state.cm) out+=T(state.cm,bx+bw/2,by+bh-0.05*u,{size:0.062*u,weight:800,fill:'#fff',anchor:'middle'});
+    const bw=219*k, bh=144*k, bx=S.x+m, by=S.y+m;
+    out+=rrect(bx,by,bw,bh,14*k,{fill:BLACK});
+    out+=rrect(bx+9.5*k,by+10*k,200*k,76*k,10*k,{fill:'#ffffff'});
+    if(state.inch) out+=T(state.inch,bx+bw/2,by+10*k+62*k,{size:57*k,weight:900,fill:'#111214',anchor:'middle'});
+    if(state.cm) out+=T(state.cm,bx+bw/2,by+130*k,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
   }
   // 2) 패널기술(무지개 링 + 텍스트) — 우상단
   if(state.tech||state.tech2){
@@ -146,45 +147,45 @@ function badges(){
     if(state.tech) out+=T(state.tech,gx,cy+f1*0.36,{size:f1,weight:800,fill:'#fff',anchor:'start'});
     if(state.tech2) out+=T(state.tech2,rightX,topY+rd+f2*0.9,{size:f2,weight:700,fill:'#fff',anchor:'end'});
   }
-  // ===== 하단 스펙 행: 좌(QHD)·중앙(240Hz/응답)·우(화면비) 컬럼 =====
-  const bandCy = S.y + S.h - 0.135*u;   // 하단 행 세로 중앙
-  // 3) 해상도 등급(QHD) 박스 + 아이콘 + 해상도 — 좌
+  // 3) QHD 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY)
   let leftEnd = S.x + m;
   if(state.grade){
-    const gw=0.26*u, gh=0.17*u, gx=S.x+m, gy=bandCy-gh-0.045*u;
-    out+=rrect(gx,gy,gw,gh,0.03*u,{fill:'none',stroke:'#fff',sw:0.014*u});   // 흰 테두리 박스
-    out+=T(state.grade,gx+gw/2,gy+0.078*u,{size:0.078*u,weight:900,fill:'#fff',anchor:'middle'});
-    out+=monitorIcon(gx+gw/2,gy+gh-0.038*u,0.066*u,'#fff');
-    let resW=0;
-    if(state.res){ const rf=0.052*u; out+=T(state.res,gx+gw/2,gy+gh+0.06*u,{size:rf,weight:800,fill:'#fff',anchor:'middle'}); resW=measure(state.res,rf,800); }
-    leftEnd = gx+Math.max(gw,resW);
+    const ew=241*k, ex=S.x+m, etop=bottomY-178*k;
+    out+=rrect(ex+2*k,etop,236*k,103*k,10*k,{fill:'none',stroke:'#fff',sw:stroke});
+    out+=T(state.grade,ex+ew/2,etop+84*k,{size:76*k,weight:900,fill:'#fff',anchor:'middle'});
+    out+=monitorIcon(ex+ew/2,etop+106*k,109*k,47*k,'#fff',stroke);
+    if(state.res) out+=T(state.res,ex+ew/2,bottomY,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
+    leftEnd = ex+ew;
   }
-  // 5) 화면비 / 패널 — 우 박스
+  // 4) 16:9 요소 — 우하단 (테두리 박스 / 위 16:9 / 아래 흰 스트립+검정 평면, 밑단=bottomY)
   let rightStart = S.x+S.w-m;
   if(state.ratio||state.panel){
-    const bw=0.20*u, bh=0.20*u, bx=S.x+S.w-m-bw, by=bandCy-bh/2;
-    out+=rrect(bx,by,bw,bh,0.03*u,{fill:'none',stroke:'#fff',sw:0.014*u});   // 흰 테두리 박스
-    if(state.ratio) out+=T(state.ratio,bx+bw/2,by+0.088*u,{size:0.072*u,weight:900,fill:'#fff',anchor:'middle'});
-    if(state.panel) out+=T(state.panel,bx+bw/2,by+bh-0.048*u,{size:0.055*u,weight:800,fill:'#fff',anchor:'middle',ls:2});
-    rightStart = bx;
+    const ew=175*k, eh=110*k, ex=S.x+S.w-m-ew, etop=bottomY-eh;
+    // 아래 흰색 채움 스트립(아래 모서리만 라운드)
+    out+=rrect(ex,etop+66*k,ew,44*k,10*k,{fill:'#ffffff'});
+    out+=`<rect x="${fmt(ex)}" y="${fmt(etop+66*k)}" width="${fmt(ew)}" height="${fmt(22*k)}" fill="#ffffff"/>`;
+    out+=rrect(ex,etop,ew,eh,10*k,{fill:'none',stroke:'#fff',sw:stroke});
+    if(state.ratio) out+=T(state.ratio,ex+ew/2,etop+62*k,{size:70*k,weight:900,fill:'#fff',anchor:'middle'});
+    if(state.panel) out+=T(state.panel,ex+ew/2,etop+101*k,{size:38*k,weight:800,fill:'#111214',anchor:'middle',ls:4*k});
+    rightStart = ex;
   }
-  // 4) 주사율/응답 — 좌우 사이 가운데 (HY견고딕 이탤릭, 응답 민트)
+  // 5) 주사율/응답 — 좌우 사이 가운데, 밑단=bottomY (HY견고딕 이탤릭, 응답 #75c289)
   if(state.hz||state.ms){
     const availL=leftEnd+0.03*u, availR=rightStart-0.03*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
-    let big=0.135*u, sm=0.078*u;
+    let big=105*k, sm=58*k;
     const build=()=>{ const g=[];
       if(state.hz){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
-      if(state.hz&&state.ms)g.push({gap:big*0.95});
+      if(state.hz&&state.ms)g.push({gap:big*0.75});
       if(state.ms){const s=splitNum(state.ms);g.push({t:s.n,size:big,mint:true});if(s.u)g.push({t:s.u,size:sm,mint:true});}
       return g; };
     let segs=build();
     const totalW=()=>segs.reduce((a,g)=>a+(g.gap!=null?g.gap:measure(g.t,g.size,900)),0);
     let t=totalW();
-    if(t>availW){ const k=availW/t; big*=k; sm*=k; segs=build(); t=totalW(); }
-    const by=bandCy+big*0.34; let x=availC-t/2;
+    if(t>availW){ const f=availW/t; big*=f; sm*=f; segs=build(); t=totalW(); }
+    let x=availC-t/2;
     segs.forEach(g=>{
       if(g.gap!=null){ x+=g.gap; return; }
-      out+=T(g.t,x,by,{size:g.size,weight:900,fill:g.mint?MINT:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+      out+=T(g.t,x,bottomY,{size:g.size,weight:900,fill:g.mint?MINT:'#fff',anchor:'start',italic:true,font:FONT_HZ});
       x+=measure(g.t,g.size,900);
     });
   }
