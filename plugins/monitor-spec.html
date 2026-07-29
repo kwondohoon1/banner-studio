@@ -57,7 +57,7 @@ label.chk input{width:16px;height:16px}
     <div class="fld"><label>패널기술 (예: LED·OLED)</label><input type="text" id="f_tech" value="LED"></div>
     <div class="fld"><label>패널기술 2줄 (예: 576 Zones)</label><input type="text" id="f_tech2" value=""></div>
   </div>
-  <label class="chk" style="margin-top:10px"><input type="checkbox" id="techRing" checked> 패널기술 앞 무지개 링(O) 표시</label>
+  <label class="chk" style="margin-top:10px"><input type="checkbox" id="techRing" checked> OLED — O를 무지개로 표시 (패널기술엔 "LED"만 입력)</label>
   <label class="chk" style="margin-top:8px"><input type="checkbox" id="warrantyOn" checked> 3년 무상보증 뱃지(좌하단)</label>
 
   <div class="step"><b>화면 범위 지정 <small style="color:var(--muted);font-weight:500">스펙이 얹힐 화면 영역</small></b><span class="num">03 SCREEN</span></div>
@@ -126,7 +126,7 @@ function standIcon(cx,topY,k){
 function badges(){
   const S=state.screen, u=S.h, k=u/520, m=0.045*u; let out='';
   const stroke=4*k;
-  const bottomY = S.y + S.h - 0.085*u;   // 하단 요소 공통 밑단
+  const bottomY = S.y + S.h - 0.055*u;   // 하단 요소 공통 밑단 (화면 끝에 닿지 않을 만큼만 여백)
   // 1) 27" 배지 — 좌상단 (검정 배지 + 흰 채움 박스 + 검정 인치 / 흰 cm)
   if(state.inch||state.cm){
     const bw=219*k, bh=144*k, bx=S.x+m, by=S.y+m;
@@ -135,17 +135,18 @@ function badges(){
     if(state.inch) out+=T(state.inch,bx+bw/2,by+10*k+62*k,{size:57*k,weight:900,fill:'#111214',anchor:'middle'});
     if(state.cm) out+=T(state.cm,bx+bw/2,by+130*k,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
   }
-  // 2) 패널기술(무지개 링 + 텍스트) — 우상단 (흰 글자 + 검정 테두리로 강조)
+  // 2) 패널기술 — 우상단. 무지개 링은 OLED의 "O" 글자 역할: 캡하이트 크기 + 베이스라인 정렬
   if(state.tech||state.tech2){
     const rightX=S.x+S.w-m, topY=S.y+m, f1=0.155*u, f2=0.08*u;
     const t1w=state.tech?measure(state.tech,f1,800):0;
-    const rd=f1*1.22, gap=0.025*u;
     const ringOn = state.techRing && state.ringImg;
+    const rd=f1*0.78, gap=f1*0.05;          // 링 지름 = 글자 캡하이트 수준
     const grpW = (ringOn?rd+gap:0)+t1w;
-    let gx=rightX-grpW, cy=topY+rd/2;
+    let gx=rightX-grpW;
+    const baseY = topY + rd;                 // 링 하단 = 글자 베이스라인
     if(ringOn){ out+=IMG(state.ringImg,gx,topY,rd,rd,'xMidYMid meet'); gx+=rd+gap; }
-    if(state.tech) out+=T(state.tech,gx,cy+f1*0.36,{size:f1,weight:800,fill:'#fff',anchor:'start',stroke:'#000',sw:f1*0.075});
-    if(state.tech2) out+=T(state.tech2,rightX,topY+rd+f2*0.95,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
+    if(state.tech) out+=T(state.tech,gx,baseY,{size:f1,weight:800,fill:'#fff',anchor:'start',stroke:'#000',sw:f1*0.075});
+    if(state.tech2) out+=T(state.tech2,rightX,baseY+f2*1.2,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
   }
   // 3) QHD 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY) — 다른 요소와 균형 맞춰 축소
   let leftEnd = S.x + m;
