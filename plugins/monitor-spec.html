@@ -259,7 +259,7 @@ function autoDetectScreen(){
       for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=(y*N+x)*4;if(!isBg(i)){if(x<cx0)cx0=x;if(x>cx1)cx1=x;if(y<cy0)cy0=y;if(y>cy1)cy1=y;}}
       if(cx1<0){ setStatus('모니터를 인식하지 못했어요.'); return; }
       const CB={x:cx0*K,y:cy0*K,w:(cx1-cx0+1)*K,h:(cy1-cy0+1)*K};
-      const TX=28,TW=944,TY=170,TB=975,TH=TB-TY;   // 목표 영역: 위 CI 공간 남기고 좌우 꽉 차게
+      const TX=28,TW=944,TY=state.ciOn?170:28,TB=975,TH=TB-TY;   // 목표 영역: CI 켜짐이면 위 공간 확보, 꺼짐이면 위까지 꽉 차게
       let fs2=Math.min(TW/CB.w, TH/CB.h); fs2=Math.min(fs2,2.2);
       const offX=(TX+TW/2)-(CB.x+CB.w/2)*fs2;
       const offY=(TY+TH/2)-(CB.y+CB.h/2)*fs2;
@@ -315,7 +315,7 @@ bind('#f_inch','inch');bind('#f_cm','cm');bind('#f_grade','grade');bind('#f_res'
 $('#techRing').addEventListener('change',e=>{state.techRing=e.target.checked;render();});
 $('#warrantyOn').addEventListener('change',e=>{state.warrantyOn=e.target.checked;render();});
 $('#imgInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readImage(f);e.target.value='';});
-$('#ciOn').addEventListener('change',e=>{state.ciOn=e.target.checked;render();});
+$('#ciOn').addEventListener('change',e=>{ state.ciOn=e.target.checked; if(state.img) autoDetectScreen(); else render(); });
 $('#showGuide').addEventListener('change',e=>{state.showGuide=e.target.checked;render();});
 $('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기' : '제작 → SVG 저장';
 $('#saveBtn').onclick=()=>{ outputSVG('monitor-spec-1000.svg', buildSVG(false)); setStatus(inFrame?'에디터로 보냈어요.':'SVG를 저장했어요.'); };
