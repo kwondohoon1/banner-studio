@@ -400,8 +400,8 @@ function buildD1(d){const P=[];let y=0;
   s+=R(ux-utw/2,yy+26,utw,3,1.5,'#fff');
   return s}
  /* --- 밴드1: 특가 카드 --- */
- const b1CardH=(d.upTxt?466:376);
- const b1H=112+b1CardH+56;
+ const b1CardH=(d.upTxt?430:312);
+ const b1H=112+b1CardH+40;
  P.push(R(0,y,W,b1H,0,DARK));
  P.push(tabs(y+64,0));
  const c1y=y+112,cx=30,cw=W-60;
@@ -413,7 +413,7 @@ function buildD1(d){const P=[];let y=0;
  const tgx=cx+cw-150,tgy=c1y+150;
  P.push(`<g transform="rotate(18 ${tgx} ${tgy})">`,R(tgx-62,tgy-84,124,168,20,'url(#d1tag)',' opacity=".92"'),C(tgx,tgy-56,13,'#fff'),C(tgx,tgy-56,7,'#dceefb'),T(tgx,tgy+16,'%',{size:58,weight:900,fill:'#fff',anchor:'middle'}),'</g>');
  /* 가격 */
- if(d.orig)P.push(T(cx+62,c1y+150,won(d.orig),{size:27,weight:600,fill:'#9aa0a8',deco:'line-through'}));
+ if(d.orig)P.push(T(cx+62,c1y+144,won(d.orig),{size:27,weight:600,fill:'#9aa0a8',deco:'line-through'}));
  if(d.sale)P.push(T(cx+58,c1y+216,won(d.sale),{size:66,weight:900,fill:'#111',ls:'-1'}));
  /* 할인 배지 */
  if(d.discTxt){const bw=tw(d.discTxt+' DOWN',17,900)+30,bx=cx+62+tw(won(d.sale),66,900)+34,by=c1y+196;
@@ -430,8 +430,8 @@ function buildD1(d){const P=[];let y=0;
  y+=b1H;
  /* --- 밴드2: 포토상품평 카드 --- */
  const tagsL=tagLines(d.tags,16,600,cw-180);
- const c2H=560+tagsL.length*28+70;
- const b2H=112+c2H+56;
+ const c2H=560+tagsL.length*28+44;
+ const b2H=112+c2H+40;
  P.push(R(0,y,W,b2H,0,DARK));
  P.push(tabs(y+64,1));
  const c2y=y+112;
@@ -459,10 +459,10 @@ function buildD1(d){const P=[];let y=0;
  tagsL.forEach((l,i)=>P.push(T(W/2,hby+48+i*28,l,{size:16,weight:600,fill:'#555',anchor:'middle'})));
  y+=b2H;
  /* --- 접수 정보 (화이트) --- */
- const irX=70,irY=y+64;
+ const irX=70,irY=y+56;
  const ir=infoRows(d,irX,irY,{pillBg:'#111',ink:'#444'});
- P.push(R(0,y,W,64+ir.h+64,0,'#fff'));P.push(ir.svg);
- y+=64+ir.h+64;
+ P.push(R(0,y,W,56+ir.h+56,0,'#fff'));P.push(ir.svg);
+ y+=56+ir.h+56;
  /* --- 주의사항 --- */
  const nf=noticeFooter(d,y,{bg:'#2A2B2D',ink:'#a3a3a3',head:'주의사항',headSvg:yy=>
    R(60,yy-16,32,32,16,'#F5B840')+T(76,yy,'!',{size:20,weight:900,fill:'#3a2c00',anchor:'middle'})+T(104,yy,'주의사항',{size:18,weight:800,fill:'#fff'})});
@@ -480,7 +480,7 @@ function buildD2(d){const P=[];let y=0;
   <radialGradient id="d2orb"><stop offset="0" stop-color="#BFEAF5" stop-opacity=".9"/><stop offset="1" stop-color="#BFEAF5" stop-opacity="0"/></radialGradient>
  </defs>`);
  /* --- 히어로 --- */
- const heroH=900;
+ const heroH=870;
  P.push(R(0,0,W,heroH,0,'url(#d2sky)'));
  [[90,140,120],[790,110,90],[60,520,80],[820,560,110],[430,60,70]].forEach(([x,yy,r])=>P.push(C(x,yy,r,'url(#d2orb)')));
  [[120,220,10],[750,250,13],[240,80,7],[690,540,8]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#9FDFEF',.9)));
@@ -504,9 +504,9 @@ function buildD2(d){const P=[];let y=0;
    +R(active===0?W*.3-90:W*.7-90,cy2+22,180,3,1.5,CYAN)}
  /* --- 카드1: 특가 --- */
  const cx=44,cw=W-88;
- const c1H=d.upTxt?520:430;
- P.push(R(0,y,W,c1H+96,0,SECBG));
- const c1y=y+48;
+ const c1H=d.upTxt?500:410;
+ P.push(R(0,y,W,c1H+80,0,SECBG));
+ const c1y=y+40;
  P.push(R(cx,c1y,cw,c1H,28,'#fff',' filter=""'),R(cx,c1y,cw,c1H,28,'none',' stroke="#E3F1F6" stroke-width="1.5"'));
  P.push(tabs2(c1y+56,0));
  if(d.limitTxt)P.push(T(cx+64,c1y+130,d.limitTxt,{size:20,weight:800,fill:CYAN}));
@@ -524,16 +524,16 @@ function buildD2(d){const P=[];let y=0;
   P.push(R(sx-8,py-8,sw3+16,34,6,'#CFEFF7'));
   P.push(T(sx,py-14,won(d.sale),{size:62,weight:900,fill:NAVY,base:false}))}
  /* 업그레이드 필 */
- if(d.upTxt){const ut=`+  ${d.upTxt}`,uw=tw(ut,21,800)+72,uy2=c1y+c1H-84;
+ if(d.upTxt){const ut=`+  ${d.upTxt}`,uw=tw(ut,21,800)+72,uy2=c1y+c1H-88;
   P.push(R(W/2-uw/2,uy2,uw,56,28,'#fff',` stroke="${CYAN}" stroke-width="2"`));
   P.push(C(W/2-uw/2+36,uy2+28,15,CYAN),T(W/2-uw/2+36,uy2+29,'+',{size:22,weight:900,fill:'#fff',anchor:'middle'}));
   P.push(T(W/2-uw/2+64,uy2+29,d.upTxt,{size:21,weight:800,fill:NAVY}))}
- y+=c1H+96;
+ y+=c1H+80;
  /* --- 카드2: 포토상품평 --- */
  const chipRes0=tagChips(d.tags,W/2,0,cw-160,{size:15,h:32,bg:'#fff',ink:'#3A97B5'});
  const tagPanelH=70+chipRes0.h+28;
- const c2H=470+64+tagPanelH+56;
- P.push(R(0,y,W,c2H+96,0,SECBG));
+ const c2H=470+64+tagPanelH+36;
+ P.push(R(0,y,W,c2H+56,0,SECBG));
  const c2y=y+24;
  P.push(R(cx,c2y,cw,c2H,28,'#fff'),R(cx,c2y,cw,c2H,28,'none',' stroke="#E3F1F6" stroke-width="1.5"'));
  P.push(tabs2(c2y+56,1));
@@ -555,11 +555,11 @@ function buildD2(d){const P=[];let y=0;
  P.push(T(W/2,hpy+38,'＋  필수해시태그  ＋',{size:20,weight:900,fill:NAVY,anchor:'middle'}));
  const chipRes=tagChips(d.tags,W/2,hpy+66,cw-160,{size:15,h:32,bg:'#fff',ink:'#3A97B5'});
  P.push(chipRes.svg);
- y+=c2H+96;
+ y+=c2H+56;
  /* --- 접수 정보 --- */
- const ir=infoRows(d,64,y+56,{pillBg:'#8FA6B8',ink:'#3d5260'});
- P.push(R(0,y,W,56+ir.h+64,0,'#fff'));P.push(ir.svg);
- y+=56+ir.h+64;
+ const ir=infoRows(d,64,y+48,{pillBg:'#8FA6B8',ink:'#3d5260'});
+ P.push(R(0,y,W,48+ir.h+48,0,'#fff'));P.push(ir.svg);
+ y+=48+ir.h+48;
  /* --- 유의사항 --- */
  const nf=noticeFooter(d,y,{bg:'#1C1D1F',ink:'#9a9a9a',head:'유의',headSvg:yy=>
    C(76,yy,15,'none',' stroke="#bbb" stroke-width="2"')+T(76,yy+1,'!',{size:17,weight:900,fill:'#bbb',anchor:'middle'})+T(104,yy,'이벤트 유의사항',{size:18,weight:800,fill:'#fff'})});
@@ -600,7 +600,7 @@ function buildD3(d){const P=[];let y=0;
   s+=T(W/2,yy+92,title,{size:48,weight:700,family:F_RD,fill:NAVY,anchor:'middle',ls:'-1'});
   return s}
  /* --- 섹션1: 출시기념 특가 --- */
- const s1H=d.upTxt?620:600;
+ const s1H=600;
  P.push(R(0,y,W,s1H,0,LAV));
  P.push(evHead(y+56,'01','출시기념 특가'));
  if(d.limitTxt){P.push(C(W-116,y+96,44,'#fff'),T(W-116,y+86,d.limitTxt.replace('대 한정','대'),{size:17,weight:900,fill:NAVY,anchor:'middle'}),T(W-116,y+108,'한정',{size:15,weight:800,fill:NAVY,anchor:'middle'}))}
@@ -628,7 +628,7 @@ function buildD3(d){const P=[];let y=0;
  y+=s1H;
  /* --- 섹션2: 포토상품평 --- */
  const tagsL=tagLines(d.tags,16,700,W-220);
- const s2H=210+80+300+90+(64+tagsL.length*30+40)+70;
+ const s2H=792+tagsL.length*30;
  P.push(R(0,y,W,s2H,0,'#BFCAF6'));
  P.push(evHead(y+56,'02','포토상품평 이벤트'));
  if(d.totalTxt){const tb=Math.min(tw('💰 '+d.totalTxt.replace('※ ',''),18,800)+60,W-80);
@@ -653,14 +653,14 @@ function buildD3(d){const P=[];let y=0;
  y+=s2H;
  /* --- 접수 방법 (다크 컨테이너) --- */
  const ir0=infoRows(d,0,0,{});
- const boxH=64+56+ir0.h+56;
- P.push(R(0,y,W,boxH+80,0,'#BFCAF6'));
+ const boxH=64+ir0.h+48;
+ P.push(R(0,y,W,boxH+56,0,'#BFCAF6'));
  const hdw=tw('이벤트 접수 방법',18,800)+56;
  P.push(R(40,y,W-80,boxH,22,'#20222B'));
  P.push(R(W/2-hdw/2,y-18,hdw,40,20,'#4A4FA8'),T(W/2,y+3,'이벤트 접수 방법',{size:18,weight:800,fill:'#fff',anchor:'middle'}));
  const ir=infoRows(d,86,y+64,{pillBg:'#3A3F58',pillInk:'#fff',ink:'#D7DBEA'});
  P.push(ir.svg);
- y+=boxH+80;
+ y+=boxH+56;
  /* --- 주의사항 --- */
  const nf=noticeFooter(d,y,{bg:DARK,ink:'#9a9a9a',head:'주의사항',headSvg:yy=>
   `<path d="M 60 ${yy+13} L 76 ${yy-14} L 92 ${yy+13} Z" fill="#F5B840"/>`+T(76,yy+6,'!',{size:14,weight:900,fill:'#3a2c00',anchor:'middle'})+T(106,yy,'주의사항',{size:18,weight:800,fill:'#fff'})});
@@ -676,7 +676,7 @@ function buildD4(d){const P=[];let y=0;
   <linearGradient id="d4scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#facc15"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#111827"/></linearGradient>
  </defs>`);
  /* --- 히어로 --- */
- const heroH=1010;
+ const heroH=990;
  P.push(R(0,0,W,heroH,0,'url(#d4sky)'));
  [[80,150,16],[140,90,8],[760,120,12],[810,220,7],[70,420,10],[790,470,13],[430,50,7]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.95)));
  [[200,240,6],[680,320,7]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#F0D68A',.9)));
@@ -697,9 +697,9 @@ function buildD4(d){const P=[];let y=0;
  function evPill(cy2,no){const pw=118;
   return R(W/2-pw/2,cy2,pw,38,19,GOLD)+T(W/2,cy2+20,'EVENT 0'+no,{size:16,weight:900,fill:'#fff',anchor:'middle',ls:'1'})}
  /* --- 카드1: 특가 --- */
- const c1H=d.upTxt?470:390;
- P.push(R(0,y,W,c1H+88,0,CREAM));
- const c1y=y+40;
+ const c1H=d.upTxt?440:344;
+ P.push(R(0,y,W,c1H+76,0,CREAM));
+ const c1y=y+36;
  P.push(R(cx,c1y,cw,c1H,26,'#fff'));
  P.push(evPill(c1y+44,1));
  P.push(T(W/2+(d.limitTxt?-40:0),c1y+130,'출시기념 특가',{size:42,weight:800,family:F_SC,fill:INK,anchor:'middle',ls:'-1'}));
@@ -713,20 +713,20 @@ function buildD4(d){const P=[];let y=0;
   P.push(R(pcx-sw4/2-6,c1y+252,sw4+12,30,4,'#F3DFA0'));
   P.push(T(pcx,c1y+268,st,{size:62,weight:900,fill:INK,anchor:'middle',base:false}))}
  if(d.upTxt){const t1=`+ ${d.up}만원 상당`,t2='의 무결점 무상 업그레이드';
-  const w1=tw(t1,20,900),w2=tw(t2,20,600),bw2=w1+w2+72,by2=c1y+c1H-92;
+  const w1=tw(t1,20,900),w2=tw(t2,20,600),bw2=w1+w2+72,by2=c1y+340;
   P.push(R(W/2-bw2/2,by2,bw2,56,28,'#1c1c1c'));
   P.push(T(W/2-(w1+w2)/2,by2+29,t1,{size:20,weight:900,fill:'#F3DFA0'}));
   P.push(T(W/2-(w1+w2)/2+w1,by2+29,t2,{size:20,weight:600,fill:'#e8e8e8'}))}
- y+=c1H+88;
+ y+=c1H+76;
  /* --- 카드2: 포토상품평 --- */
- const c2H=560;
- P.push(R(0,y,W,c2H+48,0,CREAM));
+ const c2H=524;
+ P.push(R(0,y,W,c2H+32,0,CREAM));
  const c2y=y;
  P.push(R(cx,c2y,cw,c2H,26,'#fff'));
- P.push(evPill(c2y+44,2));
- P.push(T(W/2,c2y+126,'포토상품평 이벤트',{size:40,weight:800,family:F_SC,fill:INK,anchor:'middle',ls:'-1'}));
+ P.push(evPill(c2y+36,2));
+ P.push(T(W/2,c2y+116,'포토상품평 이벤트',{size:40,weight:800,family:F_SC,fill:INK,anchor:'middle',ls:'-1'}));
  /* 티켓 카드 3개 */
- const rcw=(cw-64*2-2*24)/3,rcy=c2y+180,rch=150;
+ const rcw=(cw-64*2-2*24)/3,rcy=c2y+170,rch=150;
  d.reviews.forEach((rv,i)=>{const rx=cx+64+i*(rcw+24);
   P.push(T(rx+rcw/2,rcy-14,'0'+(i+1),{size:15,weight:800,fill:'#B4AC96',anchor:'middle',ls:'2'}));
   P.push(R(rx,rcy,rcw,rch,12,'#FAF3E1',' stroke="#E8DFC6" stroke-width="1.5"'));
@@ -737,7 +737,7 @@ function buildD4(d){const P=[];let y=0;
   const rqw=tw(rv.req,12.5,600)+24;
   P.push(R(rx+rcw/2-rqw/2,rcy+rch+48,rqw,26,13,'#fff',' stroke="#DDD5BF" stroke-width="1.2"'),T(rx+rcw/2,rcy+rch+61,rv.req,{size:12.5,weight:600,fill:'#8f8871',anchor:'middle'}))});
  /* 총액 밴드 */
- if(d.totalTxt){const bby=rcy+rch+108;
+ if(d.totalTxt){const bby=rcy+rch+96;
   P.push(R(cx+40,bby,cw-80,54,10,'#3C3A33'),T(W/2,bby+28,d.totalTxt,{size:17,weight:800,fill:'#F2D98C',anchor:'middle'}))}
  y+=c2H+48;
  /* --- 해시태그 카드 --- */
