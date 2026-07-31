@@ -135,15 +135,85 @@ textarea{resize:vertical;line-height:1.55;font-weight:500}
 
 <div class="step"><b>미니 배너 <small>자사몰 소배너 · 같은 디자인 자동 생성</small></b><span class="num">284×400</span></div>
 <div class="preview-shell" style="margin-top:6px"><div class="viewport" id="miniViewport" style="max-height:440px"></div></div>
-<button class="secondary" id="saveBoth" style="margin-top:9px">메인 + 미니배너 2종 모두 보내기</button>
-<p class="theme-note" style="margin-top:5px">미니배너는 메인과 같은 색/타이틀/제품으로 284×400 히어로 압축판을 만듭니다. (에디터에서 각각 페이지로 열립니다)</p>
+<button class="secondary" id="saveBoth" style="margin-top:9px">메인 배너만 보내기</button>
+<p class="theme-note" style="margin-top:5px">위의 기본 저장 버튼은 항상 메인 + 미니배너 2종을 함께 보냅니다. (에디터에서 각각 페이지로 열립니다)</p>
 </main>
 <script>
 'use strict';
 /* ============================================================
    출시기념 배너 v2 — 독립 HTML (배너 스튜디오 플러그인 계약 준수)
-   - 4가지 디자인(블루스카이/클린시안/퍼플얼리버드/크림스파클), 가로 860 고정
+   - 고정 디자인 N종(블루스카이/클린시안/퍼플얼리버드/크림스파클/…), 가로 860 고정
    - 입력 즉시 라이브 프리뷰, 편집 가능한 SVG 출력(save-svg postMessage)
+   - 저장 시 메인(860)과 미니배너(284×400)가 항상 함께 나간다
+   ============================================================ */
+/* ============================================================
+   🤖 AI 디자인 추가 가이드 (숨김 프롬프트 — UI에는 노출되지 않음)
+
+   사용자가 예시 이미지(메인 860 세로형, 가능하면 미니 284×400도)를 주며
+   "디자인 추가해줘"라고 하면, 이 파일 하나만 수정해서 아래 절차대로 추가하라.
+   기존 디자인들의 코드는 절대 수정·삭제하지 말 것. 새 번호 N을 부여할 것.
+
+   [0. 출력 계약 — 반드시 지킬 것]
+   - 편집 가능한 SVG만 생성: 글자는 줄마다 <text>(T 헬퍼 사용), 도형은
+     rect/circle/ellipse/path, 그라데이션은 <defs>, 이미지는 data URI <image>만.
+     canvas 픽셀·외부 URL 이미지·foreignObject 금지.
+   - 메인 폭은 반드시 W=860(높이는 내용 따라 가변 계산), 미니는 MW=284, MH=400 고정.
+   - 못 그리는 장식(3D 오브젝트 등)은 유사한 벡터로 단순화해 그린다.
+     (선례: gift 선물상자, coin 금화, npay 네이버페이 로고, sparkle 반짝이)
+
+   [1. 등록 지점 4곳 — N=새 디자인 번호]
+   ① HTML <div id="designs">에 카드 버튼 추가:
+      <button class="dcard" data-d="N"><div class="swatch" style="background:대표그라데이션"></div>
+      <b>디자인 N · 이름</b><span>한 줄 설명</span></button>
+   ② const DEFAULT_TITLE={...}에 N:'기본 타이틀' 추가
+   ③ function buildDN(d){ ... return{svg:P.join(''),H:y} } 작성 → BUILDERS에 N:buildDN 추가
+   ④ function buildMN(d){ ... return P.join('') } 작성 → MINI에 N:buildMN 추가
+
+   [2. buildDN(d) 작성 규칙 — 메인 860]
+   - const P=[]; let y=0; 커서로 섹션을 위→아래로 쌓고 마지막에 {svg,H:y} 반환.
+   - defs의 그라데이션 id는 디자인 접두사로 유일하게: dNsky, dNscr, mNsky …
+   - d = collect() 결과. 사용 가능 필드:
+     model spec title ship(배송안내) ds de due(Date|null) limit orig sale up disc
+     r[3] total tags[] feats[] email noticeLines[] reviews[3](n1 n2 req amt)
+     limitTxt("100대 한정") discTxt("2만원") upTxt periodK dueK totalTxt
+     formSubject formBody[](접수양식 자동 문구)
+   - 공용 헬퍼: T(x,y,text,{size,weight,fill,anchor,family,ls,deco,stroke,sw,base,opacity})
+     R(x,y,w,h,r,fill,extra) C(cx,cy,r,fill) sparkle gift coin npay monitorPh
+     imgTag productArt(제품이미지↔플레이스홀더 자동) tagChips(칩배치) tagLines(줄배치)
+     infoRows(접수양식/기간/접수처 행) noticeFooter(주의사항 푸터)
+     won(169000→"169,000원") manwon(20000→"2만원") comma fullK dotY dotS dotEn(날짜포맷)
+     wrap(줄바꿈) tw(text,size,weight,family)=텍스트 폭 측정(알약/배지/밑줄 폭에 필수)
+   - 표준 섹션 순서(예시 이미지에 있는 것만): 히어로(모델·타이틀·스펙·날짜·제품)
+     → 특가(정상가 취소선+특가 강조+할인 배지+업그레이드 필) → 포토상품평(d.reviews
+     카드 3개+totalTxt) → 해시태그(tags) → 접수정보(infoRows) → 주의사항(noticeFooter).
+   - 빈 입력은 자연스럽게 생략: if(d.upTxt){...}, if(d.ship){...} 패턴 유지.
+     업그레이드 유무로 카드 높이가 달라지면 높이 변수로 분기(선례: c1H=d.upTxt?470:390).
+   - 겹침 주의: 폰트 크기 s의 텍스트는 세로로 약 ±0.55s를 차지한다. 인접 요소와
+     20px 이상 여백 확보. base:false는 y가 베이스라인이 됨(위로 s만큼 차지).
+   - 타이틀·모델명은 자동 축소: Math.min(기본, Math.floor(기본*(가용폭)/tw(...))).
+
+   [3. buildMN(d) — 미니 284×400]
+   - 메인 히어로의 압축판: 모델(알약/작은 텍스트)+타이틀+날짜+제품(miniProduct)+장식 1~2개.
+   - 미니에는 가격/리워드/주의사항을 넣지 않는다(히어로 요소만).
+
+   [4. 폰트]
+   - 기존 스택: FONT(Pretendard 본문) F_GM(지오메트릭 이벤트체) F_SC(두꺼운 헤비체)
+     F_RD(둥근 버블체) F_BR(붓글씨). 예시 이미지 분위기에 맞는 것을 타이틀에 사용.
+   - T()에 family를 줬으면 같은 텍스트의 tw() 측정에도 같은 family를 줄 것.
+   - 새 폰트가 꼭 필요할 때만: banner-studio/fonts/에 woff2 추가 + fonts/local-fonts.css
+     등록 + 이 파일 @font-face(폴백 3단: fonts/ → ../fonts/ → CDN, 패밀리명은
+     local-fonts.css와 동일) + 하단 document.fonts.load 선로드 목록에 추가.
+
+   [5. 색]
+   - 예시 이미지에서 대표색 3~5개를 뽑아 함수 상단에 상수로 선언(선례: const PUR='#8A7BE8').
+
+   [6. 완료 전 체크리스트]
+   □ 디자인 카드 클릭·입력 변경 시 메인+미니 프리뷰 즉시 갱신
+   □ 긴 모델명/타이틀 넘침 없음(자동 축소 동작)
+   □ 업그레이드·배송안내·수량·가격 빈칸 시 해당 요소 생략돼도 레이아웃 안 깨짐
+   □ 텍스트 겹침 없음(특히 가격 영역) — 브라우저로 실제 렌더 확인
+   □ 미니 SVG가 정확히 284×400
+   □ 콘솔 에러 0건
    ============================================================ */
 const W=860;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -796,12 +866,14 @@ function render(){clearTimeout(_rt);_rt=setTimeout(()=>{try{
 function outputSVG(filename,svg){
  if(inFrame)parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*');
  else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}}
-$('#saveBtn').textContent=inFrame?'에디터로 보내기':'SVG 다운로드';
-$('#saveBtn').onclick=()=>{const{svg,d}=buildSVG();outputSVG(`launch-v2-${d.model}-d${state.design}.svg`,svg);setStatus(inFrame?'에디터로 보냈습니다.':'SVG를 다운로드했습니다.')};
-$('#saveBoth').onclick=()=>{const{svg,d}=buildSVG();
+/* 기본 저장 = 항상 메인 + 미니 2종 (미니만 빼고 싶으면 보조 버튼) */
+$('#saveBtn').innerHTML=`<i>✦</i>${inFrame?'에디터로 보내기 (메인+미니 2종)':'SVG 다운로드 (메인+미니 2종)'}`;
+$('#saveBtn').onclick=()=>{const{svg,d}=buildSVG();
  outputSVG(`launch-v2-${d.model}-d${state.design}.svg`,svg);
- setTimeout(()=>outputSVG(`launch-v2-${d.model}-d${state.design}-mini-284x400.svg`,buildMiniSVG(d)),400);
+ setTimeout(()=>outputSVG(`launch-v2-${d.model}-d${state.design}-mini-284x400.svg`,buildMiniSVG(d)),500);
  setStatus(inFrame?'메인 + 미니배너를 에디터로 보냈습니다. (페이지 2개)':'메인 + 미니배너 SVG 2개를 다운로드했습니다.')};
+$('#saveBoth').textContent=inFrame?'메인 배너만 보내기':'메인 SVG만 다운로드';
+$('#saveBoth').onclick=()=>{const{svg,d}=buildSVG();outputSVG(`launch-v2-${d.model}-d${state.design}.svg`,svg);setStatus(inFrame?'메인 배너만 에디터로 보냈습니다.':'메인 SVG를 다운로드했습니다.')};
 window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message,m.type==='error')});
 
 /* ---------- 제품 이미지: 업로드 → 흰 배경 제거 → data URI ---------- */
