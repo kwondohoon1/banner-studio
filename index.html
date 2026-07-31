@@ -71,6 +71,9 @@
   .layer .tag.ellipse,.layer .tag.circle{background:#3f9b62}
   .layer .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
   .layer .eye{flex:none;opacity:.6;font-size:12px;width:16px;text-align:center}
+  .layer .mv{flex:none;opacity:0;font-size:10px;width:15px;text-align:center;color:#666;border-radius:4px}
+  .layer:hover .mv,.layer.sel .mv{opacity:.75}
+  .layer .mv:hover{background:#dfe1d6;opacity:1}
   .layer.hidden .nm{opacity:.4;text-decoration:line-through}
 
   /* ---- 캔버스 ---- */
@@ -126,6 +129,7 @@
   #overlay{position:absolute;inset:0;pointer-events:none;z-index:5}
   .selbox{position:absolute;border:1.5px solid var(--accent);pointer-events:none;box-shadow:0 0 0 3px rgba(223,255,67,.45)}
   .selbox.multi{border-style:dashed;box-shadow:none}
+  .selbox.group{border:1.5px solid var(--accent);background:transparent}
   .marquee{position:absolute;border:1px solid var(--accent);background:rgba(223,255,67,.22);
     pointer-events:none;z-index:8}
   .handle{position:absolute;width:10px;height:10px;background:var(--accent2);border:1.5px solid var(--accent);
@@ -1005,13 +1009,49 @@ function renderLayers() {
     row.innerHTML =
       `<span class="tag ${tag}">${tag}</span>` +
       `<span class="nm">${escapeHtml(elLabel(el))}</span>` +
+      `<span class="mv" data-up title="위로 (Ctrl+])">▲</span>` +
+      `<span class="mv" data-dn title="아래로 (Ctrl+[)">▼</span>` +
       `<span class="eye" data-eye>${el.style.display === "none" ? "🚫" : "👁"}</span>`;
     row.onclick = (e) => {
       if (e.target.hasAttribute("data-eye")) { toggleHidden(el); e.stopPropagation(); return; }
+      if (e.target.hasAttribute("data-up")) { if (!state.sels.includes(el)) select(el); moveSelection(+1); e.stopPropagation(); return; }
+      if (e.target.hasAttribute("data-dn")) { if (!state.sels.includes(el)) select(el); moveSelection(-1); e.stopPropagation(); return; }
       select(el); scrollElIntoView(el);
     };
     list.appendChild(row);
   });
+}
+
+/* ---- 레이어 z순서 이동 (포토샵식 위로/아래로/맨앞/맨뒤) ---- */
+function refreshElsOrder() {
+  state.els.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+}
+function moveLayerOne(el, dir) { // dir +1 = 위로(나중에 그려짐), -1 = 아래로
+  const p = el.parentNode; if (!p) return false;
+  let sib = dir > 0 ? el.nextElementSibling : el.previousElementSibling;
+  while (sib && (sib.tagName === "defs" || sib.tagName === "style")) sib = dir > 0 ? sib.nextElementSibling : sib.previousElementSibling;
+  if (!sib || state.sels.includes(sib)) return false; // 끝이거나 같은 선택 묶음이면 그대로
+  if (dir > 0) p.insertBefore(sib, el); else p.insertBefore(el, sib);
+  return true;
+}
+function moveLayerEnd(el, front) { // front=true 맨 앞(최상단), false 맨 뒤(최하단)
+  const p = el.parentNode; if (!p) return false;
+  if (front) { if (p.lastElementChild === el) return false; p.appendChild(el); return true; }
+  let ref = p.firstElementChild;
+  while (ref && (ref.tagName === "defs" || ref.tagName === "style")) ref = ref.nextElementSibling;
+  if (ref === el) return false;
+  p.insertBefore(el, ref); return true;
+}
+function moveSelection(dir, toEnd) {
+  if (!state.sels.length) return;
+  const ordered = state.sels.slice().sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+  // 한 칸 이동: 위로는 위쪽(뒤) 요소부터, 아래로는 아래쪽(앞) 요소부터.
+  // 맨앞/맨뒤: appendChild/최상단 삽입 특성상 반대 순서로 처리해야 묶음 순서가 유지된다
+  const list = toEnd ? (dir > 0 ? ordered : ordered.slice().reverse())
+                     : (dir > 0 ? ordered.slice().reverse() : ordered);
+  let moved = false;
+  list.forEach(el => { if (toEnd ? moveLayerEnd(el, dir > 0) : moveLayerOne(el, dir)) moved = true; });
+  if (moved) { refreshElsOrder(); renderLayers(); updateOverlay(); pushSnapshot(); }
 }
 
 function toggleHidden(el) {
@@ -1125,6 +1165,22 @@ function updateOverlay() {
     }
     ov.appendChild(box);
   });
+  // 다중 선택: 전체 묶음 박스 + 그룹 크기조절 핸들
+  if (visible.length > 1) {
+    const ub = groupUserBBox(visible);
+    const p0 = userToScreen(ub.x, ub.y), p1 = userToScreen(ub.x + ub.width, ub.y + ub.height);
+    const gbox = document.createElement("div");
+    gbox.className = "selbox group";
+    gbox.style.left = Math.min(p0.x, p1.x) + "px"; gbox.style.top = Math.min(p0.y, p1.y) + "px";
+    gbox.style.width = Math.abs(p1.x - p0.x) + "px"; gbox.style.height = Math.abs(p1.y - p0.y) + "px";
+    ["nw", "ne", "sw", "se"].forEach(pos => {
+      const h = document.createElement("div");
+      h.className = "handle " + pos;
+      h.addEventListener("mousedown", (e) => { e.stopPropagation(); startGroupResize(e, pos); });
+      gbox.appendChild(h);
+    });
+    ov.appendChild(gbox);
+  }
 }
 
 function scrollElIntoView(el) {
@@ -1321,6 +1377,11 @@ function startResize(e, pos) {
     se: { x: bb.x, y: bb.y },
   }[pos];
   const orig = readResize(el);
+  // path/polygon/g/line 등 attr 기반 리사이즈 미지원 태그 → 균일 스케일로 처리
+  const scalable = ["text", "rect", "image", "ellipse", "circle"].includes(t);
+  const scaleGeo = scalable ? null : readScaleGeo(el);
+  const corner = { nw: { x: bb.x, y: bb.y }, ne: { x: bb.x + bb.width, y: bb.y }, sw: { x: bb.x, y: bb.y + bb.height }, se: { x: bb.x + bb.width, y: bb.y + bb.height } }[pos];
+  const d0 = Math.max(1, Math.hypot(corner.x - anchor.x, corner.y - anchor.y));
   let changed = false;
   function mv(ev) {
     const p = clientToUser(ev.clientX, ev.clientY);
@@ -1329,6 +1390,9 @@ function startResize(e, pos) {
     if (t === "text") {                       // 텍스트는 균일 스케일(폰트 크기)
       const s = Math.max(0.1, Math.max(sx, sy));
       el.setAttribute("font-size", round(orig.fs * s, 2));
+    } else if (!scalable) {                   // path 등: 앵커 기준 균일 스케일
+      const s = Math.max(0.05, Math.hypot(p.x - anchor.x, p.y - anchor.y) / d0);
+      applyScaleGeo(el, scaleGeo, anchor, s);
     } else {
       const nw = Math.max(2, bb.width * sx), nh = Math.max(2, bb.height * sy);
       applyResize(el, orig, anchor, pos, nw, nh, bb);
@@ -1370,6 +1434,79 @@ function applyResize(el, orig, anchor, pos, nw, nh, bb) {
   }
 }
 
+/* ================= 다중 선택 크기조절 (그룹 스케일) ================= */
+// 루트 사용자 좌표계 기준 bbox (transform 적용된 요소도 안전)
+function userBBox(el) {
+  const r = el.getBoundingClientRect();
+  const a = clientToUser(r.left, r.top), b = clientToUser(r.right, r.bottom);
+  return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(b.x - a.x), height: Math.abs(b.y - a.y) };
+}
+function groupUserBBox(els) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  els.forEach(el => { const b = userBBox(el); x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.width); y1 = Math.max(y1, b.y + b.height); });
+  return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
+}
+// 스케일용 기하 읽기 — 모든 태그 지원 (path/g/line 등은 transform scale)
+function readScaleGeo(el) {
+  const t = el.tagName;
+  if (t === "text") return { t, fs: parseFloat(el.getAttribute("font-size")) || 16, x: numList(el.getAttribute("x")), y: numList(el.getAttribute("y")), tsx: [...el.querySelectorAll(":scope>tspan")].map(ts => parseFloat(ts.getAttribute("x"))) };
+  if (t === "rect" || t === "image") return { t, x: +el.getAttribute("x") || 0, y: +el.getAttribute("y") || 0, w: +el.getAttribute("width") || 0, h: +el.getAttribute("height") || 0, rx: el.hasAttribute("rx") ? +el.getAttribute("rx") : null };
+  if (t === "ellipse") return { t, cx: +el.getAttribute("cx") || 0, cy: +el.getAttribute("cy") || 0, rx: +el.getAttribute("rx") || 0, ry: +el.getAttribute("ry") || 0 };
+  if (t === "circle") return { t, cx: +el.getAttribute("cx") || 0, cy: +el.getAttribute("cy") || 0, r: +el.getAttribute("r") || 0 };
+  if (t === "line") return { t, x1: +el.getAttribute("x1") || 0, y1: +el.getAttribute("y1") || 0, x2: +el.getAttribute("x2") || 0, y2: +el.getAttribute("y2") || 0 };
+  return { t: "tr", tr: el.getAttribute("transform") || "" };
+}
+// 앵커(a) 기준 균일 스케일 s 적용 — 항상 시작 시점 geo에서 다시 계산(드래그 중 반복 호출 안전)
+function applyScaleGeo(el, g, a, s) {
+  const PX = v => round(a.x + (v - a.x) * s, 2), PY = v => round(a.y + (v - a.y) * s, 2);
+  if (g.t === "text") {
+    el.setAttribute("font-size", round(g.fs * s, 2));
+    el.setAttribute("x", g.x.map(PX).join(" "));
+    el.setAttribute("y", g.y.map(PY).join(" "));
+    const ts = [...el.querySelectorAll(":scope>tspan")];
+    ts.forEach((tsp, i) => { if (g.tsx[i] != null && !isNaN(g.tsx[i])) tsp.setAttribute("x", PX(g.tsx[i])); });
+  } else if (g.t === "rect" || g.t === "image") {
+    el.setAttribute("x", PX(g.x)); el.setAttribute("y", PY(g.y));
+    el.setAttribute("width", round(g.w * s, 2)); el.setAttribute("height", round(g.h * s, 2));
+    if (g.rx != null) el.setAttribute("rx", round(g.rx * s, 2));
+  } else if (g.t === "ellipse") {
+    el.setAttribute("cx", PX(g.cx)); el.setAttribute("cy", PY(g.cy));
+    el.setAttribute("rx", round(g.rx * s, 2)); el.setAttribute("ry", round(g.ry * s, 2));
+  } else if (g.t === "circle") {
+    el.setAttribute("cx", PX(g.cx)); el.setAttribute("cy", PY(g.cy)); el.setAttribute("r", round(g.r * s, 2));
+  } else if (g.t === "line") {
+    el.setAttribute("x1", PX(g.x1)); el.setAttribute("y1", PY(g.y1));
+    el.setAttribute("x2", PX(g.x2)); el.setAttribute("y2", PY(g.y2));
+  } else { // path/polygon/g 등: 앵커 기준 scale을 원본 transform 앞에 결합
+    el.setAttribute("transform", `translate(${round(a.x * (1 - s), 2)} ${round(a.y * (1 - s), 2)}) scale(${round(s, 4)})` + (g.tr ? " " + g.tr : ""));
+  }
+}
+function startGroupResize(e, pos) {
+  const els = state.sels.filter(el => el && el.style.display !== "none");
+  if (els.length < 2) return;
+  const bb = groupUserBBox(els);
+  const x0 = bb.x, y0 = bb.y, x1 = bb.x + bb.width, y1 = bb.y + bb.height;
+  const anchor = { nw: { x: x1, y: y1 }, ne: { x: x0, y: y1 }, sw: { x: x1, y: y0 }, se: { x: x0, y: y0 } }[pos];
+  const corner = { nw: { x: x0, y: y0 }, ne: { x: x1, y: y0 }, sw: { x: x0, y: y1 }, se: { x: x1, y: y1 } }[pos];
+  const d0 = Math.max(1, Math.hypot(corner.x - anchor.x, corner.y - anchor.y));
+  const origs = els.map(el => ({ el, geo: readScaleGeo(el) }));
+  let changed = false;
+  function mv(ev) {
+    const p = clientToUser(ev.clientX, ev.clientY);
+    const s = Math.max(0.05, Math.hypot(p.x - anchor.x, p.y - anchor.y) / d0);
+    origs.forEach(o => applyScaleGeo(o.el, o.geo, anchor, s));
+    changed = true;
+    updateOverlay();
+  }
+  function up() {
+    document.removeEventListener("mousemove", mv);
+    document.removeEventListener("mouseup", up);
+    if (changed) { pushSnapshot(); renderProps(); }
+  }
+  document.addEventListener("mousemove", mv);
+  document.addEventListener("mouseup", up);
+}
+
 /* ================= 속성 패널 ================= */
 function renderProps() {
   const box = $("props");
@@ -1383,7 +1520,7 @@ function renderProps() {
         <button data-al="top">상</button><button data-al="cy">세로중앙</button><button data-al="bottom">하</button>
       </div>
       <button class="delBtn" data-del-many>선택 요소 삭제 (Delete)</button>
-      <div class="hint">드래그·방향키로 함께 이동. <kbd>Shift</kbd>/<kbd>Ctrl</kbd> 클릭으로 추가/해제.</div>`;
+      <div class="hint">드래그·방향키로 함께 이동, 모서리 핸들로 함께 크기조절. <kbd>Shift</kbd>/<kbd>Ctrl</kbd> 클릭으로 추가/해제, <kbd>Ctrl+]</kbd>/<kbd>[</kbd> 순서 이동.</div>`;
     box.querySelector("[data-del-many]").onclick = deleteSelection;
     box.querySelectorAll("[data-align] button").forEach(b => b.onclick = () => alignSelection(b.getAttribute("data-al")));
     return;
@@ -1669,6 +1806,9 @@ document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") { e.preventDefault(); cutSelection(); return; }
   if (!state.sels.length) return;
   if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); state.sels.length > 1 ? deleteSelection() : deleteEl(state.sel); return; }
+  // 레이어 z순서: Ctrl+] 위로 · Ctrl+[ 아래로 · Ctrl+Shift+]/[ 맨앞/맨뒤
+  if ((e.ctrlKey || e.metaKey) && (e.key === "]" || e.key === "}")) { e.preventDefault(); moveSelection(+1, e.shiftKey); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key === "[" || e.key === "{")) { e.preventDefault(); moveSelection(-1, e.shiftKey); return; }
   const step = e.shiftKey ? 10 : 1;
   const map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
   if (map[e.key]) {
