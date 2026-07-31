@@ -91,6 +91,11 @@ input[type=range]{accent-color:var(--dark);width:100%}
 
   <div class="step"><b>5. 좌측 스펙 목록</b><span class="num">05</span></div>
   <div class="field"><label>스펙 개수</label><input type="number" id="specCount" min="1" max="14" value="9"></div>
+  <div class="row2">
+    <div class="field"><label>가로 위치 <span id="specOffsetXVal">0px</span></label><input type="range" id="specOffsetX" min="-150" max="150" step="2" value="0"></div>
+    <div class="field"><label>세로 위치 <span id="specOffsetYVal">0px</span></label><input type="range" id="specOffsetY" min="-150" max="150" step="2" value="0"></div>
+  </div>
+  <div class="small-btn-row" style="margin-bottom:10px"><button type="button" class="ghost" id="specOffsetReset">스펙 배너 위치 초기화</button></div>
   <div id="specEditors"></div>
 
   <div class="step"><b>6. 하단 기능 아이콘</b><span class="num">06</span></div>
@@ -174,6 +179,7 @@ const state = {
   subCopy: '최고의 성능, 완벽한 화이트 감성', engTagline: 'PREMIUM WHITE HIGH-END PC',
   mainImage: null,
   mainImageScale: 1,
+  specOffsetX: 0, specOffsetY: 0,
   specs: [
     { icon:null, code:'intel', title:'Intel® Core™ Ultra 7 270K PLUS', sub:'최신 Intel 4nm 공정, 강력한 퍼포먼스' },
     { icon:null, code:'ROG', title:'ASUS ROG Astral RTX™ 5090 White OC 32GB', sub:'NVIDIA Blackwell 아키텍처 · 32GB GDDR7' },
@@ -277,6 +283,22 @@ function renderSpecEditors(){
   });
 }
 $('#specCount').addEventListener('input', () => { renderSpecEditors(); render(); });
+$('#specOffsetX').addEventListener('input', e => {
+  state.specOffsetX = parseInt(e.target.value) || 0;
+  $('#specOffsetXVal').textContent = state.specOffsetX + 'px';
+  render();
+});
+$('#specOffsetY').addEventListener('input', e => {
+  state.specOffsetY = parseInt(e.target.value) || 0;
+  $('#specOffsetYVal').textContent = state.specOffsetY + 'px';
+  render();
+});
+$('#specOffsetReset').addEventListener('click', () => {
+  state.specOffsetX = 0; state.specOffsetY = 0;
+  $('#specOffsetX').value = 0; $('#specOffsetY').value = 0;
+  $('#specOffsetXVal').textContent = '0px'; $('#specOffsetYVal').textContent = '0px';
+  render();
+});
 
 /* ---------- dynamic feature editors ---------- */
 function renderFeatureEditors(){
@@ -325,8 +347,11 @@ function buildSVG(){
   const rBig = 22 * radius, rChip = 10 * radius, rPill = 999;
 
   const LEFT_X = 64, LEFT_W = 380;
-  const RIGHT_X = 470, RIGHT_W = 570, RIGHT_Y = 300, RIGHT_H = 850;
-  const SPEC_TOP = 555, SPEC_BOTTOM = 1150;
+  // badgeShift keeps every block below the badge moving together as one unit,
+  // so header spacing stays proportional whether the badge is shown or not.
+  const badgeShift = state.showBadge ? 30 : 0;
+  const RIGHT_X = 470, RIGHT_W = 570, RIGHT_Y = 270 + badgeShift, RIGHT_H = 850;
+  const SPEC_TOP = 440 + badgeShift, SPEC_BOTTOM = 1120 + badgeShift;
   const specCount = state.specs.length;
   const rowH = (SPEC_BOTTOM - SPEC_TOP) / specCount;
   const titleFs = clamp(rowH * 0.27, 13, 20);
@@ -368,10 +393,10 @@ function buildSVG(){
 
   // titles
   const titleBlock = `
-    <text x="${LEFT_X}" y="${state.showBadge ? 160 : 130}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="46" font-weight="800" fill="${state.ink}">${esc(state.titleLine1)}</text>
-    <text x="${LEFT_X}" y="${state.showBadge ? 275 : 245}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="118" font-weight="900" fill="url(#accentGrad)">${esc(state.titleLine2)}</text>
-    <text x="${LEFT_X}" y="330" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="30" font-weight="700" fill="${state.ink}">${esc(state.subCopy)}</text>
-    <text x="${LEFT_X}" y="360" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="4" fill="${state.ink}" fill-opacity="0.45">${esc(state.engTagline.toUpperCase())}</text>
+    <text x="${LEFT_X}" y="${130+badgeShift}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="46" font-weight="800" fill="${state.ink}">${esc(state.titleLine1)}</text>
+    <text x="${LEFT_X}" y="${245+badgeShift}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="118" font-weight="900" fill="url(#accentGrad)">${esc(state.titleLine2)}</text>
+    <text x="${LEFT_X}" y="${314+badgeShift}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="30" font-weight="700" fill="${state.ink}">${esc(state.subCopy)}</text>
+    <text x="${LEFT_X}" y="${342+badgeShift}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="4" fill="${state.ink}" fill-opacity="0.45">${esc(state.engTagline.toUpperCase())}</text>
   `;
 
   // main product image — borderless, auto-fits (contain) so the whole image is always visible
@@ -444,7 +469,7 @@ function buildSVG(){
     ${badge}
     ${titleBlock}
     ${mainImgBlock}
-    ${specBlock}
+    <g transform="translate(${state.specOffsetX||0},${state.specOffsetY||0})">${specBlock}</g>
     ${featBlock}
     ${footerBlock}
   </svg>`;
