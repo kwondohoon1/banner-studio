@@ -10,5 +10,6 @@
   { "id": "monitor-spec", "title": "모니터스펙", "description": "모니터 이미지+스펙 → 화면에 스펙 뱃지 얹은 스펙이미지(범위 드래그 지정)", "file": "plugins/monitor-spec.html" },
   { "id": "talk-notice", "title": "톡톡안내", "description": "제품+배경 → 이미지형(628×628)·상품리스트형(628×270) 2장", "file": "plugins/talk-notice.html" },
   { "id": "acer-insta", "title": "에이서인스타", "description": "에이서 쿠팡 라이브 인스타 배너", "file": "plugins/acer-insta.html" },
-  { "id": "pc-spec", "title": "데탑스펙", "description": "조립 PC 스펙 배너 — 인스타 1080×1440 / 상세 860, 부품 스펙 목록 + 기능 아이콘", "file": "plugins/pc-spec-banner.html" }
+  { "id": "pc-spec", "title": "데탑스펙", "description": "조립 PC 스펙 배너 — 인스타 1080×1440 / 상세 860, 부품 스펙 목록 + 기능 아이콘", "file": "plugins/pc-spec-banner.html" },
+  { "id": "install-service", "title": "설치배송", "description": "설치 서비스 안내 배너(860) — 히어로/상품 이미지 교체, 구매 옵션 안내, 진행 절차(Iconify 아이콘), 유의사항", "file": "plugins/install-service.html" }
 ]
