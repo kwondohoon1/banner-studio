@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>조립 PC 스펙 배너</title>
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+main{padding:16px;max-width:520px;margin:0 auto}
+.step{margin:17px 0 8px;display:flex;justify-content:space-between;align-items:center}
+.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.title-input,textarea,input[type=text],input[type=number],select{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;outline:none}
+textarea{resize:vertical;min-height:52px}
+input[type=range]{accent-color:var(--dark);width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.field{margin-bottom:8px}
+.field label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:4px}
+.colorfield{display:flex;align-items:center;gap:8px;border:1px solid #cfd1c9;border-radius:12px;padding:6px 10px;background:#fff}
+.colorfield input[type=color]{width:28px;height:28px;border:0;padding:0;background:none;border-radius:6px;cursor:pointer}
+.colorfield span{font-size:10.5px;color:var(--muted)}
+.check{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink);margin-bottom:8px}
+.primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;margin-top:6px}
+.ghost{border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:8px 10px;font:inherit;cursor:pointer;font-size:11px;color:var(--ink)}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:14px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px}
+.status.show{display:block}
+.card{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;background:#fff}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.card-head b{font-size:11px}
+.drop{border:1.5px dashed #c9cbc0;border-radius:12px;background:#fbfbf9;padding:10px;text-align:center;cursor:pointer;position:relative}
+.drop.dragover{border-color:var(--dark);background:#f0f1ea}
+.drop img,.drop .thumb{max-width:100%;max-height:96px;border-radius:8px;display:block;margin:0 auto}
+.drop .hint{font-size:10.5px;color:var(--muted);padding:14px 4px}
+.hidden-file{display:none}
+.small-btn-row{display:flex;gap:6px;margin-top:6px}
+.chip-preview{width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.sub-note{font-size:10px;color:var(--muted);margin:2px 0 8px}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">B</div><b>조립 PC 스펙 배너</b></header>
+<main>
+
+  <div class="step"><b>1. 캔버스 크기</b><span class="num">01</span></div>
+  <select id="sizePreset">
+    <option value="ig">인스타그램 세로 1080 × 1440</option>
+    <option value="db">상세페이지 가로 860 (비율 동일 축소)</option>
+  </select>
+
+  <div class="step"><b>2. 테마 컬러 &amp; 스타일</b><span class="num">02</span></div>
+  <div class="row2">
+    <div class="colorfield"><input type="color" id="bgColor" value="#f4f5f2"><span>배경색</span></div>
+    <div class="colorfield"><input type="color" id="inkColor" value="#14151a"><span>기본 글자색</span></div>
+    <div class="colorfield"><input type="color" id="accentStart" value="#6c5ce7"><span>포인트 그라데이션 시작</span></div>
+    <div class="colorfield"><input type="color" id="accentEnd" value="#3f5efb"><span>포인트 그라데이션 끝</span></div>
+  </div>
+  <div class="field" style="margin-top:8px">
+    <label>모서리 스타일</label>
+    <select id="cornerStyle">
+      <option value="rounded">둥근 모서리</option>
+      <option value="sharp">각진 모서리</option>
+    </select>
+  </div>
+
+  <div class="step"><b>3. 상단 배지 &amp; 타이틀</b><span class="num">03</span></div>
+  <label class="check"><input type="checkbox" id="showBadge" checked> 상단 리본 배지 표시</label>
+  <div class="field"><label>배지 텍스트</label><input type="text" id="badgeText" value="WHITE EDITION"></div>
+  <div class="field"><label>타이틀 1줄 (작은 글씨)</label><input type="text" id="titleLine1" value="ULTRA 270K PLUS"></div>
+  <div class="field"><label>타이틀 2줄 (큰 그라데이션 글씨)</label><input type="text" id="titleLine2" value="RTX 5090"></div>
+  <div class="field"><label>서브 카피</label><input type="text" id="subCopy" value="최고의 성능, 완벽한 화이트 감성"></div>
+  <div class="field"><label>영문 태그라인</label><input type="text" id="engTagline" value="PREMIUM WHITE HIGH-END PC"></div>
+
+  <div class="step"><b>4. 메인 제품 이미지</b><span class="num">04</span></div>
+  <div class="drop" id="mainImageDrop">
+    <div class="hint" id="mainImageHint">클릭하거나 이미지를 드래그해서 넣으세요<br>(웹페이지 이미지 드래그도 지원)</div>
+  </div>
+  <input class="hidden-file" type="file" id="mainImageFile" accept="image/*">
+  <div class="small-btn-row"><button type="button" class="ghost" id="mainImageClear">이미지 제거</button></div>
+  <div class="field" style="margin-top:10px">
+    <label>이미지 크기 <span id="mainImageScaleVal">100%</span></label>
+    <input type="range" id="mainImageScale" min="0.6" max="1.8" step="0.02" value="1">
+  </div>
+  <div class="sub-note">이미지를 넣으면 잘리지 않게 자동으로 맞춰집니다. 슬라이더로 크기만 조절하세요.</div>
+
+  <div class="step"><b>5. 좌측 스펙 목록</b><span class="num">05</span></div>
+  <div class="field"><label>스펙 개수</label><input type="number" id="specCount" min="1" max="14" value="9"></div>
+  <div id="specEditors"></div>
+
+  <div class="step"><b>6. 하단 기능 아이콘</b><span class="num">06</span></div>
+  <div class="field"><label>아이콘 개수</label><input type="number" id="featureCount" min="1" max="8" value="5"></div>
+  <div id="featureEditors"></div>
+
+  <div class="step"><b>7. 하단 카피</b><span class="num">07</span></div>
+  <div class="field"><label>한글 캐치프레이즈</label><input type="text" id="footerKr" value="최신 기술이 완성한 화이트 하이엔드 퍼포먼스"></div>
+  <div class="field"><label>영문 태그라인 (자동 대문자)</label><input type="text" id="footerEn" value="PERFORMANCE · DESIGN · PREMIUM"></div>
+
+  <button class="primary" id="saveBtn">SVG 다운로드</button>
+  <div id="status" class="status"></div>
+  <div class="preview-shell" id="preview"></div>
+</main>
+
+<script>
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+/* ---------- generic image helpers (inlined; no external repo available) ---------- */
+function fileToDataURL(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('read failed'));
+    r.readAsDataURL(file);
+  });
+}
+function blobToDataURL(blob){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('read failed'));
+    r.readAsDataURL(blob);
+  });
+}
+async function urlToDataURL(url){
+  try{
+    const r = await fetch(url, { mode:'cors' });
+    if(!r.ok) throw new Error('bad status');
+    return await blobToDataURL(await r.blob());
+  }catch(e){
+    const proxied = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//,''));
+    const r2 = await fetch(proxied);
+    return await blobToDataURL(await r2.blob());
+  }
+}
+function wireDrop(el, onData){
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dragover'); });
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', async e => {
+    e.preventDefault(); el.classList.remove('dragover');
+    if(e.dataTransfer.files && e.dataTransfer.files.length){
+      try{ onData(await fileToDataURL(e.dataTransfer.files[0])); }
+      catch(err){ setStatus('이미지를 불러오지 못했습니다'); }
+      return;
+    }
+    let url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+    if(!url){
+      const html = e.dataTransfer.getData('text/html');
+      if(html){ const m = html.match(/src="([^"]+)"/); if(m) url = m[1]; }
+    }
+    if(url){
+      setStatus('이미지 불러오는 중...');
+      try{ onData(await urlToDataURL(url)); setStatus('이미지 삽입 완료'); }
+      catch(err){ setStatus('외부 이미지를 불러오지 못했습니다 (CORS)'); }
+    }
+  });
+}
+
+/* ---------- state ---------- */
+const state = {
+  size: 'ig',
+  bg: '#f4f5f2', ink: '#14151a', accentStart: '#6c5ce7', accentEnd: '#3f5efb',
+  corner: 'rounded',
+  showBadge: true, badgeText: 'WHITE EDITION',
+  titleLine1: 'ULTRA 270K PLUS', titleLine2: 'RTX 5090',
+  subCopy: '최고의 성능, 완벽한 화이트 감성', engTagline: 'PREMIUM WHITE HIGH-END PC',
+  mainImage: null,
+  mainImageScale: 1,
+  specs: [
+    { icon:null, code:'intel', title:'Intel® Core™ Ultra 7 270K PLUS', sub:'최신 Intel 4nm 공정, 강력한 퍼포먼스' },
+    { icon:null, code:'ROG', title:'ASUS ROG Astral RTX™ 5090 White OC 32GB', sub:'NVIDIA Blackwell 아키텍처 · 32GB GDDR7' },
+    { icon:null, code:'ROG', title:'ASUS ROG MAXIMUS Z890 APEX', sub:'최신 DDR5 & PCIe 5.0 완벽 지원' },
+    { icon:null, code:'DDR5', title:'KingBank DDR5-6400 CL32 32GB', sub:'16GB x 2 · 고성능 게이밍 메모리' },
+    { icon:null, code:'SSD', title:'삼성전자 990 PRO NVMe SSD 1TB', sub:'PCIe 4.0 · 초고속 NVMe SSD' },
+    { icon:null, code:'COOL', title:'Thermalright WONDER VISION 360 UB ARGB White', sub:'360mm 일체형 수냉 쿨러' },
+    { icon:null, code:'LCD', title:'Thermalright TROFEO Vision 9.16형 LCD', sub:'시스템 정보 표시 & 커스텀 콘텐츠 지원' },
+    { icon:null, code:'CASE', title:'Thermalright A70 WITH M12Q SERIES White', sub:'파노라마 강화유리 · 뛰어난 확장성' },
+    { icon:null, code:'PSU', title:'Segotep GM1250W 80PLUS Gold ATX 3.1 White', sub:'정격 1250W · 80PLUS Gold 인증' }
+  ],
+  features: [
+    { icon:null, code:'5.0', label:'PCIe 5.0', sub:'지원' },
+    { icon:null, code:'7', label:'Wi-Fi 7', sub:'지원' },
+    { icon:null, code:'❄', label:'뛰어난 냉각 성능', sub:'냉각 성능' },
+    { icon:null, code:'◎', label:'ARGB 동기화', sub:'동기화' },
+    { icon:null, code:'✓', label:'1년 무상 출장 서비스', sub:'출장 서비스' }
+  ]
+};
+
+const SIZES = { ig:{w:1080,h:1440}, db:{w:860,h:1147} };
+
+/* ---------- bind simple fields ---------- */
+function bind(id, key, transform){
+  const el = $(id);
+  const ev = (el.type === 'checkbox') ? 'change' : 'input';
+  el.addEventListener(ev, () => {
+    state[key] = el.type === 'checkbox' ? el.checked : (transform ? transform(el.value) : el.value);
+    render();
+  });
+}
+bind('#sizePreset','size');
+bind('#bgColor','bg'); bind('#inkColor','ink');
+bind('#accentStart','accentStart'); bind('#accentEnd','accentEnd');
+bind('#cornerStyle','corner');
+bind('#showBadge','showBadge');
+bind('#badgeText','badgeText'); bind('#titleLine1','titleLine1'); bind('#titleLine2','titleLine2');
+bind('#subCopy','subCopy'); bind('#engTagline','engTagline');
+bind('#footerKr','footerKr'); bind('#footerEn','footerEn');
+state.footerKr = '최신 기술이 완성한 화이트 하이엔드 퍼포먼스';
+state.footerEn = 'PERFORMANCE · DESIGN · PREMIUM';
+
+/* ---------- main image ---------- */
+function refreshMainImageDrop(){
+  const drop = $('#mainImageDrop');
+  drop.innerHTML = state.mainImage
+    ? `<img src="${state.mainImage}" alt="메인 이미지 미리보기">`
+    : `<div class="hint">클릭하거나 이미지를 드래그해서 넣으세요<br>(웹페이지 이미지 드래그도 지원)</div>`;
+}
+$('#mainImageDrop').addEventListener('click', () => $('#mainImageFile').click());
+$('#mainImageFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if(!f) return;
+  state.mainImage = await fileToDataURL(f);
+  refreshMainImageDrop(); render();
+});
+$('#mainImageClear').addEventListener('click', () => { state.mainImage = null; refreshMainImageDrop(); render(); });
+wireDrop($('#mainImageDrop'), d => { state.mainImage = d; refreshMainImageDrop(); render(); });
+$('#mainImageScale').addEventListener('input', e => {
+  state.mainImageScale = parseFloat(e.target.value);
+  $('#mainImageScaleVal').textContent = Math.round(state.mainImageScale * 100) + '%';
+  render();
+});
+
+/* ---------- dynamic spec editors ---------- */
+function syncArrayLength(arr, count, factory){
+  while(arr.length < count) arr.push(factory());
+  arr.length = count;
+}
+function renderSpecEditors(){
+  const count = Math.max(1, Math.min(14, parseInt($('#specCount').value) || 1));
+  syncArrayLength(state.specs, count, () => ({ icon:null, code:'NEW', title:'새 스펙 항목', sub:'설명을 입력하세요' }));
+  const wrap = $('#specEditors'); wrap.innerHTML = '';
+  state.specs.forEach((spec, i) => {
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head"><b>스펙 ${i+1}</b></div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="drop" data-role="icon" style="width:64px;height:64px;padding:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          ${spec.icon ? `<img class="thumb" src="${spec.icon}">` : `<div class="hint" style="padding:2px;font-size:9px">아이콘<br>업로드</div>`}
+        </div>
+        <div style="flex:1">
+          <div class="field" style="margin-bottom:6px"><label>아이콘 미표시 시 텍스트(짧게)</label><input type="text" data-role="code" value="${esc(spec.code)}"></div>
+        </div>
+      </div>
+      <input class="hidden-file" type="file" accept="image/*" data-role="iconfile">
+      <div class="field" style="margin-top:8px"><label>제목(굵게)</label><input type="text" data-role="title" value="${esc(spec.title)}"></div>
+      <div class="field"><label>설명</label><input type="text" data-role="sub" value="${esc(spec.sub)}"></div>
+    `;
+    const dropEl = card.querySelector('[data-role="icon"]');
+    const fileEl = card.querySelector('[data-role="iconfile"]');
+    dropEl.addEventListener('click', () => fileEl.click());
+    fileEl.addEventListener('change', async e => {
+      const f = e.target.files[0]; if(!f) return;
+      spec.icon = await fileToDataURL(f); renderSpecEditors(); render();
+    });
+    wireDrop(dropEl, d => { spec.icon = d; renderSpecEditors(); render(); });
+    card.querySelector('[data-role="code"]').addEventListener('input', e => { spec.code = e.target.value; render(); });
+    card.querySelector('[data-role="title"]').addEventListener('input', e => { spec.title = e.target.value; render(); });
+    card.querySelector('[data-role="sub"]').addEventListener('input', e => { spec.sub = e.target.value; render(); });
+    wrap.appendChild(card);
+  });
+}
+$('#specCount').addEventListener('input', () => { renderSpecEditors(); render(); });
+
+/* ---------- dynamic feature editors ---------- */
+function renderFeatureEditors(){
+  const count = Math.max(1, Math.min(8, parseInt($('#featureCount').value) || 1));
+  syncArrayLength(state.features, count, () => ({ icon:null, code:'★', label:'새 기능', sub:'설명' }));
+  const wrap = $('#featureEditors'); wrap.innerHTML = '';
+  state.features.forEach((f, i) => {
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head"><b>아이콘 ${i+1}</b></div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="drop" data-role="icon" style="width:56px;height:56px;padding:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%">
+          ${f.icon ? `<img class="thumb" style="border-radius:50%" src="${f.icon}">` : `<div class="hint" style="padding:2px;font-size:9px">이미지</div>`}
+        </div>
+        <div style="flex:1">
+          <div class="field" style="margin-bottom:6px"><label>아이콘 미표시 시 기호/텍스트</label><input type="text" data-role="code" value="${esc(f.code)}"></div>
+        </div>
+      </div>
+      <input class="hidden-file" type="file" accept="image/*" data-role="iconfile">
+      <div class="field" style="margin-top:8px"><label>라벨(굵게)</label><input type="text" data-role="label" value="${esc(f.label)}"></div>
+      <div class="field"><label>보조 라벨</label><input type="text" data-role="sub" value="${esc(f.sub)}"></div>
+    `;
+    const dropEl = card.querySelector('[data-role="icon"]');
+    const fileEl = card.querySelector('[data-role="iconfile"]');
+    dropEl.addEventListener('click', () => fileEl.click());
+    fileEl.addEventListener('change', async e => {
+      const file = e.target.files[0]; if(!file) return;
+      f.icon = await fileToDataURL(file); renderFeatureEditors(); render();
+    });
+    wireDrop(dropEl, d => { f.icon = d; renderFeatureEditors(); render(); });
+    card.querySelector('[data-role="code"]').addEventListener('input', e => { f.code = e.target.value; render(); });
+    card.querySelector('[data-role="label"]').addEventListener('input', e => { f.label = e.target.value; render(); });
+    card.querySelector('[data-role="sub"]').addEventListener('input', e => { f.sub = e.target.value; render(); });
+    wrap.appendChild(card);
+  });
+}
+$('#featureCount').addEventListener('input', () => { renderFeatureEditors(); render(); });
+
+/* ---------- SVG builder ---------- */
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+function buildSVG(){
+  const { w, h } = SIZES[state.size];
+  const VW = 1080, VH = 1440;
+  const radius = state.corner === 'rounded' ? 1 : 0;
+  const rBig = 22 * radius, rChip = 10 * radius, rPill = 999;
+
+  const LEFT_X = 64, LEFT_W = 380;
+  const RIGHT_X = 470, RIGHT_W = 570, RIGHT_Y = 300, RIGHT_H = 850;
+  const SPEC_TOP = 555, SPEC_BOTTOM = 1150;
+  const specCount = state.specs.length;
+  const rowH = (SPEC_BOTTOM - SPEC_TOP) / specCount;
+  const titleFs = clamp(rowH * 0.27, 13, 20);
+  const subFs = clamp(rowH * 0.155, 9.5, 12.5);
+  const chipSize = clamp(rowH - 14, 30, 46);
+
+  let defs = `<defs>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="${state.accentStart}"/>
+      <stop offset="1" stop-color="${state.accentEnd}"/>
+    </linearGradient>
+    <linearGradient id="badgeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${state.accentStart}"/>
+      <stop offset="1" stop-color="${state.accentEnd}"/>
+    </linearGradient>
+    <clipPath id="safeAreaClip"><rect x="${RIGHT_X}" y="${RIGHT_Y}" width="${RIGHT_W}" height="${RIGHT_H}" rx="${rBig}"/></clipPath>
+    <radialGradient id="floorShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  `;
+  state.specs.forEach((s,i) => { if(s.icon) defs += `<clipPath id="specClip${i}"><rect x="0" y="0" width="${chipSize}" height="${chipSize}" rx="${rChip}"/></clipPath>`; });
+  state.features.forEach((f,i) => { if(f.icon) defs += `<clipPath id="featClip${i}"><circle cx="32" cy="32" r="32"/></clipPath>`; });
+  defs += `</defs>`;
+
+  // background
+  let bgBlock = `<rect x="0" y="0" width="${VW}" height="${VH}" fill="${state.bg}"/>`;
+  bgBlock += `<line x1="${VW-260}" y1="0" x2="${VW+40}" y2="300" stroke="${state.accentStart}" stroke-opacity="0.10" stroke-width="10"/>`;
+  bgBlock += `<line x1="${VW-160}" y1="0" x2="${VW+140}" y2="220" stroke="${state.accentEnd}" stroke-opacity="0.10" stroke-width="6"/>`;
+  bgBlock += `<line x1="${VW-360}" y1="0" x2="${VW-60}" y2="360" stroke="${state.accentStart}" stroke-opacity="0.07" stroke-width="4"/>`;
+
+  // badge
+  let badge = '';
+  if(state.showBadge){
+    const bx = LEFT_X, by = 66, bw = clamp(state.badgeText.length * 15 + 60, 190, 420), bh = 34, skew = 14;
+    badge = `<polygon points="${bx},${by} ${bx+bw},${by} ${bx+bw-skew},${by+bh} ${bx},${by+bh}" fill="url(#badgeGrad)"/>
+      <text x="${bx+bw/2 - skew/2}" y="${by+bh/2}" text-anchor="middle" dominant-baseline="central" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="13" font-weight="800" letter-spacing="2" fill="#ffffff">${esc(state.badgeText)}</text>`;
+  }
+
+  // titles
+  const titleBlock = `
+    <text x="${LEFT_X}" y="${state.showBadge ? 160 : 130}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="46" font-weight="800" fill="${state.ink}">${esc(state.titleLine1)}</text>
+    <text x="${LEFT_X}" y="${state.showBadge ? 275 : 245}" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="118" font-weight="900" fill="url(#accentGrad)">${esc(state.titleLine2)}</text>
+    <text x="${LEFT_X}" y="330" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="30" font-weight="700" fill="${state.ink}">${esc(state.subCopy)}</text>
+    <text x="${LEFT_X}" y="360" font-family="Pretendard, 'Noto Sans KR', Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="4" fill="${state.ink}" fill-opacity="0.45">${esc(state.engTagline.toUpperCase())}</text>
+  `;
+
+  // main product image — borderless, auto-fits (contain) so the whole image is always visible
+  // with nothing cropped off; the size slider zooms in/out from the same center point.
+  const safeCx = RIGHT_X + RIGHT_W/2, safeCy = RIGHT_Y + RIGHT_H/2;
+  const imgScale = state.mainImageScale || 1;
+  const boxW = RIGHT_W * imgScale, boxH = RIGHT_H * imgScale;
+  const imgX = safeCx - boxW/2, imgY = safeCy - boxH/2;
+
+  let mainImgBlock = '';
+  if(state.mainImage){
+    const shadowRy = clamp(boxH*0.035, 8, 26), shadowRx = boxW*0.34;
+    mainImgBlock = `<ellipse cx="${safeCx}" cy="${imgY+boxH-shadowRy*0.6}" rx="${shadowRx}" ry="${shadowRy}" fill="url(#floorShadow)"/>
+      <g clip-path="url(#safeAreaClip)"><image href="${state.mainImage}" x="${imgX}" y="${imgY}" width="${boxW}" height="${boxH}" preserveAspectRatio="xMidYMid meet"/></g>`;
+  } else {
+    const ix = safeCx - 36, iy = safeCy - 46;
+    mainImgBlock = `<g opacity="0.28" fill="none" stroke="${state.ink}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="${ix}" y="${iy}" width="72" height="72" rx="${8*radius}"/>
+        <circle cx="${ix+22}" cy="${iy+22}" r="7"/>
+        <path d="M${ix+8} ${iy+58} L${ix+30} ${iy+34} L${ix+44} ${iy+46} L${ix+64} ${iy+22} L${ix+64} ${iy+58} Z"/>
+      </g>
+      <text x="${safeCx}" y="${safeCy+46}" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="600" fill="${state.ink}" fill-opacity="0.38">메인 이미지를 올리면 자동으로 맞춰집니다</text>`;
+  }
+
+  // spec rows
+  let specBlock = '';
+  state.specs.forEach((s, i) => {
+    const rowTop = SPEC_TOP + i * rowH;
+    const chipY = rowTop + (rowH - chipSize) / 2;
+    if(s.icon){
+      specBlock += `<g transform="translate(${LEFT_X},${chipY})"><g clip-path="url(#specClip${i})"><image href="${s.icon}" x="0" y="0" width="${chipSize}" height="${chipSize}" preserveAspectRatio="xMidYMid slice"/></g></g>`;
+    } else {
+      specBlock += `<rect x="${LEFT_X}" y="${chipY}" width="${chipSize}" height="${chipSize}" rx="${rChip}" fill="url(#accentGrad)" fill-opacity="0.12"/>
+        <text x="${LEFT_X+chipSize/2}" y="${chipY+chipSize/2}" text-anchor="middle" dominant-baseline="central" font-family="Pretendard, sans-serif" font-size="${clamp(chipSize*0.24,8,11)}" font-weight="800" fill="${state.accentStart}">${esc(s.code)}</text>`;
+    }
+    const textX = LEFT_X + chipSize + 14;
+    specBlock += `<text x="${textX}" y="${rowTop + rowH*0.42}" font-family="Pretendard, sans-serif" font-size="${titleFs}" font-weight="750" fill="${state.ink}">${esc(s.title)}</text>
+      <text x="${textX}" y="${rowTop + rowH*0.74}" font-family="Pretendard, sans-serif" font-size="${subFs}" font-weight="500" fill="${state.ink}" fill-opacity="0.55">${esc(s.sub)}</text>`;
+    if(i < specCount - 1){
+      specBlock += `<line x1="${LEFT_X}" y1="${rowTop+rowH-2}" x2="${LEFT_X+LEFT_W}" y2="${rowTop+rowH-2}" stroke="${state.ink}" stroke-opacity="0.08" stroke-width="1"/>`;
+    }
+  });
+
+  // feature icon strip
+  const FEAT_Y = 1225, FEAT_MARGIN = 64;
+  const featCount = state.features.length;
+  const slotW = (VW - FEAT_MARGIN*2) / featCount;
+  let featBlock = '';
+  state.features.forEach((f, i) => {
+    const cx = FEAT_MARGIN + slotW*i + slotW/2, cy = FEAT_Y + 32;
+    if(f.icon){
+      featBlock += `<g transform="translate(${cx-32},${cy-32})"><g clip-path="url(#featClip${i})"><image href="${f.icon}" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid slice"/></g><circle cx="32" cy="32" r="32" fill="none" stroke="${state.ink}" stroke-opacity="0.1" stroke-width="1.5"/></g>`;
+    } else {
+      featBlock += `<circle cx="${cx}" cy="${cy}" r="30" fill="url(#accentGrad)" fill-opacity="0.10" stroke="url(#accentGrad)" stroke-width="1.5"/>
+        <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-family="Pretendard, sans-serif" font-size="18" font-weight="800" fill="${state.accentStart}">${esc(f.code)}</text>`;
+    }
+    featBlock += `<text x="${cx}" y="${FEAT_Y+82}" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="12.5" font-weight="750" fill="${state.ink}">${esc(f.label)}</text>
+      <text x="${cx}" y="${FEAT_Y+100}" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="10" font-weight="500" fill="${state.ink}" fill-opacity="0.5">${esc(f.sub)}</text>`;
+  });
+
+  // footer
+  const footerBlock = `
+    <text x="${VW/2}" y="1375" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="17" font-weight="750" fill="${state.ink}">${esc(state.footerKr)}</text>
+    <text x="${VW/2}" y="1400" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="12" font-weight="700" letter-spacing="3" fill="url(#accentGrad)">${esc(state.footerEn.toUpperCase())}</text>
+  `;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${VW} ${VH}">
+    ${defs}
+    ${bgBlock}
+    ${badge}
+    ${titleBlock}
+    ${mainImgBlock}
+    ${specBlock}
+    ${featBlock}
+    ${footerBlock}
+  </svg>`;
+}
+
+function render(){
+  $('#preview').innerHTML = buildSVG();
+}
+
+function outputSVG(filename, svg){
+  if (inFrame) {
+    parent.postMessage({ pluginMessage: { type: 'save-svg', filename, svg } }, '*');
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+}
+
+$('#saveBtn').textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
+$('#saveBtn').addEventListener('click', () => outputSVG('pc-spec-banner.svg', buildSVG()));
+
+window.addEventListener('message', e => {
+  const m = e.data && e.data.pluginMessage;
+  if (m && (m.type === 'toast' || m.type === 'error')) setStatus(m.message);
+});
+
+/* ---------- init ---------- */
+refreshMainImageDrop();
+renderSpecEditors();
+renderFeatureEditors();
+render();
+</script>
+</body>
+</html>
