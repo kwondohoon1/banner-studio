@@ -1766,25 +1766,85 @@ $("saveSvg").onclick = () => {
   const blob = new Blob([serialize()], { type: "image/svg+xml;charset=utf-8" });
   downloadBlob(blob, "banner-edited.svg");
 };
-function exportRaster(mime, name, quality) {
+/* ---- 내보내기용 폰트 임베드 ----
+   SVG를 <img>로 래스터화하면 격리 문서가 되어 페이지의 웹폰트(CSS)가 적용되지 않는다
+   → 화면과 내보내기 폰트가 달라지는 원인. 사용된 패밀리의 woff2를 base64 data URI
+   @font-face <style>로 SVG 안에 심어서 화면과 동일하게 굽는다.
+   (Google Fonts 계열은 서브셋이 수십 개라 임베드 대상에서 제외 — 아래 맵에 없는
+   패밀리는 그대로 폴백된다. 배너 플러그인은 전부 아래 폰트만 사용) */
+const EMBED_FONTS = {
+  "Pretendard": [
+    [400, "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Regular.woff2"],
+    [500, "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Medium.woff2"],
+    [600, "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-SemiBold.woff2"],
+    [700, "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Bold.woff2"],
+    [800, "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-ExtraBold.woff2"],
+    [900, "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Black.woff2"]],
+  "Gmarket Sans": [[300, "fonts/GmarketSansLight.woff2"], [500, "fonts/GmarketSansMedium.woff2"], [700, "fonts/GmarketSansBold.woff2"]],
+  "S-Core Dream": [[400, "fonts/SCDream4.woff2"], [600, "fonts/SCDream6.woff2"], [800, "fonts/SCDream8.woff2"]],
+  "NanumSquareNeo": [[400, "fonts/NanumSquareNeo-Rg.woff2"], [700, "fonts/NanumSquareNeo-Bd.woff2"], [800, "fonts/NanumSquareNeo-Eb.woff2"]],
+  "NanumSquare": [[400, "fonts/NanumSquareR.woff2"], [700, "fonts/NanumSquareB.woff2"], [800, "fonts/NanumSquareEB.woff2"]],
+  "NanumSquareRound": [[400, "fonts/NanumSquareRoundR.woff2"], [700, "fonts/NanumSquareRoundB.woff2"]],
+  "NanumBarunGothic": [[400, "fonts/NanumBarunGothic.woff2"], [700, "fonts/NanumBarunGothicBold.woff2"]],
+  "NanumBarunpen": [[400, "fonts/NanumBarunpenR.woff2"], [700, "fonts/NanumBarunpenB.woff2"]],
+  "Nanum Brush": [[400, "fonts/NanumBrush.woff2"]],
+  "NanumGothicEco": [[400, "fonts/NanumGothicEco.woff2"], [700, "fonts/NanumGothicEcoBold.woff2"]],
+  "NanumMyeongjoEco": [[400, "fonts/NanumMyeongjoEco.woff2"], [700, "fonts/NanumMyeongjoEcoBold.woff2"]],
+  "DungGeunMo": [[400, "fonts/DungGeunMo.woff2"]],
+  "D2Coding": [[400, "fonts/D2Coding.woff2"]],
+  "SDGdGothic00": [[400, "fonts/SDGdGothic00.woff2"]]
+};
+const _fontB64 = new Map();
+async function fontDataUrl(url) {
+  if (_fontB64.has(url)) return _fontB64.get(url);
+  const r = await fetch(url); if (!r.ok) throw new Error("font " + r.status);
+  const u8 = new Uint8Array(await r.arrayBuffer());
+  let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  const d = "data:font/woff2;base64," + btoa(s);
+  _fontB64.set(url, d); return d;
+}
+function usedEmbedFamilies(root) {
+  const set = new Set();
+  const take = v => String(v || "").split(",").forEach(f => { f = f.trim().replace(/^['"]|['"]$/g, ""); if (EMBED_FONTS[f]) set.add(f); });
+  root.querySelectorAll("[font-family]").forEach(e => take(e.getAttribute("font-family")));
+  root.querySelectorAll('[style*="font-family"]').forEach(e => { const m = (e.getAttribute("style") || "").match(/font-family:\s*([^;]+)/i); if (m) take(m[1]); });
+  return [...set];
+}
+async function fontEmbedStyle(root) {
+  const fams = usedEmbedFamilies(root);
+  const rules = [];
+  for (const fam of fams) for (const [w, u] of EMBED_FONTS[fam]) {
+    try { rules.push(`@font-face{font-family:'${fam}';font-weight:${w};src:url(${await fontDataUrl(u)}) format('woff2')}`); }
+    catch (e) { /* 폰트 하나 실패해도 나머지는 임베드 */ }
+  }
+  return rules.length ? `<style>${rules.join("")}</style>` : "";
+}
+async function exportRaster(mime, name, quality) {
   const label = mime === "image/jpeg" ? "JPG" : "PNG";
-  const svgStr = serialize().replace(/^<\?xml[^>]*>\n?/, "");
-  const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const img = new Image();
-  img.onload = () => {
-    const c = document.createElement("canvas");
-    c.width = state.vbW; c.height = state.vbH;
-    const cx = c.getContext("2d");
-    // JPG는 투명도를 지원하지 않으므로 흰 배경을 먼저 채운다
-    if (mime === "image/jpeg") { cx.fillStyle = "#ffffff"; cx.fillRect(0, 0, c.width, c.height); }
-    cx.drawImage(img, 0, 0, state.vbW, state.vbH);
-    URL.revokeObjectURL(url);
-    try { c.toBlob(b => downloadBlob(b, name), mime, quality); }
-    catch (e) { alert(label + " 변환 실패(외부 이미지 보안 제한일 수 있음)."); }
-  };
-  img.onerror = () => { URL.revokeObjectURL(url); alert(label + " 렌더 실패."); };
-  img.src = url;
+  const btn = mime === "image/jpeg" ? $("exportJpg") : $("exportPng");
+  const btnTxt = btn.textContent; btn.disabled = true; btn.textContent = "⏳ 폰트 임베드 중…";
+  try {
+    let svgStr = serialize().replace(/^<\?xml[^>]*>\n?/, "");
+    const styleTag = await fontEmbedStyle(state.svg);
+    if (styleTag) svgStr = svgStr.replace(/(<svg[^>]*>)/, "$1" + styleTag);
+    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = state.vbW; c.height = state.vbH;
+      const cx = c.getContext("2d");
+      // JPG는 투명도를 지원하지 않으므로 흰 배경을 먼저 채운다
+      if (mime === "image/jpeg") { cx.fillStyle = "#ffffff"; cx.fillRect(0, 0, c.width, c.height); }
+      cx.drawImage(img, 0, 0, state.vbW, state.vbH);
+      URL.revokeObjectURL(url);
+      try { c.toBlob(b => downloadBlob(b, name), mime, quality); }
+      catch (e) { alert(label + " 변환 실패(외부 이미지 보안 제한일 수 있음)."); }
+      btn.disabled = false; btn.textContent = btnTxt;
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); alert(label + " 렌더 실패."); btn.disabled = false; btn.textContent = btnTxt; };
+    img.src = url;
+  } catch (e) { alert(label + " 내보내기 실패: " + e.message); btn.disabled = false; btn.textContent = btnTxt; }
 }
 $("exportPng").onclick = () => exportRaster("image/png", "banner-edited.png");
 $("exportJpg").onclick = () => exportRaster("image/jpeg", "banner-edited.jpg", 0.92);
