@@ -1226,19 +1226,30 @@ function startMoveSelected(e, targetEl, collapseIfNoMove) {
 
 /* ===== 스냅(자석) + 가이드 선 ===== */
 function computeSnap(bb0, el, dx, dy) {
-  const z = state.zoom || 1, SNAP = 7 / z;
+  // 요소가 많은 문서(수백 개 타깃)에서는 캔버스 중앙 옆의 다른 요소 모서리가
+  // 항상 근소하게 이겨 "센터 자석"이 죽는다 → 우선순위 스냅:
+  // 캔버스 중앙(pri 0, 더 강한 자석) > 캔버스 가장자리(pri 1) > 다른 요소(pri 2)
+  const z = state.zoom || 1, SNAP = 7 / z, SNAP_CENTER = 13 / z;
   const mx = [bb0.x, bb0.x + bb0.width / 2, bb0.x + bb0.width];
   const my = [bb0.y, bb0.y + bb0.height / 2, bb0.y + bb0.height];
-  const tx = [0, state.vbW / 2, state.vbW], ty = [0, state.vbH / 2, state.vbH];
+  const tx = [{ t: state.vbW / 2, pri: 0 }, { t: 0, pri: 1 }, { t: state.vbW, pri: 1 }];
+  const ty = [{ t: state.vbH / 2, pri: 0 }, { t: 0, pri: 1 }, { t: state.vbH, pri: 1 }];
   state.els.forEach(o => {
     if (o === el || o.style.display === "none") return;
     const b = safeBBox(o);
-    tx.push(b.x, b.x + b.width / 2, b.x + b.width);
-    ty.push(b.y, b.y + b.height / 2, b.y + b.height);
+    tx.push({ t: b.x, pri: 2 }, { t: b.x + b.width / 2, pri: 2 }, { t: b.x + b.width, pri: 2 });
+    ty.push({ t: b.y, pri: 2 }, { t: b.y + b.height / 2, pri: 2 }, { t: b.y + b.height, pri: 2 });
   });
-  let bx = null, by = null;
-  for (const m of mx) for (const t of tx) { const d = t - (m + dx); if (Math.abs(d) < SNAP && (!bx || Math.abs(d) < Math.abs(bx.d))) bx = { d, t }; }
-  for (const m of my) for (const t of ty) { const d = t - (m + dy); if (Math.abs(d) < SNAP && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, t }; }
+  function best(ms, ts, delta) {
+    let win = null;
+    for (const m of ms) for (const c of ts) {
+      const d = c.t - (m + delta), lim = c.pri === 0 ? SNAP_CENTER : SNAP;
+      if (Math.abs(d) >= lim) continue;
+      if (!win || c.pri < win.pri || (c.pri === win.pri && Math.abs(d) < Math.abs(win.d))) win = { d, t: c.t, pri: c.pri };
+    }
+    return win;
+  }
+  const bx = best(mx, tx, dx), by = best(my, ty, dy);
   const guides = [];
   if (bx) { dx += bx.d; guides.push({ axis: "x", pos: bx.t }); }
   if (by) { dy += by.d; guides.push({ axis: "y", pos: by.t }); }
