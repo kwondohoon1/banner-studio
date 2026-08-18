@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전시장리퍼 — 매주 금요일 추가할인 배너</title>
+<style>
+/* 디스플레이 폰트: 로컬 fonts/ → 레포 ../fonts/ → CDN 폴백 (에디터 local-fonts.css와 동일 패밀리명) */
+@font-face{font-family:'Gmarket Sans';font-weight:700;font-display:swap;src:url('fonts/GmarketSansBold.woff2') format('woff2'),url('../fonts/GmarketSansBold.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff')}
+@font-face{font-family:'Gmarket Sans';font-weight:500;font-display:swap;src:url('fonts/GmarketSansMedium.woff2') format('woff2'),url('../fonts/GmarketSansMedium.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff')}
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+main{padding:16px;max-width:520px;width:100%}
+.step{margin:17px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.title-input,textarea,input[type=text],input[type=color]{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;outline:none}
+textarea{min-height:70px;resize:vertical}
+input[type=color]{padding:4px;height:42px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{min-width:0}
+label{display:block;margin:8px 0 5px;font-weight:750}
+.primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:14px;width:100%;overflow:hidden}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px}.status.show{display:block}
+.hint{margin-top:7px;color:var(--muted);line-height:1.5}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">R</div><b>전시장리퍼 — 금요일 추가할인 배너</b></header>
+
+<main>
+  <div class="step"><b>문구</b><span class="num">01</span></div>
+
+  <div class="grid">
+    <div class="field"><label for="badgeText">달력 배지</label><input id="badgeText" type="text" value="FRI"></div>
+    <div class="field"><label for="topTitle">상단 리본 — *별표*는 노랑 강조</label><input id="topTitle" type="text" value="매주 *금요일*"></div>
+  </div>
+
+  <label for="mainTitle">말풍선 문구 — 괄호( )는 자동으로 작게</label>
+  <input id="mainTitle" class="title-input" value="전시장 리퍼상품 (키보드 한정)">
+
+  <div class="grid">
+    <div class="field"><label for="discount">할인율</label><input id="discount" type="text" value="10%"></div>
+    <div class="field"><label for="discountText">할인 문구 (2줄, 줄바꿈=엔터)</label><input id="discountText" type="text" value="추가 할인!"></div>
+  </div>
+
+  <label for="notice">하단 안내 — *별표*는 빨강 강조</label>
+  <textarea id="notice">본 이벤트는 시범 운영 단계로, 내부 사정에 따라 *사전 고지 없이 조기 종료*될 수 있습니다.</textarea>
+
+  <div class="step"><b>색상</b><span class="num">02</span></div>
+  <div class="grid">
+    <div class="field"><label for="sky">배경</label><input id="sky" type="color" value="#bfe7fb"></div>
+    <div class="field"><label for="blue">블루</label><input id="blue" type="color" value="#1479e8"></div>
+    <div class="field"><label for="yellow">옐로</label><input id="yellow" type="color" value="#ffd21c"></div>
+    <div class="field"><label for="navy">네이비</label><input id="navy" type="color" value="#0b2f6b"></div>
+  </div>
+
+  <div class="step"><b>상품 이미지</b><span class="num">03</span></div>
+  <input id="productImage" type="file" accept="image/*">
+  <div class="hint">파일 업로드 또는 웹페이지의 상품 이미지를 미리보기 영역으로 드래그&드롭할 수 있습니다. 이미지는 우측 하단에 살짝 기울여 배치됩니다.</div>
+
+  <div class="step"><b>미리보기</b><span class="num">04</span></div>
+  <div class="preview-shell" id="미리보기"></div>
+
+  <button class="primary" id="saveBtn">SVG 다운로드</button>
+  <div id="status" class="status"></div>
+</main>
+
+<script src="image-drop.js"></script>
+<script>
+'use strict';
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const F_GM = "'Gmarket Sans', Pretendard, 'Noto Sans KR', sans-serif";
+const F_P  = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
+let productDataURI = '';
+
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+/* ---------- 텍스트 폭 측정 ---------- */
+const _mc=document.createElement('canvas').getContext('2d');
+function tw(t,size,weight,family){_mc.font=`${weight||700} ${size}px ${family||F_GM}`;return _mc.measureText(String(t)).width}
+
+/* ---------- 이미지 → PNG data URI ---------- */
+function fileToPNGDataURI(file){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onerror=reject;
+    fr.onload=()=>{
+      const img=new Image();
+      img.onerror=reject;
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        c.width=img.naturalWidth||img.width; c.height=img.naturalHeight||img.height;
+        c.getContext('2d').drawImage(img,0,0);
+        try{ resolve(c.toDataURL('image/png')); }catch(e){ reject(e); }
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- SVG 헬퍼 ---------- */
+function T(x,y,text,o){o=o||{};
+  return `<text x="${x}" y="${y}" text-anchor="${o.anchor||'middle'}" dominant-baseline="central" font-family="${o.family||F_GM}" font-size="${o.size||16}" font-weight="${o.weight||700}" fill="${o.fill||'#111'}"${o.ls?` letter-spacing="${o.ls}"`:''}${o.stroke?` stroke="${o.stroke}" stroke-width="${o.sw}" stroke-linejoin="round" paint-order="stroke fill"`:''}${o.opacity?` opacity="${o.opacity}"`:''}>${esc(text)}</text>`}
+/* 입체(스티커) 텍스트: 그림자(오프셋) → 흰 외곽 → 컬러 테두리 → 채움. 여러 <text>로 쌓아 에디터에서도 편집 가능 */
+function sticker(x,y,text,size,fill,o){o=o||{};
+  const fam=o.family||F_GM, wt=o.weight||700, dep=o.depth??Math.max(6,size*.045);
+  const outer=o.outer??Math.max(10,size*.09), mid=o.mid??Math.max(5,size*.045);
+  let s='';
+  if(o.shadow!==false)s+=T(x,y+dep,text,{size,weight:wt,family:fam,fill:o.shadowFill||'#0a4fa0',stroke:'#ffffff',sw:outer,ls:o.ls});
+  s+=T(x,y,text,{size,weight:wt,family:fam,fill,stroke:'#ffffff',sw:outer,ls:o.ls});
+  if(o.mid!==0)s+=T(x,y,text,{size,weight:wt,family:fam,fill,stroke:o.midColor||'#0757b5',sw:mid,ls:o.ls});
+  s+=T(x,y,text,{size,weight:wt,family:fam,fill,ls:o.ls});
+  return s}
+/* *별표* 강조 세그먼트 */
+function markSeg(text){const re=/\*([^*]+)\*/g,out=[];let last=0,m;
+  while((m=re.exec(text))){if(m.index>last)out.push({t:text.slice(last,m.index),hi:false});out.push({t:m[1],hi:true});last=m.index+m[0].length}
+  if(last<text.length)out.push({t:text.slice(last),hi:false});
+  return out.length?out:[{t:text,hi:false}]}
+
+/* ---------- 4방 반짝이 ---------- */
+function sparkle(x,y,s,fill,op){return `<path d="M ${x} ${y-s} C ${x+s*.14} ${y-s*.3} ${x+s*.3} ${y-s*.14} ${x+s} ${y} C ${x+s*.3} ${y+s*.14} ${x+s*.14} ${y+s*.3} ${x} ${y+s} C ${x-s*.14} ${y+s*.3} ${x-s*.3} ${y+s*.14} ${x-s} ${y} C ${x-s*.3} ${y-s*.14} ${x-s*.14} ${y-s*.3} ${x} ${y-s} Z" fill="${fill}" opacity="${op??.95}"/>`}
+
+/* ---------- SVG 빌더 ---------- */
+function buildSVG(){
+  const W=1680,H=945,CX=840,CY=430;
+  const sky=$('#sky').value, blue=$('#blue').value, yellow=$('#yellow').value, navy=$('#navy').value;
+  const badge=$('#badgeText').value||'FRI';
+  const topTitle=$('#topTitle').value||'매주 *금요일*';
+  const mainRaw=$('#mainTitle').value||'전시장 리퍼상품';
+  const discount=$('#discount').value||'10%';
+  const dLines=($('#discountText').value||'추가 할인!').split(/\n|\\n/).map(s=>s.trim()).filter(Boolean);
+  const notice=$('#notice').value||'';
+  const P=[];
+
+  P.push(`<defs>
+    <radialGradient id="frBg" cx="50%" cy="46%" r="75%">
+      <stop offset="0%" stop-color="#f2fbff"/><stop offset="55%" stop-color="${sky}"/><stop offset="100%" stop-color="#8fd2f4"/>
+    </radialGradient>
+    <linearGradient id="frBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fa9ff"/><stop offset="1" stop-color="${blue}"/></linearGradient>
+    <linearGradient id="frYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe95e"/><stop offset="1" stop-color="${yellow}"/></linearGradient>
+    <linearGradient id="frKey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e8edf3"/></linearGradient>
+  </defs>`);
+
+  /* 배경: 라디얼 + 햇살 + 옅은 격자 */
+  P.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#frBg)"/>`);
+  let rays='';
+  for(let i=0;i<18;i++){const a1=i*20*Math.PI/180, a2=(i*20+9)*Math.PI/180, R=1400;
+    rays+=`<polygon points="${CX},${CY} ${CX+Math.cos(a1)*R},${CY+Math.sin(a1)*R} ${CX+Math.cos(a2)*R},${CY+Math.sin(a2)*R}" fill="#ffffff" opacity=".22"/>`}
+  P.push(rays);
+  let grid='';
+  for(let x=0;x<=W;x+=80)grid+=`<path d="M ${x} 0 V ${H}" stroke="#5fb4de" stroke-width="1" opacity=".08"/>`;
+  for(let y=0;y<=H;y+=80)grid+=`<path d="M 0 ${y} H ${W}" stroke="#5fb4de" stroke-width="1" opacity=".08"/>`;
+  P.push(grid);
+
+  /* 컨페티 + 반짝이 */
+  const confetti=[[70,105,'#ffd21c','r',18,40],[195,240,'#7b5cff','r',14,-25],[60,700,'#ff8a3d','r',20,45],[150,860,'#29c8ff','c',9],
+   [1490,70,'#ee3aa8','r',16,35],[1610,190,'#7b5cff','r',13,-30],[1568,332,'#ffd21c','c',10],[1638,565,'#3ddc84','r',14,20],
+   [1540,880,'#ff8a3d','r',17,-40],[380,895,'#ee3aa8','c',8],[985,60,'#3ddc84','r',12,30],[1245,120,'#ffd21c','c',9]];
+  confetti.forEach(([x,y,c,k,s,rot])=>{
+    if(k==='c')P.push(`<circle cx="${x}" cy="${y}" r="${s}" fill="${c}" opacity=".9"/>`);
+    else P.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="3" fill="${c}" opacity=".92" transform="rotate(${rot} ${x} ${y})"/>`)});
+  [[300,120,16],[1435,258,13],[95,395,12],[1300,905,11],[520,890,10]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#ffffff')));
+
+  /* ---- 달력 배지 (좌상단, 기울임 + 입체) ---- */
+  P.push(`<g transform="translate(158 52) rotate(-8)">`);
+  P.push(`<rect x="10" y="18" width="264" height="252" rx="30" fill="${navy}" opacity=".22"/>`);
+  P.push(`<rect x="0" y="0" width="264" height="252" rx="30" fill="#ffffff"/>`);
+  P.push(`<path d="M 0 30 Q 0 0 30 0 H 234 Q 264 0 264 30 V 86 H 0 Z" fill="url(#frBlue)"/>`);
+  P.push(`<rect x="0" y="72" width="264" height="14" fill="#0b62c4"/>`);
+  [66,132,198].forEach(cx=>{P.push(`<rect x="${cx-6}" y="-34" width="12" height="52" rx="6" fill="#c8d2dc"/>`);
+    P.push(`<circle cx="${cx}" cy="-32" r="15" fill="none" stroke="#59616c" stroke-width="9"/>`)});
+  P.push(T(132,168,badge,{size:88,weight:700,family:F_GM,fill:blue}));
+  P.push('</g>');
+
+  /* ---- 상단 리본 (기울임 + 두께) ---- */
+  P.push(`<g transform="rotate(-3 960 150)">`);
+  P.push(`<rect x="420" y="70" width="1120" height="196" rx="34" fill="#0a58b4"/>`);
+  P.push(`<rect x="420" y="52" width="1120" height="196" rx="34" fill="url(#frBlue)"/>`);
+  P.push(`<rect x="444" y="66" width="1072" height="54" rx="27" fill="#ffffff" opacity=".16"/>`);
+  {const segs=markSeg(topTitle),size=122;
+   const total=segs.reduce((a,s)=>a+tw(s.t,size,700,F_GM),0);
+   let x=980-total/2;
+   segs.forEach(s=>{const w2=tw(s.t,size,700,F_GM);
+     P.push(sticker(x+w2/2,152,s.t,size,s.hi?'url(#frYellow)':'#ffffff',{depth:9,outer:0,mid:13,midColor:navy,shadow:false}));
+     x+=w2})}
+  P.push('</g>');
+
+  /* ---- 말풍선 (메인 문구) ---- */
+  {let main=mainRaw,paren='';const pm=mainRaw.match(/^(.*?)\s*(\([^)]*\))\s*$/);
+   if(pm){main=pm[1];paren=pm[2]}
+   const s1=104,s2=64;
+   const w1=tw(main,s1,700,F_GM),w2=paren?tw(paren,s2,700,F_GM)+26:0;
+   const bw=Math.min(W-120,w1+w2+150),bh=190,bx=CX-bw/2,by=300;
+   P.push(`<g transform="rotate(-2 ${CX} ${by+bh/2})">`);
+   P.push(`<rect x="${bx+8}" y="${by+16}" width="${bw}" height="${bh}" rx="40" fill="#0a58b4" opacity=".8"/>`);
+   P.push(`<path d="M ${CX-140} ${by+bh+8} L ${CX-70} ${by+bh+74} L ${CX-40} ${by+bh+4} Z" fill="#ffffff" stroke="${blue}" stroke-width="7"/>`);
+   P.push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="40" fill="#ffffff" stroke="${blue}" stroke-width="7"/>`);
+   const tx=CX-(w1+w2)/2;
+   P.push(T(tx+w1/2,by+bh/2+2,main,{size:s1,weight:700,family:F_GM,fill:navy}));
+   if(paren)P.push(T(tx+w1+26+ (w2-26)/2,by+bh/2+14,paren,{size:s2,weight:700,family:F_GM,fill:navy}));
+   P.push('</g>')}
+
+  /* ---- 할인율 (초대형 입체) ---- */
+  {const size=Math.min(330,Math.floor(330*560/Math.max(1,tw(discount,330,700,F_GM))));
+   P.push(`<g transform="rotate(-5 400 690)">`);
+   P.push(sticker(400,690,discount,size,'url(#frYellow)',{depth:16,outer:Math.max(18,size*.085),mid:Math.max(9,size*.04),midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+   P.push('</g>')}
+
+  /* ---- 추가 / 할인! (2줄 입체) ---- */
+  {const l1=dLines[0]||'추가 할인!',l2=dLines[1];
+   P.push(`<g transform="rotate(-5 880 665)">`);
+   if(l2){
+     P.push(sticker(880,600,l1,120,'#ffffff',{depth:10,outer:0,mid:13,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+     P.push(sticker(880,738,l2,112,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+   }else{
+     const parts=l1.split(/\s+/);
+     if(parts.length>=2){
+       P.push(sticker(880,600,parts[0],120,'#ffffff',{depth:10,outer:0,mid:13,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+       P.push(sticker(880,738,parts.slice(1).join(' '),112,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+     }else{
+       P.push(sticker(880,665,l1,116,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+     }
+   }
+   P.push('</g>')}
+
+  /* ---- 상품 이미지 (우하단, 기울임 + 바닥 그림자) ---- */
+  P.push(`<ellipse cx="1370" cy="872" rx="260" ry="30" fill="${navy}" opacity=".18"/>`);
+  if(productDataURI){
+    P.push(`<g transform="rotate(-6 1370 640)"><image href="${productDataURI}" x="1080" y="400" width="580" height="470" preserveAspectRatio="xMidYMid meet"/></g>`);
+  }else{
+    P.push(`<g transform="translate(1110 470) rotate(-7)">`);
+    P.push(`<rect x="10" y="14" width="500" height="310" rx="26" fill="${navy}" opacity=".2"/>`);
+    P.push(`<rect x="0" y="0" width="500" height="310" rx="26" fill="url(#frKey)" stroke="#c3ccd6" stroke-width="4"/>`);
+    let keys='';
+    for(let r=0;r<6;r++)for(let c=0;c<12;c++){const kw=r===5&&c===4?150:34;if(r===5&&c>4&&c<9)continue;
+      keys+=`<rect x="${20+c*39}" y="${18+r*47}" width="${kw}" height="38" rx="7" fill="#ffffff" stroke="#aeb8c2" stroke-width="1.6"/>`}
+    P.push(keys,'</g>');
+  }
+
+  /* ---- 하단 안내 필 ---- */
+  {const segs=markSeg(notice),size=27;
+   const total=segs.reduce((a,s)=>a+tw(s.t,size,s.hi?800:500,F_P),0);
+   const pw=Math.min(W-100,total+120),px=CX-pw/2,py=H-78;
+   P.push(`<rect x="${px}" y="${py}" width="${pw}" height="56" rx="28" fill="#ffffff" opacity=".82"/>`);
+   P.push(`<circle cx="${px+40}" cy="${py+28}" r="14" fill="none" stroke="${navy}" stroke-width="3"/>`);
+   P.push(T(px+40,py+29,'!',{size:19,weight:900,family:F_P,fill:navy}));
+   let x=px+70+(pw-120-total)/2;
+   segs.forEach(s=>{const wgt=s.hi?800:500,w2=tw(s.t,size,wgt,F_P);
+     P.push(T(x+w2/2,py+29,s.t,{size,weight:wgt,family:F_P,fill:s.hi?'#e0335b':'#20324c'}));
+     x+=w2})}
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${P.join('')}</svg>`;
+}
+
+/* ---------- 렌더/저장 ---------- */
+let _rt=null;
+function render(){clearTimeout(_rt);_rt=setTimeout(()=>{try{$('#미리보기').innerHTML=buildSVG()}catch(e){setStatus('미리보기 오류: '+e.message)}},50)}
+
+function outputSVG(filename, svg){
+  if(inFrame){ parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*'); }
+  else{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+    a.download=filename; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+}
+
+['#badgeText','#topTitle','#mainTitle','#discount','#discountText','#notice','#sky','#blue','#yellow','#navy']
+  .forEach(sel=>$(sel).addEventListener('input',render));
+
+$('#productImage').addEventListener('change', async e=>{
+  const file=e.target.files&&e.target.files[0];
+  if(!file) return;
+  try{ productDataURI=await fileToPNGDataURI(file); render(); setStatus('상품 이미지를 임베드했습니다.'); }
+  catch(err){ setStatus('이미지 처리 실패: '+err.message); }
+});
+
+$('#saveBtn').textContent=inFrame?'에디터로 보내기':'SVG 다운로드';
+$('#saveBtn').onclick=()=>{outputSVG('friday-refurb.svg',buildSVG());setStatus(inFrame?'에디터로 보냈습니다.':'SVG를 다운로드했습니다.')};
+
+window.addEventListener('message',e=>{
+  const m=e.data&&e.data.pluginMessage;
+  if(m&&(m.type==='toast'||m.type==='error')) setStatus(m.message);
+});
+
+window.addEventListener('load',function(){
+  render();
+  if(window.ImageDrop&&typeof ImageDrop.wire==='function'){
+    ImageDrop.wire('productImage',['#미리보기'],setStatus);
+  }
+  /* 폰트 로드 후 재렌더 (측정값이 폰트 의존) */
+  if(document.fonts&&document.fonts.load)Promise.all([
+    document.fonts.load("700 20px 'Gmarket Sans'"),document.fonts.load("500 20px 'Gmarket Sans'")
+  ]).then(()=>render()).catch(()=>{});
+});
+</script>
+</body>
+</html>

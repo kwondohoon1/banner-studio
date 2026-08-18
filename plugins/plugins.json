@@ -11,5 +11,6 @@
   { "id": "talk-notice", "title": "톡톡안내", "description": "제품+배경 → 이미지형(628×628)·상품리스트형(628×270) 2장", "file": "plugins/talk-notice.html" },
   { "id": "acer-insta", "title": "에이서인스타", "description": "에이서 쿠팡 라이브 인스타 배너", "file": "plugins/acer-insta.html" },
   { "id": "pc-spec", "title": "데탑스펙", "description": "조립 PC 스펙 배너 — 인스타 1080×1440 / 상세 860, 부품 스펙 목록 + 기능 아이콘", "file": "plugins/pc-spec-banner.html" },
-  { "id": "install-service", "title": "설치배송", "description": "설치 서비스 안내 배너(860) — 히어로/상품 이미지 교체, 구매 옵션 안내, 진행 절차(Iconify 아이콘), 유의사항", "file": "plugins/install-service.html" }
+  { "id": "install-service", "title": "설치배송", "description": "설치 서비스 안내 배너(860) — 히어로/상품 이미지 교체, 구매 옵션 안내, 진행 절차(Iconify 아이콘), 유의사항", "file": "plugins/install-service.html" },
+  { "id": "friday-refurb", "title": "전시장리퍼", "description": "매주 금요일 전시장 리퍼상품 추가할인 배너(1680×945) — 입체 타이포·햇살 배경·달력 배지·말풍선", "file": "plugins/friday-refurb.html" }
 ]
