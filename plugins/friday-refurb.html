@@ -21,6 +21,10 @@ main{padding:16px;max-width:520px;width:100%}
 textarea{min-height:70px;resize:vertical}
 input[type=color]{padding:4px;height:42px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.preset{border:2px solid transparent;border-radius:10px;padding:8px 13px;font:inherit;font-weight:800;color:#fff;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.preset.active{border-color:var(--dark);box-shadow:0 0 0 2px rgba(32,34,29,.15)}
+select.title-input{padding:10px 12px}
 .field{min-width:0}
 label{display:block;margin:8px 0 5px;font-weight:750}
 .primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer}
@@ -53,13 +57,37 @@ label{display:block;margin:8px 0 5px;font-weight:750}
   <label for="notice">하단 안내 — *별표*는 빨강 강조</label>
   <textarea id="notice">본 이벤트는 시범 운영 단계로, 내부 사정에 따라 *사전 고지 없이 조기 종료*될 수 있습니다.</textarea>
 
-  <div class="step"><b>색상</b><span class="num">02</span></div>
+  <div class="step"><b>디자인</b><span class="num">02</span></div>
+  <label>색 테마 프리셋</label>
+  <div class="presets" id="presets">
+    <button type="button" class="preset active" data-p="blue" style="background:linear-gradient(135deg,#bfe7fb,#1479e8)">블루</button>
+    <button type="button" class="preset" data-p="orange" style="background:linear-gradient(135deg,#ffe9c7,#f97316)">오렌지</button>
+    <button type="button" class="preset" data-p="purple" style="background:linear-gradient(135deg,#e4defc,#7c5cf0)">퍼플</button>
+    <button type="button" class="preset" data-p="mint" style="background:linear-gradient(135deg,#c9f3e4,#0eaf7d)">민트</button>
+    <button type="button" class="preset" data-p="pink" style="background:linear-gradient(135deg,#ffdeeb,#ef4d8e)">핑크</button>
+  </div>
   <div class="grid">
     <div class="field"><label for="sky">배경</label><input id="sky" type="color" value="#bfe7fb"></div>
-    <div class="field"><label for="blue">블루</label><input id="blue" type="color" value="#1479e8"></div>
-    <div class="field"><label for="yellow">옐로</label><input id="yellow" type="color" value="#ffd21c"></div>
-    <div class="field"><label for="navy">네이비</label><input id="navy" type="color" value="#0b2f6b"></div>
+    <div class="field"><label for="blue">포인트</label><input id="blue" type="color" value="#1479e8"></div>
+    <div class="field"><label for="yellow">강조(옐로)</label><input id="yellow" type="color" value="#ffd21c"></div>
+    <div class="field"><label for="navy">진한 글자</label><input id="navy" type="color" value="#0b2f6b"></div>
   </div>
+  <div class="grid" style="margin-top:8px">
+    <div class="field">
+      <label for="bgStyle">배경 패턴</label>
+      <select id="bgStyle" class="title-input">
+        <option value="rays">햇살(방사형)</option>
+        <option value="stripes">사선 줄무늬</option>
+        <option value="dots">도트</option>
+        <option value="plain">민무늬 그라데이션</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="tilt">기울기 (전체 요소 동일 적용) <span id="tiltVal">3°</span></label>
+      <input id="tilt" type="range" min="0" max="8" step="0.5" value="3" style="width:100%;accent-color:var(--dark)">
+    </div>
+  </div>
+  <label class="hint" style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer"><input type="checkbox" id="deco" checked style="width:auto"> 컨페티·반짝이 장식 표시</label>
 
   <div class="step"><b>상품 이미지</b><span class="num">03</span></div>
   <input id="productImage" type="file" accept="image/*">
@@ -87,6 +115,20 @@ function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='statu
 /* ---------- 텍스트 폭 측정 ---------- */
 const _mc=document.createElement('canvas').getContext('2d');
 function tw(t,size,weight,family){_mc.font=`${weight||700} ${size}px ${family||F_GM}`;return _mc.measureText(String(t)).width}
+
+/* ---------- 색 유도 (포인트 색에서 밝은/어두운 톤 자동 생성) ---------- */
+function shade(hex,f){/* f>0 흰색 쪽, f<0 검정 쪽 */
+  const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;
+  const mix=v=>Math.round(f>0?v+(255-v)*f:v*(1+f));
+  return '#'+[mix(r),mix(g),mix(b)].map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('')}
+
+/* ---------- 테마 프리셋 ---------- */
+const PRESETS={
+  blue:{sky:'#bfe7fb',blue:'#1479e8',yellow:'#ffd21c',navy:'#0b2f6b'},
+  orange:{sky:'#ffe9c7',blue:'#f97316',yellow:'#ffe14d',navy:'#7c2d12'},
+  purple:{sky:'#e4defc',blue:'#7c5cf0',yellow:'#ffd21c',navy:'#3b2b7a'},
+  mint:{sky:'#c9f3e4',blue:'#0eaf7d',yellow:'#ffe14d',navy:'#0b4f3a'},
+  pink:{sky:'#ffdeeb',blue:'#ef4d8e',yellow:'#ffe14d',navy:'#7a1240'}};
 
 /* ---------- 이미지 → PNG data URI ---------- */
 function fileToPNGDataURI(file){
@@ -134,57 +176,77 @@ function sparkle(x,y,s,fill,op){return `<path d="M ${x} ${y-s} C ${x+s*.14} ${y-
 function buildSVG(){
   const W=1680,H=945,CX=840,CY=430;
   const sky=$('#sky').value, blue=$('#blue').value, yellow=$('#yellow').value, navy=$('#navy').value;
+  /* 파생 색: 포인트 색에서 자동 유도 → 어떤 테마여도 톤이 맞는다 */
+  const accLight=shade(blue,.28), accDark=shade(blue,-.28), accDarker=shade(blue,-.42);
+  const skyDeep=shade(sky,-.18), gridC=shade(sky,-.42);
   const badge=$('#badgeText').value||'FRI';
   const topTitle=$('#topTitle').value||'매주 *금요일*';
   const mainRaw=$('#mainTitle').value||'전시장 리퍼상품';
   const discount=$('#discount').value||'10%';
   const dLines=($('#discountText').value||'추가 할인!').split(/\n|\\n/).map(s=>s.trim()).filter(Boolean);
   const notice=$('#notice').value||'';
+  const bgStyle=$('#bgStyle').value;
+  const tilt=parseFloat($('#tilt').value)||0;   /* 모든 기울임 요소에 동일 각도 적용 */
+  const deco=$('#deco').checked;
   const P=[];
 
   P.push(`<defs>
     <radialGradient id="frBg" cx="50%" cy="46%" r="75%">
-      <stop offset="0%" stop-color="#f2fbff"/><stop offset="55%" stop-color="${sky}"/><stop offset="100%" stop-color="#8fd2f4"/>
+      <stop offset="0%" stop-color="${shade(sky,.72)}"/><stop offset="55%" stop-color="${sky}"/><stop offset="100%" stop-color="${skyDeep}"/>
     </radialGradient>
-    <linearGradient id="frBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fa9ff"/><stop offset="1" stop-color="${blue}"/></linearGradient>
-    <linearGradient id="frYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe95e"/><stop offset="1" stop-color="${yellow}"/></linearGradient>
+    <linearGradient id="frBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${accLight}"/><stop offset="1" stop-color="${blue}"/></linearGradient>
+    <linearGradient id="frYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shade(yellow,.32)}"/><stop offset="1" stop-color="${yellow}"/></linearGradient>
     <linearGradient id="frKey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e8edf3"/></linearGradient>
   </defs>`);
 
-  /* 배경: 라디얼 + 햇살 + 옅은 격자 */
+  /* 배경: 라디얼 그라데이션 + 선택 패턴 */
   P.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#frBg)"/>`);
-  let rays='';
-  for(let i=0;i<18;i++){const a1=i*20*Math.PI/180, a2=(i*20+9)*Math.PI/180, R=1400;
-    rays+=`<polygon points="${CX},${CY} ${CX+Math.cos(a1)*R},${CY+Math.sin(a1)*R} ${CX+Math.cos(a2)*R},${CY+Math.sin(a2)*R}" fill="#ffffff" opacity=".22"/>`}
-  P.push(rays);
-  let grid='';
-  for(let x=0;x<=W;x+=80)grid+=`<path d="M ${x} 0 V ${H}" stroke="#5fb4de" stroke-width="1" opacity=".08"/>`;
-  for(let y=0;y<=H;y+=80)grid+=`<path d="M 0 ${y} H ${W}" stroke="#5fb4de" stroke-width="1" opacity=".08"/>`;
-  P.push(grid);
+  if(bgStyle==='rays'){
+    let rays='';
+    for(let i=0;i<18;i++){const a1=i*20*Math.PI/180, a2=(i*20+9)*Math.PI/180, R=1400;
+      rays+=`<polygon points="${CX},${CY} ${CX+Math.cos(a1)*R},${CY+Math.sin(a1)*R} ${CX+Math.cos(a2)*R},${CY+Math.sin(a2)*R}" fill="#ffffff" opacity=".22"/>`}
+    P.push(rays);
+  }else if(bgStyle==='stripes'){
+    let st='';
+    for(let i=-14;i<26;i++)st+=`<rect x="${i*120}" y="-200" width="52" height="${H+400}" fill="#ffffff" opacity=".16" transform="rotate(22 ${i*120} 0)"/>`;
+    P.push(st);
+  }else if(bgStyle==='dots'){
+    let dt='';
+    for(let y=45;y<H;y+=86)for(let x=45;x<W;x+=86)dt+=`<circle cx="${x+(Math.floor(y/86)%2?43:0)}" cy="${y}" r="7" fill="#ffffff" opacity=".28"/>`;
+    P.push(dt);
+  }
+  if(bgStyle!=='dots'){
+    let grid='';
+    for(let x=0;x<=W;x+=80)grid+=`<path d="M ${x} 0 V ${H}" stroke="${gridC}" stroke-width="1" opacity=".08"/>`;
+    for(let y=0;y<=H;y+=80)grid+=`<path d="M 0 ${y} H ${W}" stroke="${gridC}" stroke-width="1" opacity=".08"/>`;
+    P.push(grid);
+  }
 
-  /* 컨페티 + 반짝이 */
-  const confetti=[[70,105,'#ffd21c','r',18,40],[195,240,'#7b5cff','r',14,-25],[60,700,'#ff8a3d','r',20,45],[150,860,'#29c8ff','c',9],
-   [1490,70,'#ee3aa8','r',16,35],[1610,190,'#7b5cff','r',13,-30],[1568,332,'#ffd21c','c',10],[1638,565,'#3ddc84','r',14,20],
-   [1540,880,'#ff8a3d','r',17,-40],[380,895,'#ee3aa8','c',8],[985,60,'#3ddc84','r',12,30],[1245,120,'#ffd21c','c',9]];
-  confetti.forEach(([x,y,c,k,s,rot])=>{
-    if(k==='c')P.push(`<circle cx="${x}" cy="${y}" r="${s}" fill="${c}" opacity=".9"/>`);
-    else P.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="3" fill="${c}" opacity=".92" transform="rotate(${rot} ${x} ${y})"/>`)});
-  [[300,120,16],[1435,258,13],[95,395,12],[1300,905,11],[520,890,10]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#ffffff')));
+  /* 컨페티 + 반짝이 (토글) */
+  if(deco){
+    const confetti=[[70,105,'#ffd21c','r',18,40],[195,240,'#7b5cff','r',14,-25],[60,700,'#ff8a3d','r',20,45],[150,860,'#29c8ff','c',9],
+     [1490,70,'#ee3aa8','r',16,35],[1610,190,'#7b5cff','r',13,-30],[1568,332,'#ffd21c','c',10],[1638,565,'#3ddc84','r',14,20],
+     [1540,880,'#ff8a3d','r',17,-40],[380,895,'#ee3aa8','c',8],[985,60,'#3ddc84','r',12,30],[1245,120,'#ffd21c','c',9]];
+    confetti.forEach(([x,y,c,k,s,rot])=>{
+      if(k==='c')P.push(`<circle cx="${x}" cy="${y}" r="${s}" fill="${c}" opacity=".9"/>`);
+      else P.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="3" fill="${c}" opacity=".92" transform="rotate(${rot} ${x} ${y})"/>`)});
+    [[300,120,16],[1435,258,13],[95,395,12],[1300,905,11],[520,890,10]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#ffffff')));
+  }
 
-  /* ---- 달력 배지 (좌상단, 기울임 + 입체) ---- */
-  P.push(`<g transform="translate(158 52) rotate(-8)">`);
+  /* ---- 달력 배지 (좌상단, 통일 기울기 + 입체) ---- */
+  P.push(`<g transform="translate(158 52) rotate(${-tilt})">`);
   P.push(`<rect x="10" y="18" width="264" height="252" rx="30" fill="${navy}" opacity=".22"/>`);
   P.push(`<rect x="0" y="0" width="264" height="252" rx="30" fill="#ffffff"/>`);
   P.push(`<path d="M 0 30 Q 0 0 30 0 H 234 Q 264 0 264 30 V 86 H 0 Z" fill="url(#frBlue)"/>`);
-  P.push(`<rect x="0" y="72" width="264" height="14" fill="#0b62c4"/>`);
+  P.push(`<rect x="0" y="72" width="264" height="14" fill="${accDark}"/>`);
   [66,132,198].forEach(cx=>{P.push(`<rect x="${cx-6}" y="-34" width="12" height="52" rx="6" fill="#c8d2dc"/>`);
     P.push(`<circle cx="${cx}" cy="-32" r="15" fill="none" stroke="#59616c" stroke-width="9"/>`)});
   P.push(T(132,168,badge,{size:88,weight:700,family:F_GM,fill:blue}));
   P.push('</g>');
 
-  /* ---- 상단 리본 (기울임 + 두께) ---- */
-  P.push(`<g transform="rotate(-3 960 150)">`);
-  P.push(`<rect x="420" y="70" width="1120" height="196" rx="34" fill="#0a58b4"/>`);
+  /* ---- 상단 리본 (통일 기울기 + 두께) ---- */
+  P.push(`<g transform="rotate(${-tilt} 960 150)">`);
+  P.push(`<rect x="420" y="70" width="1120" height="196" rx="34" fill="${accDark}"/>`);
   P.push(`<rect x="420" y="52" width="1120" height="196" rx="34" fill="url(#frBlue)"/>`);
   P.push(`<rect x="444" y="66" width="1072" height="54" rx="27" fill="#ffffff" opacity=".16"/>`);
   {const segs=markSeg(topTitle),size=122;
@@ -201,8 +263,8 @@ function buildSVG(){
    const s1=104,s2=64;
    const w1=tw(main,s1,700,F_GM),w2=paren?tw(paren,s2,700,F_GM)+26:0;
    const bw=Math.min(W-120,w1+w2+150),bh=190,bx=CX-bw/2,by=300;
-   P.push(`<g transform="rotate(-2 ${CX} ${by+bh/2})">`);
-   P.push(`<rect x="${bx+8}" y="${by+16}" width="${bw}" height="${bh}" rx="40" fill="#0a58b4" opacity=".8"/>`);
+   P.push(`<g transform="rotate(${-tilt} ${CX} ${by+bh/2})">`);
+   P.push(`<rect x="${bx+8}" y="${by+16}" width="${bw}" height="${bh}" rx="40" fill="${accDark}" opacity=".8"/>`);
    P.push(`<path d="M ${CX-140} ${by+bh+8} L ${CX-70} ${by+bh+74} L ${CX-40} ${by+bh+4} Z" fill="#ffffff" stroke="${blue}" stroke-width="7"/>`);
    P.push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="40" fill="#ffffff" stroke="${blue}" stroke-width="7"/>`);
    const tx=CX-(w1+w2)/2;
@@ -212,23 +274,23 @@ function buildSVG(){
 
   /* ---- 할인율 (초대형 입체) ---- */
   {const size=Math.min(330,Math.floor(330*560/Math.max(1,tw(discount,330,700,F_GM))));
-   P.push(`<g transform="rotate(-5 400 690)">`);
-   P.push(sticker(400,690,discount,size,'url(#frYellow)',{depth:16,outer:Math.max(18,size*.085),mid:Math.max(9,size*.04),midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+   P.push(`<g transform="rotate(${-tilt} 400 690)">`);
+   P.push(sticker(400,690,discount,size,'url(#frYellow)',{depth:16,outer:Math.max(18,size*.085),mid:Math.max(9,size*.04),midColor:accDark,shadowFill:accDarker}));
    P.push('</g>')}
 
   /* ---- 추가 / 할인! (2줄 입체) ---- */
   {const l1=dLines[0]||'추가 할인!',l2=dLines[1];
-   P.push(`<g transform="rotate(-5 880 665)">`);
+   P.push(`<g transform="rotate(${-tilt} 880 665)">`);
    if(l2){
-     P.push(sticker(880,600,l1,120,'#ffffff',{depth:10,outer:0,mid:13,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
-     P.push(sticker(880,738,l2,112,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+     P.push(sticker(880,600,l1,120,'#ffffff',{depth:10,outer:0,mid:13,midColor:accDark,shadowFill:accDarker}));
+     P.push(sticker(880,738,l2,112,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:accDark,shadowFill:accDarker}));
    }else{
      const parts=l1.split(/\s+/);
      if(parts.length>=2){
-       P.push(sticker(880,600,parts[0],120,'#ffffff',{depth:10,outer:0,mid:13,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
-       P.push(sticker(880,738,parts.slice(1).join(' '),112,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+       P.push(sticker(880,600,parts[0],120,'#ffffff',{depth:10,outer:0,mid:13,midColor:accDark,shadowFill:accDarker}));
+       P.push(sticker(880,738,parts.slice(1).join(' '),112,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:accDark,shadowFill:accDarker}));
      }else{
-       P.push(sticker(880,665,l1,116,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:'#0757b5',shadowFill:'#0a4fa0'}));
+       P.push(sticker(880,665,l1,116,'url(#frYellow)',{depth:10,outer:0,mid:12,midColor:accDark,shadowFill:accDarker}));
      }
    }
    P.push('</g>')}
@@ -236,9 +298,9 @@ function buildSVG(){
   /* ---- 상품 이미지 (우하단, 기울임 + 바닥 그림자) ---- */
   P.push(`<ellipse cx="1370" cy="872" rx="260" ry="30" fill="${navy}" opacity=".18"/>`);
   if(productDataURI){
-    P.push(`<g transform="rotate(-6 1370 640)"><image href="${productDataURI}" x="1080" y="400" width="580" height="470" preserveAspectRatio="xMidYMid meet"/></g>`);
+    P.push(`<g transform="rotate(${-tilt} 1370 640)"><image href="${productDataURI}" x="1080" y="400" width="580" height="470" preserveAspectRatio="xMidYMid meet"/></g>`);
   }else{
-    P.push(`<g transform="translate(1110 470) rotate(-7)">`);
+    P.push(`<g transform="translate(1110 470) rotate(${-tilt})">`);
     P.push(`<rect x="10" y="14" width="500" height="310" rx="26" fill="${navy}" opacity=".2"/>`);
     P.push(`<rect x="0" y="0" width="500" height="310" rx="26" fill="url(#frKey)" stroke="#c3ccd6" stroke-width="4"/>`);
     let keys='';
@@ -276,8 +338,16 @@ function outputSVG(filename, svg){
   }
 }
 
-['#badgeText','#topTitle','#mainTitle','#discount','#discountText','#notice','#sky','#blue','#yellow','#navy']
+['#badgeText','#topTitle','#mainTitle','#discount','#discountText','#notice','#sky','#blue','#yellow','#navy','#bgStyle']
   .forEach(sel=>$(sel).addEventListener('input',render));
+$('#deco').addEventListener('change',render);
+$('#tilt').addEventListener('input',e=>{$('#tiltVal').textContent=e.target.value+'°';render()});
+document.querySelectorAll('#presets .preset').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#presets .preset').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const p=PRESETS[b.dataset.p];
+  $('#sky').value=p.sky;$('#blue').value=p.blue;$('#yellow').value=p.yellow;$('#navy').value=p.navy;
+  render()}));
 
 $('#productImage').addEventListener('change', async e=>{
   const file=e.target.files&&e.target.files[0];
