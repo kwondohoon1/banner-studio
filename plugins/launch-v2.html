@@ -12,6 +12,7 @@
 @font-face{font-family:'NanumSquareRound';font-weight:700;font-display:swap;src:url('fonts/NanumSquareRoundB.woff2') format('woff2'),url('../fonts/NanumSquareRoundB.woff2') format('woff2')}
 @font-face{font-family:'Nanum Brush';font-weight:400;font-display:swap;src:url('fonts/NanumBrush.woff2') format('woff2'),url('../fonts/NanumBrush.woff2') format('woff2')}
 @font-face{font-family:'DungGeunMo';font-weight:400;font-display:swap;src:url('fonts/DungGeunMo.woff2') format('woff2'),url('../fonts/DungGeunMo.woff2') format('woff2')}
+@font-face{font-family:'DNF Bit Bit v2';font-weight:400;font-display:swap;src:url('fonts/DNFBitBitv2.woff2') format('woff2'),url('../fonts/DNFBitBitv2.woff2') format('woff2')}
 :root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
@@ -230,7 +231,7 @@ const F_GM="'Gmarket Sans', Pretendard, sans-serif";      /* 지오메트릭 이
 const F_SC="'S-Core Dream', Pretendard, sans-serif";      /* 두꺼운 헤비체 */
 const F_RD="'NanumSquareRound', Pretendard, sans-serif";  /* 둥근 버블체 */
 const F_BR="'Nanum Brush','Nanum Brush Script', cursive"; /* 붓글씨 */
-const F_PX="'DungGeunMo', Pretendard, sans-serif";        /* 픽셀(Y2K) */
+const F_PX="'DNF Bit Bit v2','DungGeunMo', Pretendard, sans-serif"; /* 픽셀(Y2K) — 던파 비트비트체 */
 function setStatus(t,e){const x=$('#status');x.textContent=t;x.className='status'+(t?' show':'')+(e?' err':'')}
 const comma=n=>Number(n||0).toLocaleString('ko-KR');
 const won=n=>comma(n)+'원';
@@ -1390,6 +1391,6 @@ render();
 if(document.fonts&&document.fonts.load)Promise.all([
  document.fonts.load("700 20px 'Gmarket Sans'"),document.fonts.load("500 20px 'Gmarket Sans'"),
  document.fonts.load("800 20px 'S-Core Dream'"),document.fonts.load("700 20px 'NanumSquareRound'"),
- document.fonts.load("400 20px 'Nanum Brush'"),document.fonts.load("400 20px 'DungGeunMo'")]).then(()=>render()).catch(()=>{});
+ document.fonts.load("400 20px 'Nanum Brush'"),document.fonts.load("400 20px 'DNF Bit Bit v2'"),document.fonts.load("400 20px 'DungGeunMo'")]).then(()=>render()).catch(()=>{});
 </script>
 </body></html>
