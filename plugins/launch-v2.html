@@ -11,6 +11,7 @@
 @font-face{font-family:'S-Core Dream';font-weight:800;font-display:swap;src:url('fonts/SCDream8.woff2') format('woff2'),url('../fonts/SCDream8.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff') format('woff')}
 @font-face{font-family:'NanumSquareRound';font-weight:700;font-display:swap;src:url('fonts/NanumSquareRoundB.woff2') format('woff2'),url('../fonts/NanumSquareRoundB.woff2') format('woff2')}
 @font-face{font-family:'Nanum Brush';font-weight:400;font-display:swap;src:url('fonts/NanumBrush.woff2') format('woff2'),url('../fonts/NanumBrush.woff2') format('woff2')}
+@font-face{font-family:'DungGeunMo';font-weight:400;font-display:swap;src:url('fonts/DungGeunMo.woff2') format('woff2'),url('../fonts/DungGeunMo.woff2') format('woff2')}
 :root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
@@ -70,6 +71,10 @@ textarea{resize:vertical;line-height:1.55;font-weight:500}
  <button class="dcard" data-d="2"><div class="swatch" style="background:linear-gradient(135deg,#dff4f9,#fff 60%,#35b6d9 61%)"></div><b>디자인 2 · 클린 시안</b><span>화이트/시안, 그라데이션 모델명</span></button>
  <button class="dcard" data-d="3"><div class="swatch" style="background:linear-gradient(135deg,#b9c4f4,#d6dcfb 55%,#8f7ff0 56%)"></div><b>디자인 3 · 퍼플 얼리버드</b><span>라벤더 버블 타이틀 + 선물상자</span></button>
  <button class="dcard" data-d="4"><div class="swatch" style="background:linear-gradient(135deg,#cfe4f8,#fdf3d8 60%,#e8c96a 61%)"></div><b>디자인 4 · 크림 스파클</b><span>파스텔 크림, 피처 태그 플로팅</span></button>
+ <button class="dcard" data-d="5"><div class="swatch" style="background:linear-gradient(135deg,#5FB2EC,#BFE3F8 55%,#9BE939 56%)"></div><b>디자인 5 · Y2K 픽셀</b><span>하늘+네온그린 픽셀 폰트, 마퀴 스트립</span></button>
+ <button class="dcard" data-d="6"><div class="swatch" style="background:linear-gradient(135deg,#FFE9D8,#F2704E)"></div><b>디자인 6 · 피치 코랄</b><span>피치 파스텔, 단상 위 제품, 행잉 배너</span></button>
+ <button class="dcard" data-d="7"><div class="swatch" style="background:linear-gradient(135deg,#F5E9D5,#E8833A)"></div><b>디자인 7 · 빈티지 베이지</b><span>체크 배경 + 브라운/오렌지, 폭죽 두들</span></button>
+ <button class="dcard" data-d="8"><div class="swatch" style="background:linear-gradient(135deg,#E3D5F7,#7C4DD4)"></div><b>디자인 8 · 라벤더 리본</b><span>퍼플 파스텔, 팻말 보드 + 티켓</span></button>
 </div>
 
 <div class="step"><b>기본 정보</b><span class="num">02 INFO</span></div>
@@ -225,6 +230,7 @@ const F_GM="'Gmarket Sans', Pretendard, sans-serif";      /* 지오메트릭 이
 const F_SC="'S-Core Dream', Pretendard, sans-serif";      /* 두꺼운 헤비체 */
 const F_RD="'NanumSquareRound', Pretendard, sans-serif";  /* 둥근 버블체 */
 const F_BR="'Nanum Brush','Nanum Brush Script', cursive"; /* 붓글씨 */
+const F_PX="'DungGeunMo', Pretendard, sans-serif";        /* 픽셀(Y2K) */
 function setStatus(t,e){const x=$('#status');x.textContent=t;x.className='status'+(t?' show':'')+(e?' err':'')}
 const comma=n=>Number(n||0).toLocaleString('ko-KR');
 const won=n=>comma(n)+'원';
@@ -277,7 +283,7 @@ function imgTag(im,cx,cy,maxW,maxH){const r=Math.min(maxW/im.w,maxH/im.h),w=im.w
  return {tag:`<image href="${im.data}" x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/>`,w,h}}
 /* ---------- 상태 & 입력 수집 ---------- */
 const state={design:'1',files:[],bgRemove:true};
-const DEFAULT_TITLE={1:'신규 출시기념',2:'신규출시',3:'얼리버드 특가',4:'출시기념 이벤트'};
+const DEFAULT_TITLE={1:'신규 출시기념',2:'신규출시',3:'얼리버드 특가',4:'출시기념 이벤트',5:'출시 이벤트',6:'출시기념 이벤트',7:'신규출시 이벤트',8:'출시 이벤트'};
 function collect(){
  const model=($('#model').value||'MODEL').trim().toUpperCase();
  const spec=$('#spec').value.trim();
@@ -758,6 +764,383 @@ function buildD4(d){const P=[];let y=0;
  P.push(nf.svg);y+=nf.h;
  return{svg:P.join(''),H:y}}
 /* ============================================================
+   디자인 5 · Y2K 픽셀 — 하늘/구름 + 네온그린 픽셀 폰트 + 마퀴
+   ============================================================ */
+function cloud5(cx2,cy2,s){return `<g opacity=".92">`+C(cx2,cy2,s,'#fff')+C(cx2-s*1.1,cy2+s*.25,s*.72,'#fff')+C(cx2+s*1.1,cy2+s*.25,s*.78,'#fff')+R(cx2-s*1.7,cy2+s*.3,s*3.4,s*.7,s*.35,'#fff')+'</g>'}
+function heart5(x,yy,s,fill){return `<path d="M ${x} ${yy+s*.9} C ${x-s*1.25} ${yy+s*.05} ${x-s*.72} ${yy-s*.8} ${x} ${yy-s*.15} C ${x+s*.72} ${yy-s*.8} ${x+s*1.25} ${yy+s*.05} ${x} ${yy+s*.9} Z" fill="${fill}" stroke="#D24FB0" stroke-width="3"/>`}
+function buildD5(d){const P=[];let y=0;
+ const GRN='#9BE939',BLK='#17181C',DK='#262B33';const PINK='#F27FD3';
+ P.push(`<defs>
+  <linearGradient id="d5sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FB2EC"/><stop offset="1" stop-color="#C4E6F9"/></linearGradient>
+  <linearGradient id="d5scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f43f5e"/><stop offset=".5" stop-color="#f97316"/><stop offset="1" stop-color="#3b82f6"/></linearGradient>
+  <linearGradient id="d5tik" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4FBB0"/><stop offset="1" stop-color="#9BE939"/></linearGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=1020;
+ P.push(R(0,0,W,heroH,0,'url(#d5sky)'));
+ P.push(cloud5(120,150,42),cloud5(760,110,34),cloud5(66,540,28),cloud5(806,600,40));
+ P.push(heart5(96,320,32,PINK),heart5(70,720,44,PINK));
+ [[302,92,9],[562,66,7],[792,300,8],[210,420,6]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.92)));
+ P.push(T(W/2,64,d.model,{size:26,weight:400,family:F_PX,fill:'#fff',anchor:'middle',ls:'3',stroke:BLK,sw:1.4}));
+ const f1=d.feats[0]||'',f2=d.feats[1]||'';
+ if(f1){const w2=tw(f1,20,400,F_PX)+42;P.push(R(W-92-w2,116,w2,42,21,GRN,` stroke="${BLK}" stroke-width="2.5"`),T(W-92-w2/2,138,f1,{size:20,weight:400,family:F_PX,fill:BLK,anchor:'middle'}))}
+ if(f2){const w2=tw(f2,20,400,F_PX)+42;P.push(R(60,196,w2,42,21,GRN,` stroke="${BLK}" stroke-width="2.5"`),T(60+w2/2,218,f2,{size:20,weight:400,family:F_PX,fill:BLK,anchor:'middle'}))}
+ /* 픽셀 타이틀 (2줄) */
+ const tls=d.title.split(' ').length>1?d.title.split(' '):[d.title];
+ tls.slice(0,2).forEach((l,i)=>{
+  const sz=Math.min(132,Math.floor(132*(W-160)/Math.max(1,tw(l,132,400,F_PX))));
+  P.push(T(W/2+6,214+i*140+6,l,{size:sz,weight:400,family:F_PX,fill:'#fff',anchor:'middle',ls:'6'}));
+  P.push(T(W/2,214+i*140,l,{size:sz,weight:400,family:F_PX,fill:GRN,anchor:'middle',ls:'6',stroke:BLK,sw:5}))});
+ const ty0=214+Math.min(tls.length,2)*140-70;
+ if(d.spec){const sw2=Math.min(W-80,tw(d.spec,22,400,F_PX)+64);P.push(R(W/2-sw2/2,ty0+78,sw2,52,26,BLK),T(W/2,ty0+105,d.spec,{size:22,weight:400,family:F_PX,fill:GRN,anchor:'middle',ls:'1'}))}
+ if(d.ds&&d.de)P.push(T(W/2,ty0+172,`${dotS(d.ds).replace('. ','.')} - ${dotS(d.de).replace('. ','.')}`,{size:27,weight:400,family:F_PX,fill:BLK,anchor:'middle',ls:'4'}));
+ P.push(productArt(W/2,heroH-250,620,330,'d5scr'));
+ /* 마퀴 스트립 */
+ P.push(R(0,heroH-46,W,46,0,BLK));
+ {const seg=` ${d.model}  *  EVENT  * `;const segW=tw(seg,16,400,F_PX)+6;let x=-10;
+  while(x<W){P.push(T(x,heroH-23,seg,{size:16,weight:400,family:F_PX,fill:GRN,ls:'1'}));x+=segW}}
+ y=heroH;
+ /* --- EVENT 01 특가 (다크) --- */
+ function evPill5(yy,t){const w2=tw(t,20,400,F_PX)+48;
+  return R(W/2-w2/2,yy,w2,42,8,GRN,` stroke="${BLK}" stroke-width="2.5"`)+T(W/2,yy+22,t,{size:20,weight:400,family:F_PX,fill:BLK,anchor:'middle',ls:'2'})}
+ function pxTitle(yy,t,sz){return T(W/2+5,yy+5,t,{size:sz,weight:400,family:F_PX,fill:GRN,anchor:'middle',opacity:.5})
+  +T(W/2,yy,t,{size:sz,weight:400,family:F_PX,fill:'#fff',anchor:'middle'})}
+ const c1H=d.upTxt?322:246;
+ const s1H=56+42+92+c1H+72;
+ P.push(R(0,y,W,s1H,0,DK));
+ P.push(evPill5(y+56,'EVENT 01'));
+ P.push(pxTitle(y+164,'출시기념 특가',64));
+ const cx5=90,cw5=W-180,c1y=y+232;
+ P.push(R(cx5+8,c1y+8,cw5,c1H,6,'#79808c'));
+ P.push(R(cx5,c1y,cw5,c1H,6,'#fff',` stroke="${BLK}" stroke-width="2.5"`));
+ P.push(R(cx5,c1y,cw5,48,6,GRN,` stroke="${BLK}" stroke-width="2.5"`));
+ P.push(T(cx5+24,c1y+25,d.limitTxt||'한정 특가',{size:20,weight:400,family:F_PX,fill:BLK}));
+ P.push(T(cx5+cw5-24,c1y+25,'+ + +',{size:18,weight:400,family:F_PX,fill:BLK,anchor:'end'}));
+ if(d.orig)P.push(T(W/2,c1y+92,won(d.orig),{size:24,weight:400,family:F_PX,fill:'#9aa3ad',anchor:'middle',deco:'line-through'}));
+ if(d.sale){const psz=Math.min(88,Math.floor(88*(cw5-160)/Math.max(1,tw(won(d.sale),88,400,F_PX))));
+  P.push(T(W/2,c1y+166,won(d.sale),{size:psz,weight:400,family:F_PX,fill:GRN,anchor:'middle',stroke:BLK,sw:3.5}));
+  if(d.discTxt){const bt=`${d.discTxt}할인`,bw=tw(bt,14.5,700)+24,bx=W/2+tw(won(d.sale),psz,400,F_PX)/2-6;
+   P.push(R(bx,c1y+92,bw,30,15,'#fff',` stroke="${GRN}" stroke-width="2.5"`),T(bx+bw/2,c1y+107,bt,{size:14.5,weight:700,fill:BLK,anchor:'middle'}))}}
+ if(d.upTxt){const uy=c1y+236,uw=tw(d.upTxt,19,700)+88;
+  P.push(R(W/2-uw/2,uy,uw,52,26,'#fff',` stroke="${PINK}" stroke-width="2.5"`));
+  P.push(C(W/2-uw/2+30,uy+26,14,PINK),T(W/2-uw/2+30,uy+27,'+',{size:20,weight:900,fill:'#fff',anchor:'middle'}));
+  P.push(T(W/2-uw/2+54,uy+27,d.upTxt,{size:19,weight:700,fill:BLK}))}
+ y+=s1H;
+ /* --- EVENT 02 포토이벤트 (다크) --- */
+ const tagsL=tagLines(d.tags,16,600,W-220);
+ const rch5=252,hbH=56+tagsL.length*30+30;
+ const s2H=56+42+96+130+rch5+66+hbH+64;
+ P.push(R(0,y,W,s2H,0,DK));
+ P.push(evPill5(y+56,'EVENT 02'));
+ P.push(pxTitle(y+162,'출시기념',56));
+ P.push(pxTitle(y+238,'포토이벤트',56));
+ const rcw5=234,rgap5=26,rx0=W/2-(rcw5*3+rgap5*2)/2,rcy=y+318;
+ d.reviews.forEach((rv,i)=>{const rx=rx0+i*(rcw5+rgap5);
+  P.push(R(rx+6,rcy+6,rcw5,rch5,6,'#79808c'));
+  P.push(R(rx,rcy,rcw5,rch5,6,'#fff',` stroke="${BLK}" stroke-width="2.5"`));
+  P.push(R(rx,rcy,rcw5,38,6,GRN,` stroke="${BLK}" stroke-width="2.5"`));
+  P.push(T(rx+rcw5/2,rcy+20,'0'+(i+1),{size:18,weight:400,family:F_PX,fill:BLK,anchor:'middle',ls:'2'}));
+  P.push(`<g transform="rotate(-6 ${rx+rcw5/2} ${rcy+108})">`,
+   R(rx+rcw5/2-74,rcy+76,148,64,8,'url(#d5tik)',` stroke="${BLK}" stroke-width="2"`),
+   T(rx+rcw5/2,rcy+94,'네이버페이',{size:11,weight:700,fill:BLK,anchor:'middle'}),
+   T(rx+rcw5/2,rcy+120,won(rv.amt),{size:23,weight:400,family:F_PX,fill:BLK,anchor:'middle'}),'</g>');
+  P.push(T(rx+rcw5/2,rcy+182,rv.n1,{size:17,weight:800,fill:BLK,anchor:'middle'}));
+  P.push(T(rx+rcw5/2,rcy+208,rv.n2,{size:17,weight:800,fill:BLK,anchor:'middle'}));
+  P.push(T(rx+rcw5/2,rcy+232,rv.req,{size:11.5,weight:500,fill:'#8a8f96',anchor:'middle'}))});
+ if(d.totalTxt)P.push(T(W/2,rcy+rch5+38,d.totalTxt,{size:15,weight:600,fill:'#D7DCE4',anchor:'middle'}));
+ const hby=rcy+rch5+66;
+ P.push(R(70,hby,W-140,hbH,12,'#fff',` stroke="${BLK}" stroke-width="2"`));
+ {const hp='포토상품평 필수 해시태그',hw=tw(hp,15,400,F_PX)+44;
+  P.push(R(W/2-hw/2,hby-16,hw,34,8,GRN,` stroke="${BLK}" stroke-width="2.5"`),T(W/2,hby+2,hp,{size:15,weight:400,family:F_PX,fill:BLK,anchor:'middle'}))}
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby+46+i*30,l,{size:16,weight:600,fill:'#333',anchor:'middle'})));
+ y+=s2H;
+ /* --- 접수 정보 (다크) --- */
+ const ir=infoRows(d,70,y+52,{pillBg:'#3A4150',pillInk:'#fff',ink:'#DDE2EA'});
+ P.push(R(0,y,W,52+ir.h+56,0,DK));P.push(ir.svg);
+ y+=52+ir.h+56;
+ /* --- NOTICE --- */
+ const nf=noticeFooter(d,y,{bg:'#0F1114',ink:'#9a9a9a',head:'NOTICE',headSvg:yy=>
+  `<path d="M 60 ${yy+12} L 74 ${yy-13} L 88 ${yy+12} Z" fill="#F5B840"/>`+T(74,yy+6,'!',{size:13,weight:900,fill:'#3a2c00',anchor:'middle'})+T(102,yy,'NOTICE',{size:18,weight:400,family:F_PX,fill:'#fff',ls:'2'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
+   디자인 6 · 피치 코랄 — 파스텔 피치 + 단상 + 행잉 배너
+   ============================================================ */
+function buildD6(d){const P=[];let y=0;
+ const COR='#F2704E',BRN='#4A3A2E',CREAM='#FBF0C4',SUB='#8A7360';
+ P.push(`<defs>
+  <linearGradient id="d6sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6EA"/><stop offset="1" stop-color="#FFE3CC"/></linearGradient>
+  <linearGradient id="d6scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset=".5" stop-color="#fb923c"/><stop offset="1" stop-color="#a3e635"/></linearGradient>
+  <radialGradient id="d6orb"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=880;
+ P.push(R(0,y,W,heroH,0,'url(#d6sky)'));
+ /* 뭉게 꽃 (soft orb 클러스터) */
+ function flower6(cx2,cy2,s){let g='';for(let i=0;i<5;i++){const a=i*72*Math.PI/180;g+=C(cx2+Math.cos(a)*s*.9,cy2+Math.sin(a)*s*.9,s,'url(#d6orb)')}return g+C(cx2,cy2,s*.7,'url(#d6orb)')}
+ P.push(flower6(790,120,64),flower6(60,420,52),flower6(820,700,58));
+ if(d.spec)P.push(T(W/2,66,`「 ${d.spec} 」`,{size:19,weight:600,fill:SUB,anchor:'middle',ls:'1'}));
+ const m6=Math.min(64,Math.floor(64*(W-120)/Math.max(1,tw(d.model,64,700,F_GM))));
+ P.push(T(W/2,132,d.model,{size:m6,weight:700,family:F_GM,fill:COR,anchor:'middle',ls:'1'}));
+ P.push(T(W/2,208,d.title,{size:54,weight:700,family:F_GM,fill:COR,anchor:'middle',ls:'-1'}));
+ if(d.periodK)P.push(T(W/2,268,d.periodK,{size:19,weight:500,fill:SUB,anchor:'middle'}));
+ /* 단상 + 제품 */
+ P.push(`<path d="M ${W/2-190} 700 L ${W/2+190} 700 L ${W/2+165} 862 L ${W/2-165} 862 Z" fill="#FFFFFF"/>`);
+ P.push(R(W/2-190,688,380,18,4,'#fff'),R(W/2-190,688,380,18,4,'#F1E2D2',' opacity=".5"'));
+ P.push(productArt(W/2,540,520,300,'d6scr'));
+ y=heroH;
+ /* --- EVENT 01 (피치 연장) --- */
+ const s1H=d.upTxt?560:470;
+ P.push(R(0,y,W,s1H,0,'#FFEFE0'));
+ function evPill6(yy,t){const w2=tw(t,17,800)+52;
+  return R(W/2-w2/2,yy,w2,38,19,COR)+T(W/2,yy+20,t,{size:17,weight:800,fill:'#fff',anchor:'middle',ls:'1'})}
+ P.push(evPill6(y+48,'EVENT 01'));
+ if(d.limitTxt)P.push(T(W/2,y+134,d.limitTxt,{size:40,weight:700,family:F_GM,fill:BRN,anchor:'middle'}));
+ P.push(T(W/2,y+192,'출시기념 특가!',{size:52,weight:700,family:F_GM,fill:COR,anchor:'middle',ls:'-1'}));
+ /* 가격 2행 (라벨 알약 + 값) */
+ const px6=W/2-160;
+ if(d.orig){P.push(R(px6-96,y+238,86,34,17,'#B9AA9C'),T(px6-53,y+255,'정상가',{size:15,weight:700,fill:'#fff',anchor:'middle'}));
+  P.push(T(px6+10,y+256,won(d.orig),{size:30,weight:600,fill:'#B9AA9C',deco:'line-through'}))}
+ if(d.discTxt){const bx=W/2+188,by2=y+238;
+  P.push(R(bx,by2,116,52,10,COR),`<path d="M ${bx+38} ${by2+52} L ${bx+78} ${by2+52} L ${bx+58} ${by2+72} Z" fill="${COR}"/>`);
+  P.push(T(bx+58,by2+18,d.discTxt,{size:16,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(bx+58,by2+38,'DOWN',{size:13,weight:800,fill:'#FFD9CC',anchor:'middle',ls:'1'}))}
+ if(d.sale){P.push(R(px6-96,y+296,86,34,17,COR),T(px6-53,y+313,'할인가',{size:15,weight:700,fill:'#fff',anchor:'middle'}));
+  P.push(T(px6+10,y+318,won(d.sale),{size:58,weight:900,fill:BRN}))}
+ if(d.upTxt){const ty=y+402;
+  P.push(R(W/2-208,ty,92,32,6,COR),T(W/2-162,ty+16,'추가 혜택',{size:14,weight:800,fill:'#fff',anchor:'middle'}));
+  const ut=d.upTxt+'!',uw=Math.max(tw(ut,22,800,F_GM)+72,460);
+  P.push(R(W/2-uw/2,ty+44,uw,62,14,'#fff'));
+  P.push(T(W/2,ty+76,ut,{size:22,weight:700,family:F_GM,fill:COR,anchor:'middle'}))}
+ y+=s1H;
+ /* --- EVENT 02 (크림) --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-220);
+ const rch6=250,hbH6=52+tagsL.length*29+26;
+ const s2H=48+38+92+rch6+70+hbH6+60;
+ P.push(R(0,y,W,s2H,0,CREAM));
+ P.push(evPill6(y+48,'EVENT 02'));
+ P.push(T(W/2,y+142,'포토상품평 이벤트',{size:52,weight:700,family:F_GM,fill:BRN,anchor:'middle',ls:'-1'}));
+ /* 행잉 배너 카드 3개 */
+ const rcw6=236,rgap6=24,rx06=W/2-(rcw6*3+rgap6*2)/2,rcy6=y+206;
+ d.reviews.forEach((rv,i)=>{const rx=rx06+i*(rcw6+rgap6);
+  P.push(R(rx,rcy6,rcw6,rch6,8,'#fff'));
+  P.push(R(rx,rcy6,rcw6,16,8,'#F0876B'));
+  P.push(C(rx+26,rcy6+8,7,'#E05B3C'),C(rx+rcw6-26,rcy6+8,7,'#E05B3C'));
+  P.push(T(rx+rcw6/2,rcy6+52,`${rv.n1} ${rv.n2}`,{size:14.5,weight:700,fill:BRN,anchor:'middle'}));
+  P.push(coin(rx+rcw6/2,rcy6+112,32));
+  P.push(T(rx+rcw6/2,rcy6+172,'네이버페이',{size:15,weight:600,fill:SUB,anchor:'middle'}));
+  P.push(T(rx+rcw6/2,rcy6+206,won(rv.amt),{size:27,weight:900,fill:COR,anchor:'middle'}))});
+ if(d.totalTxt)P.push(T(W/2,rcy6+rch6+40,d.totalTxt,{size:15.5,weight:600,fill:BRN,anchor:'middle',deco:'underline'}));
+ const hby6=rcy6+rch6+70;
+ P.push(R(70,hby6,W-140,hbH6,14,'#fff'));
+ P.push(T(W/2,hby6+30,'포토상품평 필수 해시태그',{size:17,weight:800,fill:COR,anchor:'middle'}));
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby6+58+i*29,l,{size:15.5,weight:600,fill:'#5C4B3E',anchor:'middle'})));
+ y+=s2H;
+ /* --- 접수 정보 --- */
+ const ir=infoRows(d,70,y+48,{pillBg:COR,pillInk:'#fff',ink:'#5C4B3E'});
+ P.push(R(0,y,W,48+ir.h+52,0,'#FFF6EA'));P.push(ir.svg);
+ y+=48+ir.h+52;
+ const nf=noticeFooter(d,y,{bg:'#2B2B2B',ink:'#a0a0a0',head:'NOTICE',headSvg:yy=>
+  `<path d="M 60 ${yy+12} L 74 ${yy-13} L 88 ${yy+12} Z" fill="#F5B840"/>`+T(74,yy+6,'!',{size:13,weight:900,fill:'#3a2c00',anchor:'middle'})+T(102,yy,'NOTICE',{size:17,weight:800,fill:'#fff',ls:'2'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
+   디자인 7 · 빈티지 베이지 — 체크 배경 + 브라운/오렌지 + 폭죽 두들
+   ============================================================ */
+function fire7(x,yy,s,color){let g='';for(let i=0;i<8;i++){const a=i*45*Math.PI/180;
+ g+=`<line x1="${x+Math.cos(a)*s*.4}" y1="${yy+Math.sin(a)*s*.4}" x2="${x+Math.cos(a)*s}" y2="${yy+Math.sin(a)*s}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>`}
+ return g}
+function plaid7(y0,h){let g='';
+ for(let x=0;x<=W;x+=96)g+=R(x,y0,26,h,0,'#EBDCC0',' opacity=".5"');
+ for(let yy=y0;yy<=y0+h;yy+=96)g+=R(0,yy,W,26,0,'#EBDCC0',' opacity=".5"');
+ return g}
+function buildD7(d){const P=[];let y=0;
+ const BG='#F5E9D5',BRN='#5F4226',ORG='#E8833A',CARD='#FFFDF6';
+ P.push(`<defs>
+  <linearGradient id="d7scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d4c5a9"/><stop offset=".5" stop-color="#a78b62"/><stop offset="1" stop-color="#4a3c2e"/></linearGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=900;
+ P.push(R(0,0,W,heroH,0,BG));
+ P.push(plaid7(0,heroH));
+ P.push(fire7(84,180,30,ORG),fire7(792,140,24,'#D9A45B'),fire7(806,420,28,ORG),fire7(70,560,22,'#D9A45B'));
+ [[300,80,8],[560,110,7]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,ORG,.8)));
+ if(d.spec)P.push(T(W/2,64,`✦  ${d.spec}  ✦`,{size:19,weight:700,fill:BRN,anchor:'middle',ls:'1'}));
+ const m7=Math.min(70,Math.floor(70*(W-110)/Math.max(1,tw(d.model,70,700,F_GM))));
+ P.push(T(W/2,140,d.model,{size:m7,weight:700,family:F_GM,fill:'#fff',anchor:'middle',ls:'1',stroke:BRN,sw:7}));
+ P.push(T(W/2,222,d.title,{size:56,weight:700,family:F_GM,fill:'#FFF4DC',anchor:'middle',ls:'-1',stroke:BRN,sw:7}));
+ if(d.ds&&d.de)P.push(T(W/2,286,`${dotY(d.ds)} - ${dotY(d.de)}`,{size:19,weight:700,fill:BRN,anchor:'middle',ls:'1'}));
+ /* 사진 카드 */
+ P.push(R(140,340,W-280,460,22,'#E4D3B4',' opacity=".7"'),R(130,330,W-260,460,22,CARD));
+ P.push(productArt(W/2,545,W-320,360,'d7scr'));
+ y=heroH;
+ /* --- BENEFIT 01 --- */
+ function bPill7(yy,t){const w2=tw(t,16,800)+48;
+  return R(W/2-w2/2,yy,w2,36,18,ORG)+T(W/2,yy+19,t,{size:16,weight:800,fill:'#fff',anchor:'middle',ls:'2'})}
+ const c7H=d.upTxt?332:252;
+ const s1H=48+36+96+40+c7H+72;
+ P.push(R(0,y,W,s1H,0,BG));P.push(plaid7(y,s1H));
+ P.push(fire7(96,y+140,26,ORG),fire7(780,y+260,24,'#D9A45B'));
+ P.push(bPill7(y+48,'BENEFIT 01'));
+ {const t1='출시기념 ',t2='특가',sz=54;
+  const w1=tw(t1,sz,700,F_GM),w2=tw(t2,sz,700,F_GM);
+  const x0=W/2-(w1+w2)/2;
+  P.push(T(x0+w1/2,y+150,t1,{size:sz,weight:700,family:F_GM,fill:BRN,anchor:'middle',ls:'-1'}));
+  P.push(T(x0+w1+w2/2,y+150,t2,{size:sz,weight:700,family:F_GM,fill:ORG,anchor:'middle',ls:'-1'}))}
+ if(d.limitTxt)P.push(T(W/2,y+206,d.limitTxt,{size:22,weight:700,fill:BRN,anchor:'middle'}));
+ /* 행잉 카드 (클립 핀) */
+ const c7x=110,c7w=W-220,c7y=y+248;
+ P.push(R(c7x+8,c7y+10,c7w,c7H,16,'#E4D3B4',' opacity=".8"'),R(c7x,c7y,c7w,c7H,16,CARD));
+ P.push(R(c7x+56,c7y-14,14,40,7,'#B9A98E'),R(c7x+c7w-70,c7y-14,14,40,7,'#B9A98E'));
+ if(d.orig){P.push(R(c7x+58,c7y+44,88,34,17,'#B9AA9C'),T(c7x+102,c7y+61,'정상가',{size:15,weight:700,fill:'#fff',anchor:'middle'}));
+  P.push(T(c7x+164,c7y+62,won(d.orig),{size:32,weight:600,fill:'#B9AA9C',deco:'line-through'}))}
+ if(d.discTxt){const bx=c7x+c7w-150,by2=c7y+52;
+  P.push(`<path d="M ${bx} ${by2+26} A 40 40 0 1 1 ${bx+14} ${by2+52}" fill="none" stroke="${ORG}" stroke-width="5" stroke-linecap="round"/>`);
+  P.push(`<path d="M ${bx+6} ${by2+62} L ${bx+22} ${by2+48} L ${bx+24} ${by2+66} Z" fill="${ORG}"/>`);
+  P.push(T(bx+52,by2+16,`${d.discTxt} 할인`,{size:19,weight:900,fill:ORG,anchor:'middle'}))}
+ if(d.sale){P.push(R(c7x+58,c7y+108,94,38,19,ORG),T(c7x+105,c7y+127,'이벤트가',{size:15,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(c7x+172,c7y+130,won(d.sale),{size:58,weight:900,fill:BRN}))}
+ P.push(`<line x1="${c7x+40}" y1="${c7y+186}" x2="${c7x+c7w-40}" y2="${c7y+186}" stroke="#E0D2B8" stroke-width="2" stroke-dasharray="8 7"/>`);
+ if(d.upTxt){P.push(T(W/2,c7y+232,`${comma(d.up*10000)}원 상당의`,{size:26,weight:700,family:F_GM,fill:ORG,anchor:'middle'}));
+  P.push(T(W/2,c7y+274,'무결점 무상업그레이드',{size:26,weight:700,family:F_GM,fill:ORG,anchor:'middle'}))}
+ y+=s1H;
+ /* --- BENEFIT 02 --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-230);
+ const rch7=280,hbH7=52+tagsL.length*29+26;
+ const s2H=48+36+170+80+rch7+66+hbH7+60;
+ P.push(R(0,y,W,s2H,0,BG));P.push(plaid7(y,s2H));
+ P.push(bPill7(y+48,'BENEFIT 02'));
+ P.push(T(W/2,y+150,'출시기념',{size:50,weight:700,family:F_GM,fill:BRN,anchor:'middle',ls:'-1'}));
+ P.push(T(W/2,y+212,'포토상품평 이벤트',{size:50,weight:700,family:F_GM,fill:ORG,anchor:'middle',ls:'-1'}));
+ /* 선물+코인 일러스트 */
+ P.push(gift(W/2-30,y+282,54,ORG,-6,'#FFF4DC'),coin(W/2+46,y+270,20),coin(W/2+80,y+292,14),coin(W/2-92,y+292,13));
+ const rcw7=238,rgap7=22,rx07=W/2-(rcw7*3+rgap7*2)/2,rcy7=y+334;
+ d.reviews.forEach((rv,i)=>{const rx=rx07+i*(rcw7+rgap7);
+  P.push(R(rx+5,rcy7+7,rcw7,rch7,14,'#E4D3B4',' opacity=".8"'),R(rx,rcy7,rcw7,rch7,14,CARD));
+  P.push(R(rx+rcw7/2-30,rcy7+20,60,28,14,ORG),T(rx+rcw7/2,rcy7+34,'0'+(i+1),{size:15,weight:800,fill:'#fff',anchor:'middle',ls:'1'}));
+  P.push(T(rx+rcw7/2,rcy7+74,rv.n1,{size:16.5,weight:800,fill:BRN,anchor:'middle'}));
+  P.push(T(rx+rcw7/2,rcy7+98,rv.n2,{size:16.5,weight:800,fill:BRN,anchor:'middle'}));
+  P.push(`<g transform="rotate(-5 ${rx+rcw7/2} ${rcy7+152})">`,
+   R(rx+rcw7/2-66,rcy7+126,132,52,8,ORG),
+   C(rx+rcw7/2-66,rcy7+152,7,CARD),C(rx+rcw7/2+66,rcy7+152,7,CARD),
+   T(rx+rcw7/2,rcy7+144,'NAVER PAY',{size:9.5,weight:800,fill:'#FFD9BC',anchor:'middle',ls:'1'}),
+   T(rx+rcw7/2,rcy7+162,'₩'+comma(rv.amt),{size:19,weight:900,fill:'#fff',anchor:'middle'}),'</g>');
+  P.push(T(rx+rcw7/2,rcy7+218,'네이버페이',{size:14,weight:600,fill:'#8a7360',anchor:'middle'}));
+  P.push(T(rx+rcw7/2,rcy7+248,won(rv.amt),{size:23,weight:900,fill:BRN,anchor:'middle'}))});
+ if(d.totalTxt)P.push(T(W/2,rcy7+rch7+36,d.totalTxt,{size:14.5,weight:600,fill:'#7A6248',anchor:'middle'}));
+ const hby7=rcy7+rch7+66;
+ P.push(R(70,hby7,W-140,hbH7,14,CARD));
+ P.push(T(W/2,hby7+30,'포토상품평 필수 해시태그',{size:17,weight:800,fill:BRN,anchor:'middle'}));
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby7+58+i*29,l,{size:15.5,weight:600,fill:'#6B5138',anchor:'middle'})));
+ y+=s2H;
+ /* --- 접수 정보 --- */
+ const ir=infoRows(d,70,y+48,{pillBg:ORG,pillInk:'#fff',ink:'#5C4326'});
+ P.push(R(0,y,W,48+ir.h+52,0,BG));P.push(plaid7(y,48+ir.h+52));
+ P.push(R(50,y+28,W-100,ir.h+44,16,CARD,' opacity=".85"'));
+ P.push(ir.svg);
+ y+=48+ir.h+52;
+ const nf=noticeFooter(d,y,{bg:'#2E1F12',ink:'#B7A491',head:'NOTICE',headSvg:yy=>
+  `<path d="M 60 ${yy+12} L 74 ${yy-13} L 88 ${yy+12} Z" fill="#E8833A"/>`+T(74,yy+6,'!',{size:13,weight:900,fill:'#3a2200',anchor:'middle'})+T(102,yy,'NOTICE',{size:17,weight:800,fill:'#fff',ls:'2'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
+   디자인 8 · 라벤더 리본 — 퍼플 파스텔 + 팻말 보드 + 티켓
+   ============================================================ */
+function ribbon8(x,yy,s,fill){return `<g transform="translate(${x},${yy})" opacity=".9">`
+ +`<path d="M 0 0 L ${-s} ${-s*.55} L ${-s*.78} ${s*.4} Z" fill="${fill}"/>`
+ +`<path d="M 0 0 L ${s} ${-s*.55} L ${s*.78} ${s*.4} Z" fill="${fill}"/>`
+ +C(0,0,s*.24,fill,` stroke="#fff" stroke-width="2"`)+'</g>'}
+function buildD8(d){const P=[];let y=0;
+ const PUR='#7C4DD4',DEEP='#5B2FB8',INK8='#2A2140';
+ P.push(`<defs>
+  <linearGradient id="d8sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9DDFA"/><stop offset="1" stop-color="#CDB4EF"/></linearGradient>
+  <linearGradient id="d8scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c084fc"/><stop offset=".5" stop-color="#818cf8"/><stop offset="1" stop-color="#f0abfc"/></linearGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=900;
+ P.push(R(0,0,W,heroH,0,'url(#d8sky)'));
+ [[90,140,14],[770,90,10],[806,330,15],[120,420,8],[700,540,9]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.9)));
+ [[210,250,7],[640,180,6]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#B79BEA',.8)));
+ P.push(ribbon8(60,80,40,'#B79BEA'),ribbon8(800,620,34,'#B79BEA'));
+ if(d.spec){const sw2=tw(d.spec,19,700)+56;
+  P.push(R(W/2-sw2/2,44,sw2,42,21,PUR),T(W/2,66,d.spec,{size:19,weight:700,fill:'#fff',anchor:'middle',ls:'.5'}))}
+ const m8=Math.min(72,Math.floor(72*(W-100)/Math.max(1,tw(d.model,72,700,F_GM))));
+ P.push(T(W/2,158,d.model,{size:m8,weight:700,family:F_GM,fill:'#fff',anchor:'middle',ls:'1',stroke:'rgba(91,47,184,.28)',sw:3}));
+ P.push(T(W/2,240,d.title,{size:58,weight:700,family:F_GM,fill:'#fff',anchor:'middle',ls:'-1',stroke:'rgba(91,47,184,.28)',sw:3}));
+ if(d.ds&&d.de){const t1=dotY(d.ds),t2=dotY(d.de),sz=22;
+  const w1=tw(t1,sz,700),aw=64,w2=tw(t2,sz,700);
+  let x=W/2-(w1+aw+w2)/2;
+  P.push(T(x+w1/2,306,t1,{size:sz,weight:700,fill:DEEP,anchor:'middle'}));
+  P.push(`<line x1="${x+w1+12}" y1="306" x2="${x+w1+aw-12}" y2="306" stroke="${DEEP}" stroke-width="2.4"/><path d="M ${x+w1+aw-18} 300 L ${x+w1+aw-8} 306 L ${x+w1+aw-18} 312 Z" fill="${DEEP}"/>`);
+  P.push(T(x+w1+aw+w2/2,306,t2,{size:sz,weight:700,fill:DEEP,anchor:'middle'}))}
+ P.push(`<ellipse cx="${W/2}" cy="820" rx="250" ry="24" fill="${DEEP}" opacity=".14"/>`);
+ P.push(productArt(W/2,600,600,340,'d8scr'));
+ y=heroH;
+ /* --- BENEFIT 01: 팻말 보드 --- */
+ const b8H=d.upTxt?470:380;
+ const s1H=40+b8H+44+56;
+ P.push(R(0,y,W,s1H,0,'#CDB4EF'));
+ const bx8=110,bw8=W-220,by8=y+40;
+ P.push(R(bx8+170,by8+b8H-6,16,50,6,'#B9A6D8'),R(bx8+bw8-186,by8+b8H-6,16,50,6,'#B9A6D8'));
+ P.push(R(bx8+6,by8+8,bw8,b8H,10,DEEP,' opacity=".25"'),R(bx8,by8,bw8,b8H,10,'#fff'));
+ P.push(T(W/2,by8+52,'•  BENEFIT 01  •',{size:16,weight:700,fill:'#9d8bc4',anchor:'middle',ls:'3'}));
+ P.push(T(W/2,by8+118,'출시기념',{size:44,weight:700,family:F_GM,fill:INK8,anchor:'middle',ls:'-1'}));
+ {const t1=(d.limitTxt||'한정')+' ',t2='특가!',sz=44;
+  const w1=tw(t1,sz,700,F_GM),w2=tw(t2,sz,700,F_GM),x0=W/2-(w1+w2)/2;
+  P.push(T(x0+w1/2,by8+174,t1,{size:sz,weight:700,family:F_GM,fill:PUR,anchor:'middle',ls:'-1'}));
+  P.push(T(x0+w1+w2/2,by8+174,t2,{size:sz,weight:700,family:F_GM,fill:INK8,anchor:'middle',ls:'-1'}))}
+ const lx8=W/2-172;
+ if(d.orig){P.push(R(lx8-92,by8+216,84,32,16,'#B0A8C4'),T(lx8-50,by8+232,'정상가',{size:14.5,weight:700,fill:'#fff',anchor:'middle'}));
+  P.push(T(lx8+8,by8+233,won(d.orig),{size:29,weight:600,fill:'#B0A8C4',deco:'line-through'}))}
+ if(d.discTxt)P.push(T(W/2+200,by8+232,`${d.discTxt} 할인`,{size:30,weight:400,family:F_BR,fill:PUR,anchor:'middle'}));
+ if(d.sale){P.push(R(lx8-92,by8+272,92,36,18,PUR),T(lx8-46,by8+290,'이벤트가',{size:14.5,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(lx8+14,by8+294,won(d.sale),{size:56,weight:900,fill:INK8}))}
+ if(d.upTxt){P.push(C(W/2,by8+352,16,PUR),T(W/2,by8+353,'+',{size:22,weight:800,fill:'#fff',anchor:'middle'}));
+  const uw=Math.max(tw(d.upTxt,21,700,F_GM)+80,440);
+  P.push(R(W/2-uw/2,by8+382,uw,58,29,'#F1EAFB'));
+  P.push(T(W/2,by8+412,d.upTxt,{size:21,weight:700,family:F_GM,fill:PUR,anchor:'middle'}))}
+ y+=s1H;
+ /* --- BENEFIT 02: 화이트 라운드 섹션 --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-260);
+ const hbH8=58+tagsL.length*29+28;
+ const c8H=238+248+hbH8+40;
+ P.push(R(0,y,W,c8H+40,0,'#CDB4EF'));
+ P.push(R(24,y,W-48,c8H,26,'#fff'));
+ P.push(T(W/2,y+58,'•  BENEFIT 02  •',{size:16,weight:700,fill:'#9d8bc4',anchor:'middle',ls:'3'}));
+ P.push(T(W/2,y+122,'출시기념',{size:46,weight:700,family:F_GM,fill:INK8,anchor:'middle',ls:'-1'}));
+ {const t1='포토상품평 ',t2='이벤트!',sz=46;
+  const w1=tw(t1,sz,700,F_GM),w2=tw(t2,sz,700,F_GM),x0=W/2-(w1+w2)/2;
+  P.push(T(x0+w1/2,y+180,t1,{size:sz,weight:700,family:F_GM,fill:PUR,anchor:'middle',ls:'-1'}));
+  P.push(T(x0+w1+w2/2,y+180,t2,{size:sz,weight:700,family:F_GM,fill:INK8,anchor:'middle',ls:'-1'}))}
+ const rcw8=234,rgap8=26,rx08=W/2-(rcw8*3+rgap8*2)/2,rcy8=y+238;
+ d.reviews.forEach((rv,i)=>{const rx=rx08+i*(rcw8+rgap8);
+  P.push(T(rx+rcw8/2,rcy8+14,`${rv.n1} ${rv.n2}`,{size:13.5,weight:700,fill:'#555',anchor:'middle'}));
+  P.push(T(rx+rcw8/2,rcy8+42,`네이버페이 ${won(rv.amt)}`,{size:17,weight:900,fill:PUR,anchor:'middle'}));
+  P.push(`<g transform="rotate(-5 ${rx+rcw8/2} ${rcy8+128})">`,
+   R(rx+rcw8/2-84,rcy8+86,168,84,12,PUR),
+   C(rx+rcw8/2-84,rcy8+128,9,'#fff'),C(rx+rcw8/2+84,rcy8+128,9,'#fff'),
+   `<line x1="${rx+rcw8/2+30}" y1="${rcy8+94}" x2="${rx+rcw8/2+30}" y2="${rcy8+162}" stroke="#9d7ce0" stroke-width="2" stroke-dasharray="5 5"/>`,
+   T(rx+rcw8/2-14,rcy8+112,'NAVER PAY',{size:10,weight:800,fill:'#CBB4F2',anchor:'middle',ls:'1'}),
+   T(rx+rcw8/2-14,rcy8+140,'₩'+comma(rv.amt),{size:24,weight:900,fill:'#fff',anchor:'middle'}),'</g>')});
+ if(d.totalTxt)P.push(T(W/2,rcy8+212,d.totalTxt,{size:15,weight:600,fill:'#666',anchor:'middle'}));
+ const hby8=rcy8+248;
+ P.push(R(88,hby8,W-176,hbH8,16,DEEP));
+ P.push(T(W/2,hby8+34,'포토상품평 필수 해시태그',{size:17,weight:800,fill:'#fff',anchor:'middle'}));
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby8+64+i*29,l,{size:15.5,weight:600,fill:'#E4D9F8',anchor:'middle'})));
+ y+=c8H+40;
+ /* --- 접수 정보 --- */
+ const ir=infoRows(d,70,y+48,{pillBg:PUR,pillInk:'#fff',ink:'#3E3358'});
+ P.push(R(0,y,W,48+ir.h+52,0,'#DCCBF4'));P.push(ir.svg);
+ y+=48+ir.h+52;
+ const nf=noticeFooter(d,y,{bg:'#1E1B24',ink:'#9a94a8',head:'유의',headSvg:yy=>
+  R(58,yy-15,30,30,7,'#4A4458')+T(73,yy,'!',{size:17,weight:900,fill:'#fff',anchor:'middle'})+T(102,yy,'이벤트 유의사항',{size:17,weight:800,fill:'#fff'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
    미니 배너 284×400 — 메인과 같은 디자인 언어의 히어로 압축판
    ============================================================ */
 const MW=284,MH=400;
@@ -846,11 +1229,82 @@ function buildM4(d){const P=[];
   P.push(R(px,py,cw2,24,7,i===0?'#fff':'#1c1c1c',' opacity=".95"'));
   P.push(T(px+cw2/2,py+12.5,t,{size:11,weight:800,fill:i===0?'#222':'#fff',anchor:'middle'}))});
  return P.join('')}
-const MINI={1:buildM1,2:buildM2,3:buildM3,4:buildM4};
+function buildM5(d){const P=[];
+ const GRN='#9BE939',BLK='#17181C';
+ P.push(`<defs><linearGradient id="m5sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FB2EC"/><stop offset="1" stop-color="#C4E6F9"/></linearGradient>
+ <linearGradient id="m5scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f43f5e"/><stop offset=".5" stop-color="#f97316"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m5sky)'));
+ P.push(cloud5(46,50,15),cloud5(244,38,13),cloud5(258,196,12));
+ P.push(heart5(30,120,13,'#F27FD3'));
+ P.push(sparkle(250,110,5,'#fff',.9),sparkle(24,210,4,'#fff',.9));
+ P.push(T(MW/2,22,d.model,{size:11,weight:400,family:F_PX,fill:'#fff',anchor:'middle',ls:'1',stroke:BLK,sw:.8}));
+ const tls=d.title.split(' ').length>1?d.title.split(' '):[d.title];
+ tls.slice(0,2).forEach((l,i)=>{
+  const sz=Math.min(46,Math.floor(46*(MW-40)/Math.max(1,tw(l,46,400,F_PX))));
+  P.push(T(MW/2+2,66+i*48+2,l,{size:sz,weight:400,family:F_PX,fill:'#fff',anchor:'middle',ls:'2'}));
+  P.push(T(MW/2,66+i*48,l,{size:sz,weight:400,family:F_PX,fill:GRN,anchor:'middle',ls:'2',stroke:BLK,sw:2.2}))});
+ if(d.ds&&d.de)P.push(T(MW/2,162,`${dotS(d.ds).replace('. ','.')} - ${dotS(d.de).replace('. ','.')}`,{size:13,weight:400,family:F_PX,fill:BLK,anchor:'middle',ls:'2'}));
+ P.push(miniProduct(MW/2,MH-136,232,158,'m5scr'));
+ P.push(R(0,MH-24,MW,24,0,BLK));
+ {const seg=` ${d.model} * EVENT * `;const segW=tw(seg,9,400,F_PX)+4;let x=-6;
+  while(x<MW){P.push(T(x,MH-12,seg,{size:9,weight:400,family:F_PX,fill:GRN}));x+=segW}}
+ return P.join('')}
+function buildM6(d){const P=[];
+ const COR='#F2704E',SUB='#8A7360';
+ P.push(`<defs><linearGradient id="m6sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6EA"/><stop offset="1" stop-color="#FFE3CC"/></linearGradient>
+ <linearGradient id="m6scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset=".5" stop-color="#fb923c"/><stop offset="1" stop-color="#a3e635"/></linearGradient>
+ <radialGradient id="m6orb"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m6sky)'));
+ [[250,44,26],[28,150,22],[262,250,24]].forEach(([x,yy,s])=>{for(let i=0;i<5;i++){const a=i*72*Math.PI/180;P.push(C(x+Math.cos(a)*s*.9,yy+Math.sin(a)*s*.9,s,'url(#m6orb)'))}});
+ if(d.spec){const sl=wrap(`「 ${d.spec} 」`,10,600,MW-24)[0];
+  P.push(T(MW/2,26,sl,{size:10,weight:600,fill:SUB,anchor:'middle'}))}
+ const m6=Math.min(30,Math.floor(30*(MW-28)/Math.max(1,tw(d.model,30,700,F_GM))));
+ P.push(T(MW/2,62,d.model,{size:m6,weight:700,family:F_GM,fill:COR,anchor:'middle'}));
+ const t6=Math.min(26,Math.floor(26*(MW-30)/Math.max(1,tw(d.title,26,700,F_GM))));
+ P.push(T(MW/2,98,d.title,{size:t6,weight:700,family:F_GM,fill:COR,anchor:'middle'}));
+ if(d.ds&&d.de)P.push(T(MW/2,128,`${dotS(d.ds)} - ${dotS(d.de)}`,{size:11,weight:600,fill:SUB,anchor:'middle',ls:'1'}));
+ P.push(`<path d="M ${MW/2-72} ${MH-58} L ${MW/2+72} ${MH-58} L ${MW/2+62} ${MH-8} L ${MW/2-62} ${MH-8} Z" fill="#fff"/>`,R(MW/2-72,MH-62,144,9,3,'#F1E2D2'));
+ P.push(miniProduct(MW/2,MH-150,220,150,'m6scr'));
+ return P.join('')}
+function buildM7(d){const P=[];
+ const BG='#F5E9D5',BRN='#5F4226',ORG='#E8833A';
+ P.push(`<defs><linearGradient id="m7scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d4c5a9"/><stop offset=".5" stop-color="#a78b62"/><stop offset="1" stop-color="#4a3c2e"/></linearGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,BG));
+ for(let x=0;x<=MW;x+=64)P.push(R(x,0,14,MH,0,'#EBDCC0',' opacity=".5"'));
+ for(let yy=0;yy<=MH;yy+=64)P.push(R(0,yy,MW,14,0,'#EBDCC0',' opacity=".5"'));
+ P.push(fire7(30,52,12,ORG),fire7(254,84,10,'#D9A45B'),fire7(258,240,11,ORG));
+ if(d.spec){const sl=wrap(d.spec,9.5,700,MW-40)[0];
+  P.push(T(MW/2,20,`✦ ${sl} ✦`,{size:9.5,weight:700,fill:BRN,anchor:'middle'}))}
+ const m7=Math.min(32,Math.floor(32*(MW-26)/Math.max(1,tw(d.model,32,700,F_GM))));
+ P.push(T(MW/2,58,d.model,{size:m7,weight:700,family:F_GM,fill:'#fff',anchor:'middle',stroke:BRN,sw:3.5}));
+ const t7=Math.min(26,Math.floor(26*(MW-26)/Math.max(1,tw(d.title,26,700,F_GM))));
+ P.push(T(MW/2,96,d.title,{size:t7,weight:700,family:F_GM,fill:'#FFF4DC',anchor:'middle',stroke:BRN,sw:3.5}));
+ if(d.ds&&d.de)P.push(T(MW/2,126,`${dotS(d.ds).replace('. ','.')} - ${dotS(d.de).replace('. ','.')}`,{size:11,weight:700,fill:BRN,anchor:'middle',ls:'1'}));
+ P.push(R(26,150,MW-46,222,12,'#E4D3B4',' opacity=".7"'),R(20,144,MW-46,222,12,'#FFFDF6'));
+ P.push(miniProduct(MW/2-3,252,MW-78,180,'m7scr'));
+ return P.join('')}
+function buildM8(d){const P=[];
+ const PUR='#7C4DD4',DEEP='#5B2FB8';
+ P.push(`<defs><linearGradient id="m8sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9DDFA"/><stop offset="1" stop-color="#CDB4EF"/></linearGradient>
+ <linearGradient id="m8scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c084fc"/><stop offset=".5" stop-color="#818cf8"/><stop offset="1" stop-color="#f0abfc"/></linearGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m8sky)'));
+ [[34,64,7],[252,42,6],[262,150,7],[26,220,5]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.9)));
+ P.push(ribbon8(252,236,14,'#B79BEA'));
+ if(d.spec){const sl=wrap(d.spec,9.5,700,MW-70)[0];const sw2=tw(sl,9.5,700)+26;
+  P.push(R(MW/2-sw2/2,12,sw2,22,11,PUR),T(MW/2,23.5,sl,{size:9.5,weight:700,fill:'#fff',anchor:'middle'}))}
+ const m8=Math.min(32,Math.floor(32*(MW-24)/Math.max(1,tw(d.model,32,700,F_GM))));
+ P.push(T(MW/2,62,d.model,{size:m8,weight:700,family:F_GM,fill:'#fff',anchor:'middle',stroke:'rgba(91,47,184,.3)',sw:1.6}));
+ const t8=Math.min(27,Math.floor(27*(MW-26)/Math.max(1,tw(d.title,27,700,F_GM))));
+ P.push(T(MW/2,100,d.title,{size:t8,weight:700,family:F_GM,fill:'#fff',anchor:'middle',stroke:'rgba(91,47,184,.3)',sw:1.6}));
+ if(d.ds&&d.de)P.push(T(MW/2,130,`${dotY(d.ds)} → ${dotY(d.de)}`,{size:10.5,weight:700,fill:DEEP,anchor:'middle'}));
+ P.push(`<ellipse cx="${MW/2}" cy="${MH-42}" rx="86" ry="9" fill="${DEEP}" opacity=".15"/>`);
+ P.push(miniProduct(MW/2,MH-140,228,160,'m8scr'));
+ return P.join('')}
+const MINI={1:buildM1,2:buildM2,3:buildM3,4:buildM4,5:buildM5,6:buildM6,7:buildM7,8:buildM8};
 function buildMiniSVG(d){return `<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}">${MINI[state.design](d)}</svg>`}
 
 /* ---------- 렌더 & 저장 ---------- */
-const BUILDERS={1:buildD1,2:buildD2,3:buildD3,4:buildD4};
+const BUILDERS={1:buildD1,2:buildD2,3:buildD3,4:buildD4,5:buildD5,6:buildD6,7:buildD7,8:buildD8};
 function buildSVG(){const d=collect();const{svg,H}=BUILDERS[state.design](d);
  return{svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Math.round(H)}" viewBox="0 0 ${W} ${Math.round(H)}">${svg}</svg>`,H:Math.round(H),d}}
 let _rt=null;
@@ -936,6 +1390,6 @@ render();
 if(document.fonts&&document.fonts.load)Promise.all([
  document.fonts.load("700 20px 'Gmarket Sans'"),document.fonts.load("500 20px 'Gmarket Sans'"),
  document.fonts.load("800 20px 'S-Core Dream'"),document.fonts.load("700 20px 'NanumSquareRound'"),
- document.fonts.load("400 20px 'Nanum Brush'")]).then(()=>render()).catch(()=>{});
+ document.fonts.load("400 20px 'Nanum Brush'"),document.fonts.load("400 20px 'DungGeunMo'")]).then(()=>render()).catch(()=>{});
 </script>
 </body></html>
