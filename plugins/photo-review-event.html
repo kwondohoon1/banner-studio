@@ -70,7 +70,8 @@ textarea{resize:vertical;line-height:1.55;font-weight:500}
 <div class="step"><b>디자인 선택</b><span class="num">01 DESIGN</span></div>
 <div class="designs" id="designs">
  <button class="dcard active" data-d="A"><div class="swatch" style="background:linear-gradient(135deg,#5B7BE0,#A9C3F5 60%,#03C75A 61%)"></div><b>통합형 · 블루</b><span>한 장에 전체 카테고리(01·02·03…) · N pay 배지 · 리뷰 등급별 금액</span></button>
- <button class="dcard" data-d="B"><div class="swatch" style="background:linear-gradient(135deg,#F4548D,#FFC0D0 60%,#25E0CD 61%)"></div><b>카테고리형 · 핑크</b><span>카테고리마다 배너 1장 · 민트 포인트 · 봉투 리워드</span></button>
+ <button class="dcard" data-d="AC"><div class="swatch" style="background:linear-gradient(135deg,#5B7BE0,#8FAEF0 55%,#CFE0FF 56%)"></div><b>카테고리형 · 블루</b><span>통합형과 같은 톤으로 카테고리마다 1장 (게이밍 따로 · OLED 따로)</span></button>
+ <button class="dcard" data-d="B"><div class="swatch" style="background:linear-gradient(135deg,#F4548D,#FFC0D0 60%,#25E0CD 61%)"></div><b>카테고리형 · 핑크</b><span>2025년형 · 카테고리마다 1장 · 민트 포인트 · 봉투 리워드</span></button>
 </div>
 
 <div class="step"><b>공통 문구</b><span class="num">02 INFO</span></div>
@@ -385,46 +386,14 @@ function cardA(P,top,inner,label){
  P.push(pill(W/2,top-22,label,{size:21,weight:800,family:F_BN,h:44,padX:30,bg:A.point,fg:'#fff',extra:' filter="url(#aPill)"'}));
  return top+h;
 }
-function buildA(d){
- const P=[];
- P.push(`<defs>
- <linearGradient id="aBg" x1="0" y1="0" x2="0" y2="1">
-  <stop offset="0" stop-color="${A.bg1}"/><stop offset=".07" stop-color="${A.bg2}"/>
-  <stop offset=".17" stop-color="${A.bg3}"/><stop offset=".34" stop-color="${A.bg4}"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
- <linearGradient id="aEvt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFE2FF"/></linearGradient>
- <filter id="aGlow" x="-25%" y="-45%" width="150%" height="190%"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#2B45A8" flood-opacity=".33"/></filter>
- <filter id="aCard" x="-8%" y="-3%" width="116%" height="106%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#26407F" flood-opacity=".12"/></filter>
- <filter id="aPill" x="-30%" y="-60%" width="160%" height="220%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#26407F" flood-opacity=".22"/></filter>
- </defs>`);
- const bgIdx=P.push('')-1;                     /* 배경은 높이 확정 후 채운다 */
- let y=heroA(d,P);
-
- /* ── 카드 1 · 증정품 ─────────────────────────── */
- y=cardA(P,y,(t)=>{
-  const S=[];let yy=t;
-  S.push(T(W/2,yy+22,'포토상품평 작성시',{size:29,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
-  S.push(T(W/2,yy+70,'네이버페이 포인트 증정',{size:38,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
-  yy+=118;
-  const cols=[{cx:250,lab:'혜택1',desc:'구매처(포토상품평) 사진2장 + 50자리뷰',note:'(전 상품 공통)'},
-              {cx:610,lab:'혜택2',desc:'블로그or커뮤니티 사진3장 + 100자리뷰',note:'(제품별 상이)'}];
-  const c0=d.cats[0]||{tiers:[{r1:0,r2:0}]};
-  cols.forEach((c,i)=>{
-   S.push(pill(c.cx,yy,c.lab,{size:17,weight:800,family:F_BN,h:34,padX:22,bg:A.pointSoft,fg:A.point}));
-   const ds=fit(c.desc,330,15,11,700,F_BN);
-   S.push(T(c.cx,yy+58,c.desc,{size:ds,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
-   S.push(npayBadge(c.cx-105,yy+82,210,88,i===0?comma(c0.tiers[0].r1):'POINT'));
-   S.push(T(c.cx,yy+192,c.note,{size:14,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
-  });
-  yy+=224;
-  S.push(T(W/2,yy,'✻ 혜택1 + 혜택2 중복참여 가능합니다.',{size:15,weight:700,family:F_BN,fill:'#4A5162',anchor:'middle'}));
-  return {svg:S.join(''),h:yy+14-t};
- },'이벤트 참여 증정품');
-
- /* ── 카드 2 · 참여 방법 ──────────────────────── */
- y+=54;
- y=cardA(P,y,(t)=>{
-  const S=[];let yy=t;
-  const bx=70,bw=W-140;
+function methodsInnerA(d,t,catName){
+ const S=[];let yy=t;
+ if(catName){
+  const cs=fit(catName,620,36,20,800,F_BN);
+  S.push(T(W/2,yy+18,catName,{size:cs,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
+  yy+=62;
+ }
+ const bx=70,bw=W-140;
   (d.methods.length?d.methods:splitLines(DEFAULT_METHODS)).slice(0,3).forEach((m,i)=>{
    const hasQr=i===1, hasTag=i===0;
    const textW=bw-118-(hasQr?110:hasTag?120:24);
@@ -457,8 +426,74 @@ function buildA(d){
    }
    yy+=bh+16;
   });
-  return {svg:S.join(''),h:yy-16-t};
- },'이벤트 참여 방법');
+ return {svg:S.join(''),h:yy-16-t};
+}
+/* 대상 모니터 — 카테고리 1개 블록. o.num/o.name 으로 번호·이름 표시 여부 */
+function catBlockA(c,i,bx,bw,o){
+ o=o||{};const inner=[];let iy=0;
+ if(o.num!==false||o.name!==false){
+  let nx=0;
+  if(o.num!==false){inner.push(R(0,iy,34,26,7,A.ink)+T(17,iy+13,z2(i+1),{size:14,weight:800,family:F_BN,fill:'#fff',anchor:'middle'}));nx=46}
+  if(o.name!==false){const ns=fit(c.name,320,21,14,800,F_BN);inner.push(T(nx,iy+13,c.name,{size:ns,weight:800,family:F_BN,fill:A.ink}))}
+  iy+=42;
+ }
+ c.tiers.forEach(tr=>{
+  inner.push(T(0,iy,`+구매처 리뷰시 ${comma(tr.r1)}원 / 커뮤니티 리뷰시 ${comma(tr.r2)}원`,{size:14,weight:800,family:F_BN,fill:A.red}));
+  iy+=26;
+  wrapItems(tr.models,16,700,bw-56,F_BN).forEach(l=>{inner.push(T(0,iy,l,{size:16,weight:700,family:F_BN,fill:A.ink}));iy+=25});
+  iy+=12;
+ });
+ if(c.tags)wrap('- 필수 해시태그 : '+c.tags,12.5,700,bw-56,F_BN).forEach((l,k)=>{
+  inner.push(T(k?10:0,iy,l,{size:12.5,weight:700,family:F_BN,fill:'#8B93A5'}));iy+=19});
+ return {svg:`<g transform="translate(${bx+28} ${0})">${inner.join('')}</g>`,inner:inner.join(''),h:iy+34};
+}
+function defsA(){
+ return `<defs>
+ <linearGradient id="aBg" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="${A.bg1}"/><stop offset=".07" stop-color="${A.bg2}"/>
+  <stop offset=".17" stop-color="${A.bg3}"/><stop offset=".34" stop-color="${A.bg4}"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+ <linearGradient id="aEvt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFE2FF"/></linearGradient>
+ <filter id="aGlow" x="-25%" y="-45%" width="150%" height="190%"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#2B45A8" flood-opacity=".33"/></filter>
+ <filter id="aCard" x="-8%" y="-3%" width="116%" height="106%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#26407F" flood-opacity=".12"/></filter>
+ <filter id="aPill" x="-30%" y="-60%" width="160%" height="220%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#26407F" flood-opacity=".22"/></filter>
+ </defs>`;
+}
+/* 배경(높이 확정 후 채운다) */
+function bgFillA(H){
+ return R(0,0,W,H,0,'url(#aBg)')
+  +`<ellipse cx="700" cy="40" rx="330" ry="190" fill="#fff" opacity=".09"/>`
+  +`<ellipse cx="80" cy="210" rx="260" ry="150" fill="#fff" opacity=".05"/>`;
+}
+function buildA(d){
+ const P=[];
+ P.push(defsA());
+ const bgIdx=P.push('')-1;
+ let y=heroA(d,P);
+
+ /* ── 카드 1 · 증정품 ─────────────────────────── */
+ y=cardA(P,y,(t)=>{
+  const S=[];let yy=t;
+  S.push(T(W/2,yy+22,'포토상품평 작성시',{size:29,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
+  S.push(T(W/2,yy+70,'네이버페이 포인트 증정',{size:38,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
+  yy+=118;
+  const cols=[{cx:250,lab:'혜택1',desc:'구매처(포토상품평) 사진2장 + 50자리뷰',note:'(전 상품 공통)'},
+              {cx:610,lab:'혜택2',desc:'블로그or커뮤니티 사진3장 + 100자리뷰',note:'(제품별 상이)'}];
+  const c0=d.cats[0]||{tiers:[{r1:0,r2:0}]};
+  cols.forEach((c,i)=>{
+   S.push(pill(c.cx,yy,c.lab,{size:17,weight:800,family:F_BN,h:34,padX:22,bg:A.pointSoft,fg:A.point}));
+   const ds=fit(c.desc,330,15,11,700,F_BN);
+   S.push(T(c.cx,yy+58,c.desc,{size:ds,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
+   S.push(npayBadge(c.cx-105,yy+82,210,88,i===0?comma(c0.tiers[0].r1):'POINT'));
+   S.push(T(c.cx,yy+192,c.note,{size:14,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
+  });
+  yy+=224;
+  S.push(T(W/2,yy,'✻ 혜택1 + 혜택2 중복참여 가능합니다.',{size:15,weight:700,family:F_BN,fill:'#4A5162',anchor:'middle'}));
+  return {svg:S.join(''),h:yy+14-t};
+ },'이벤트 참여 증정품');
+
+ /* ── 카드 2 · 참여 방법 ──────────────────────── */
+ y+=54;
+ y=cardA(P,y,(t)=>methodsInnerA(d,t,''),'이벤트 참여 방법');
 
  /* ── 카드 3 · 대상 모니터 ────────────────────── */
  y+=54;
@@ -466,32 +501,10 @@ function buildA(d){
   const S=[];let yy=t;
   const bx=68,bw=W-136;
   d.cats.forEach((c,i)=>{
-   const inner=[];let iy=0;
-   /* 헤더: 번호 + 이름 */
-   const numW=34;
-   inner.push(R(0,iy,numW,26,7,A.ink)+T(numW/2,iy+13,z2(i+1),{size:14,weight:800,family:F_BN,fill:'#fff',anchor:'middle'}));
-   const ns=fit(c.name,320,21,14,800,F_BN);
-   inner.push(T(numW+12,iy+13,c.name,{size:ns,weight:800,family:F_BN,fill:A.ink}));
-   iy+=42;
-   /* 등급별 금액 + 모델 */
-   c.tiers.forEach(tr=>{
-    const head=`+구매처 리뷰시 ${comma(tr.r1)}원 / 커뮤니티 리뷰시 ${comma(tr.r2)}원`;
-    inner.push(T(0,iy,head,{size:14,weight:800,family:F_BN,fill:A.red}));
-    iy+=26;
-    wrapItems(tr.models,16,700,bw-56,F_BN).forEach(l=>{
-     inner.push(T(0,iy,l,{size:16,weight:700,family:F_BN,fill:A.ink}));iy+=25;
-    });
-    iy+=12;
-   });
-   if(c.tags){
-    wrap('- 필수 해시태그 : '+c.tags,12.5,700,bw-56,F_BN).forEach((l,k)=>{
-     inner.push(T(k?10:0,iy,l,{size:12.5,weight:700,family:F_BN,fill:'#8B93A5'}));iy+=19;
-    });
-   }
-   const bh=iy+34;
-   S.push(R(bx,yy,bw,bh,16,'#FBFCFE',' stroke="'+A.line+'"'));
-   S.push(`<g transform="translate(${bx+28} ${yy+22})">${inner.join('')}</g>`);
-   yy+=bh+16;
+   const b=catBlockA(c,i,bx,bw);
+   S.push(R(bx,yy,bw,b.h,16,'#FBFCFE',' stroke="'+A.line+'"'));
+   S.push(`<g transform="translate(${bx+28} ${yy+22})">${b.inner}</g>`);
+   yy+=b.h+16;
   });
   return {svg:S.join(''),h:yy-16-t};
  },'이벤트 대상 모니터');
@@ -501,9 +514,7 @@ function buildA(d){
  const f=noticeFooter(y,d,{bg:'#1E1F22',mark:'#FFE86A',title:'NOTICE'});
  P.push(f.svg);
  const H=y+f.h;
- P[bgIdx]=R(0,0,W,H,0,'url(#aBg)')
-  +`<ellipse cx="700" cy="40" rx="330" ry="190" fill="#fff" opacity=".09"/>`
-  +`<ellipse cx="80" cy="210" rx="260" ry="150" fill="#fff" opacity=".05"/>`;
+ P[bgIdx]=bgFillA(H);
  return {svg:P.join(''),H};
 }
 function buildMiniA(d){
@@ -526,6 +537,88 @@ function buildMiniA(d){
  P.push(T(MW/2,242,'포토상품평 작성시',{size:15,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
  P.push(T(MW/2,270,'네이버페이 포인트 증정',{size:17,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
  P.push(npayBadge(MW/2-70,298,140,54,''));
+ return P.join('');
+}
+
+/* ============================================================
+   디자인 AC — 카테고리형(블루)  · 통합형과 같은 톤, 카테고리 1개당 1장
+   ============================================================ */
+function buildAC(d,cat){
+ const P=[];
+ P.push(defsA());
+ const bgIdx=P.push('')-1;
+ let y=heroA(d,P);
+ const total=catTotal(cat), t0=cat.tiers[0];
+
+ /* ── 카드 1 · 증정품 (카테고리 금액) ─────────── */
+ y=cardA(P,y,(t)=>{
+  const S=[];let yy=t;
+  S.push(T(W/2,yy+22,'포토상품평 작성시',{size:29,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
+  const line=`네이버페이 ${comma(total)}원 증정`;
+  const rs=fit(line,620,38,22,800,F_BN), rw=tw(line,rs,800,F_BN);
+  S.push(R(W/2-rw/2-7,yy+70+rs*0.04,rw+14,rs*0.48,3,'#CFE0FF',' opacity=".9"'));
+  S.push(T(W/2,yy+70,line,{size:rs,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
+  S.push(T(W/2,yy+112,'(전 상품 공통)',{size:15,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
+  yy+=152;
+  const cols=[{cx:250,lab:'혜택1',desc:'구매처(포토상품평) 사진2장 + 50자리뷰',amt:t0.r1},
+              {cx:610,lab:'혜택2',desc:'블로그or커뮤니티 사진3장 + 100자리뷰',amt:t0.r2}];
+  cols.forEach(c=>{
+   S.push(pill(c.cx,yy,c.lab,{size:17,weight:800,family:F_BN,h:34,padX:22,bg:A.pointSoft,fg:A.point}));
+   const ds=fit(c.desc,330,15,11,700,F_BN);
+   S.push(T(c.cx,yy+58,c.desc,{size:ds,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
+   S.push(npayBadge(c.cx-105,yy+82,210,88,comma(c.amt)));
+  });
+  yy+=196;
+  const dup=`✻ 혜택1 + 혜택2 중복참여 가능, 중복참여시 ${comma(total)}원 증정`;
+  S.push(pill(W/2,yy,dup,{size:fit(dup,600,16,11,700,F_BN),weight:700,family:F_BN,h:38,padX:24,bg:A.ink,fg:'#fff'}));
+  return {svg:S.join(''),h:yy+38-t};
+ },'이벤트 참여 증정품');
+
+ /* ── 카드 2 · 참여 방법 (카테고리명) ─────────── */
+ y+=54;
+ y=cardA(P,y,(t)=>methodsInnerA(d,t,cat.name),'이벤트 참여 방법');
+
+ /* ── 카드 3 · 대상 모니터 (해당 카테고리만) ──── */
+ y+=54;
+ y=cardA(P,y,(t)=>{
+  const bx=68,bw=W-136;
+  const b=catBlockA(cat,0,bx,bw,{num:false,name:false});
+  const S=R(bx,t,bw,b.h,16,'#FBFCFE',' stroke="'+A.line+'"')
+   +`<g transform="translate(${bx+28} ${t+22})">${b.inner}</g>`;
+  return {svg:S,h:b.h};
+ },'이벤트 대상 모니터');
+
+ y+=48;
+ const f=noticeFooter(y,d,{bg:'#1E1F22',mark:'#FFE86A',title:'NOTICE'});
+ P.push(f.svg);
+ const H=y+f.h;
+ P[bgIdx]=bgFillA(H);
+ return {svg:P.join(''),H};
+}
+function buildMiniAC(d,cat){
+ const P=[],total=catTotal(cat);
+ P.push(`<defs>
+ <linearGradient id="maBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${A.bg1}"/><stop offset=".38" stop-color="${A.bg2}"/><stop offset="1" stop-color="${A.bg4}"/></linearGradient>
+ <linearGradient id="maEvt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFE2FF"/></linearGradient>
+ <filter id="maGlow" x="-25%" y="-45%" width="150%" height="190%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#2B45A8" flood-opacity=".32"/></filter>
+ <filter id="maCard" x="-12%" y="-12%" width="124%" height="124%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#26407F" flood-opacity=".16"/></filter></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#maBg)'));
+ [[42,58,6],[248,42,7],[258,140,5],[28,158,4],[36,300,4]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#fff',.8)));
+ const bs=fit(d.badge,196,13,9,800,F_BN);
+ P.push(pill(MW/2,26,d.badge,{size:bs,weight:800,family:F_BN,h:28,padX:15,bg:'#FFFFFF',fg:A.point,extra:' opacity=".93"'}));
+ const t1=fit(d.titleKo,244,46,20,800,F_BN);
+ P.push(`<g transform="translate(${MW/2} 96) skewX(-6)">`+T(0,0,d.titleKo,{size:t1,weight:800,family:F_BN,fill:'#fff',anchor:'middle',stroke:'#FFFFFF',sw:2,extra:' filter="url(#maGlow)"'})+`</g>`);
+ const t2=fit(d.titleEn,236,50,18,800,F_BN);
+ P.push(`<g transform="translate(${MW/2+8} 152) skewX(-12)">`+T(0,0,d.titleEn,{size:t2,weight:800,family:F_BN,fill:'url(#maEvt)',anchor:'middle',stroke:'#fff',sw:1.8,extra:' filter="url(#maGlow)"'})+`</g>`);
+ P.push(R(20,200,MW-40,172,20,'#FFFFFF',' filter="url(#maCard)"'));
+ P.push(pill(MW/2,190,'이벤트 참여 증정품',{size:12,weight:800,family:F_BN,h:26,padX:15,bg:A.point,fg:'#fff'}));
+ const cs=fit(cat.name,226,21,12,800,F_BN);
+ P.push(T(MW/2,242,cat.name,{size:cs,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
+ P.push(T(MW/2,274,'포토상품평 작성시',{size:13,weight:700,family:F_BN,fill:A.muted,anchor:'middle'}));
+ const rl=`네이버페이 ${comma(total)}원`;
+ const rs=fit(rl,206,25,14,800,F_BN),rw=tw(rl,rs,800,F_BN);
+ P.push(R(MW/2-rw/2-5,310,rw+10,rs*0.5,3,'#CFE0FF',' opacity=".95"'));
+ P.push(T(MW/2,306,rl,{size:rs,weight:800,family:F_BN,fill:A.ink,anchor:'middle'}));
  return P.join('');
 }
 
@@ -711,12 +804,14 @@ function buildMiniB(d,cat){
    렌더 & 저장
    ============================================================ */
 function mainSVG(d,cat){
- const r=state.design==='A'?buildA(d):buildB(d,cat||curCat(d));
+ const c=cat||curCat(d);
+ const r=state.design==='A'?buildA(d):state.design==='AC'?buildAC(d,c):buildB(d,c);
  const H=Math.round(r.H);
  return {svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${r.svg}</svg>`,H};
 }
 function miniSVG(d,cat){
- const inner=state.design==='A'?buildMiniA(d):buildMiniB(d,cat||curCat(d));
+ const c=cat||curCat(d);
+ const inner=state.design==='A'?buildMiniA(d):state.design==='AC'?buildMiniAC(d,c):buildMiniB(d,c);
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}">${inner}</svg>`;
 }
 let _rt=null;
@@ -726,11 +821,12 @@ function render(){clearTimeout(_rt);_rt=setTimeout(()=>{try{
  $('#viewport').innerHTML=svg;
  $('#miniViewport').innerHTML=miniSVG(d,cat);
  const isA=state.design==='A';
- $('#metaName').textContent=isA?`통합형 · 카테고리 ${d.cats.length}개`:`카테고리형 · ${cat.name}`;
+ const dname=isA?'통합형 · 블루':state.design==='AC'?'카테고리형 · 블루':'카테고리형 · 핑크';
+ $('#metaName').textContent=isA?`${dname} · 카테고리 ${d.cats.length}개`:`${dname} · ${cat.name}`;
  $('#metaSize').textContent=`${W} × ${H}px + 미니 ${MW} × ${MH}px · 편집 가능한 SVG`;
  const tiers=cat.tiers.map(t=>`${comma(t.r1)}+${comma(t.r2)}`).join(' / ');
  $('#catAuto').innerHTML=`<b>${esc(cat.name)}</b> · 등급 ${cat.tiers.length}개(${esc(tiers)}) · 모델 ${catModels(cat).length}개`
-  +(isA?' · 통합형은 전체 카테고리를 한 장에 그립니다.':` · 카테고리형 헤드라인 <b>${won(catTotal(cat))}</b>(1등급 합계)`);
+  +(isA?' · 통합형은 전체 카테고리를 한 장에 그립니다.':` · 이 카테고리 배너 헤드라인 <b>${won(catTotal(cat))}</b>(1등급 합계)`);
  $('#saveAll').disabled=isA;
  $('#saveAll').textContent=isA?'전체 카테고리 일괄 (통합형은 이미 1장)':`전체 카테고리 일괄 (${d.cats.length}종 × 2장)`;
  setStatus('');
@@ -741,9 +837,9 @@ function outputSVG(filename,svg){
  else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 }
 function baseName(d,cat,i){
- return state.design==='A'
-  ? `photo-review-all-${d.ds?d.ds.getFullYear()+z2(d.ds.getMonth()+1):'set'}`
-  : `photo-review-${z2((i==null?state.cur:i)+1)}-${safeName(cat.name)}`;
+ if(state.design==='A')return `photo-review-all-${d.ds?d.ds.getFullYear()+z2(d.ds.getMonth()+1):'set'}`;
+ const pre=state.design==='AC'?'photo-review-blue':'photo-review-pink';
+ return `${pre}-${z2((i==null?state.cur:i)+1)}-${safeName(cat.name)}`;
 }
 $('#saveBtn').innerHTML=`<i>✦</i>${inFrame?'에디터로 보내기 (메인+미니 2종)':'SVG 다운로드 (메인+미니 2종)'}`;
 $('#saveBtn').onclick=()=>{const d=collect(),cat=curCat(d),b=baseName(d,cat);
