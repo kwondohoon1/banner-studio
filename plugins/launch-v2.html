@@ -37,6 +37,12 @@ textarea{resize:vertical;line-height:1.55;font-weight:500}
 .dcard span{font-size:9px;color:var(--muted)}
 .dcard .swatch{height:26px;border-radius:7px;margin-bottom:7px}
 .dcard.active:after{content:'✓';position:absolute;top:7px;right:9px;width:16px;height:16px;border-radius:50%;background:var(--dark);color:var(--lime);font-size:10px;display:grid;place-items:center}
+.palettes{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.pal{border:2px solid transparent;border-radius:9px;height:38px;cursor:pointer;padding:0;position:relative;overflow:hidden}
+.pal span{position:absolute;left:0;right:0;bottom:2px;font-size:8.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.pal[data-h=""] span{color:#55574f;text-shadow:none}
+.pal.active{border-color:var(--dark);box-shadow:0 0 0 2px rgba(32,34,29,.14)}
+input[type=range]{width:100%;accent-color:var(--dark)}
 .upload{border:1px dashed #bfc1b8;border-radius:12px;background:#fbfbf8;padding:12px;display:flex;gap:10px;align-items:center;cursor:pointer}
 .upload i{width:34px;height:34px;border-radius:9px;background:#eaebe5;display:grid;place-items:center;font-style:normal;font-size:18px}
 .upload b{display:block;font-size:11px}.upload span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
@@ -76,7 +82,32 @@ textarea{resize:vertical;line-height:1.55;font-weight:500}
  <button class="dcard" data-d="6"><div class="swatch" style="background:linear-gradient(135deg,#FFE9D8,#F2704E)"></div><b>디자인 6 · 피치 코랄</b><span>피치 파스텔, 단상 위 제품, 행잉 배너</span></button>
  <button class="dcard" data-d="7"><div class="swatch" style="background:linear-gradient(135deg,#F5E9D5,#E8833A)"></div><b>디자인 7 · 빈티지 베이지</b><span>체크 배경 + 브라운/오렌지, 폭죽 두들</span></button>
  <button class="dcard" data-d="8"><div class="swatch" style="background:linear-gradient(135deg,#E3D5F7,#7C4DD4)"></div><b>디자인 8 · 라벤더 리본</b><span>퍼플 파스텔, 팻말 보드 + 티켓</span></button>
+ <button class="dcard" data-d="9"><div class="swatch" style="background:linear-gradient(135deg,#CFEAFB,#1F7AE0 60%,#12233D 61%)"></div><b>디자인 9 · 아쿠아 블루</b><span>버블 배경 + 다크 특가 카드, 블루 티켓</span></button>
+ <button class="dcard" data-d="10"><div class="swatch" style="background:linear-gradient(135deg,#6EA8F5,#A9C8F8 55%,#B7E86A 56%)"></div><b>디자인 10 · 민트 그라데</b><span>블루→라임 2톤, 선물상자 + N pay 카드</span></button>
+ <button class="dcard" data-d="11"><div class="swatch" style="background:linear-gradient(135deg,#3A2A9E,#6B46E8 55%,#7FE3FF 56%)"></div><b>디자인 11 · 딥퍼플 이벤트</b><span>EVENT 탭 헤더 + 아웃라인 타이포</span></button>
+ <button class="dcard" data-d="12"><div class="swatch" style="background:linear-gradient(135deg,#FBD9E4,#E8628F)"></div><b>디자인 12 · 로즈 가을</b><span>단풍·풍선 장식, 원형 EVENT 배지</span></button>
 </div>
+
+<div class="step"><b>색감 <small>모든 디자인 공통 · 흰색/회색은 유지</small></b><span class="num">TINT</span></div>
+<div class="palettes" id="palettes">
+ <button class="pal active" data-h="" style="background:linear-gradient(135deg,#dcdcd6,#fff)"><span>기본</span></button>
+ <button class="pal" data-h="212" style="background:#2F6AE0"><span>블루</span></button>
+ <button class="pal" data-h="190" style="background:#19B2CE"><span>시안</span></button>
+ <button class="pal" data-h="160" style="background:#0FB08A"><span>민트</span></button>
+ <button class="pal" data-h="128" style="background:#2FA84F"><span>그린</span></button>
+ <button class="pal" data-h="82" style="background:#7FB831"><span>라임</span></button>
+ <button class="pal" data-h="42" style="background:#E8A21C"><span>골드</span></button>
+ <button class="pal" data-h="22" style="background:#E8703A"><span>오렌지</span></button>
+ <button class="pal" data-h="352" style="background:#DE3A55"><span>레드</span></button>
+ <button class="pal" data-h="332" style="background:#E24C8E"><span>핑크</span></button>
+ <button class="pal" data-h="272" style="background:#7C4DD4"><span>퍼플</span></button>
+ <button class="pal" data-h="245" style="background:#4A54C8"><span>인디고</span></button>
+</div>
+<div class="g2" style="margin-top:8px">
+ <div><div class="theme-note" style="margin:0 0 4px">색조 미세조정 <b id="hueVal">0°</b></div><input type="range" id="hue" min="-180" max="180" step="2" value="0"></div>
+ <div><div class="theme-note" style="margin:0 0 4px">채도 <b id="satVal">100%</b></div><input type="range" id="sat" min="30" max="170" step="5" value="100"></div>
+</div>
+<div class="theme-note">프리셋으로 전체 톤을 바꾸고, 슬라이더로 미세조정합니다. 제품 사진과 흰색·회색·검정 글자는 그대로 유지됩니다.</div>
 
 <div class="step"><b>기본 정보</b><span class="num">02 INFO</span></div>
 <div class="grid">
@@ -283,8 +314,47 @@ function monitorPh(cx,cy,w,grad){const h=w*.62,x=cx-w/2,y=cy-h/2;
 function imgTag(im,cx,cy,maxW,maxH){const r=Math.min(maxW/im.w,maxH/im.h),w=im.w*r,h=im.h*r;
  return {tag:`<image href="${im.data}" x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/>`,w,h}}
 /* ---------- 상태 & 입력 수집 ---------- */
-const state={design:'1',files:[],bgRemove:true};
-const DEFAULT_TITLE={1:'신규 출시기념',2:'신규출시',3:'얼리버드 특가',4:'출시기념 이벤트',5:'출시 이벤트',6:'출시기념 이벤트',7:'신규출시 이벤트',8:'출시 이벤트'};
+const state={design:'1',files:[],bgRemove:true,tint:{target:null,hue:0,sat:100}};
+const DEFAULT_TITLE={1:'신규 출시기념',2:'신규출시',3:'얼리버드 특가',4:'출시기념 이벤트',5:'출시 이벤트',6:'출시기념 이벤트',7:'신규출시 이벤트',8:'출시 이벤트',9:'신규출시',10:'출시이벤트',11:'출시기념',12:'신규 출시 기념 이벤트'};
+
+/* ============================================================
+   색감 조절 — 모든 디자인 공통 (생성된 SVG의 색상값만 후처리)
+   각 디자인의 대표 색조(BASE_HUE)를 기준으로 회전시키므로
+   디자인 고유의 밝기·대비 구조는 그대로 유지된다.
+   채도가 낮은 색(흰색/회색/검정)과 제품 사진은 건드리지 않는다.
+   ============================================================ */
+const BASE_HUE={1:220,2:193,3:248,4:43,5:203,6:13,7:28,8:262,9:212,10:214,11:258,12:340};
+function _hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;
+ if(mx===mn)return[0,0,l];const dd=mx-mn,s=l>.5?dd/(2-mx-mn):dd/(mx+mn);
+ let h;if(mx===r)h=((g-b)/dd+(g<b?6:0));else if(mx===g)h=(b-r)/dd+2;else h=(r-g)/dd+4;
+ return[h*60,s,l]}
+function _rgb(h,s,l){h=((h%360)+360)%360;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+ let r=0,g=0,b=0;
+ if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}
+ return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)]}
+const _hx=n=>Math.max(0,Math.min(255,n)).toString(16).padStart(2,'0');
+function shiftColor(val,dh,satMul){
+ let r,g,b,alpha=null,short=false;
+ let m=/^#([0-9a-fA-F]{3})$/.exec(val);
+ if(m){short=true;r=parseInt(m[1][0]+m[1][0],16);g=parseInt(m[1][1]+m[1][1],16);b=parseInt(m[1][2]+m[1][2],16)}
+ else if((m=/^#([0-9a-fA-F]{6})$/.exec(val))){const n=parseInt(m[1],16);r=n>>16;g=(n>>8)&255;b=n&255}
+ else if((m=/^rgba?\(([^)]+)\)$/i.exec(val))){const p=m[1].split(',').map(x=>parseFloat(x));r=p[0];g=p[1];b=p[2];if(p.length>3)alpha=p[3]}
+ else return val;                                   /* none, url(#...), currentColor 등은 통과 */
+ const [h,s,l]=_hsl(r,g,b);
+ if(s<0.10)return val;                              /* 흰색·회색·검정 유지 */
+ const ns=Math.max(0,Math.min(1,s*satMul));
+ const [nr,ng,nb]=_rgb(h+dh,ns,l);
+ if(alpha!=null)return `rgba(${nr},${ng},${nb},${alpha})`;
+ return '#'+_hx(nr)+_hx(ng)+_hx(nb)}
+function tintDelta(){
+ const t=state.tint;
+ const base=(t.target==null)?0:(t.target-(BASE_HUE[state.design]||210));
+ return{dh:base+t.hue,satMul:t.sat/100}}
+/* 색 속성값만 치환 → url(#gradient) 참조·이미지 data URI는 안전 */
+function retint(svg){
+ const{dh,satMul}=tintDelta();
+ if(!dh&&satMul===1)return svg;
+ return svg.replace(/(fill|stroke|stop-color)="([^"]*)"/g,(m0,attr,val)=>`${attr}="${shiftColor(val,dh,satMul)}"`);}
 function collect(){
  const model=($('#model').value||'MODEL').trim().toUpperCase();
  const spec=$('#spec').value.trim();
@@ -1141,6 +1211,390 @@ function buildD8(d){const P=[];let y=0;
  P.push(nf.svg);y+=nf.h;
  return{svg:P.join(''),H:y}}
 
+/* ---------- 공용: 티켓(쿠폰) 모양 ---------- */
+/* notchBg = 티켓이 놓인 배경색 (좌우 반원 홈) */
+function ticket(cx,cy,w,h,fill,notchBg,extra){const x=cx-w/2,y=cy-h/2,r=9;
+ return R(x,y,w,h,8,fill,extra||'')
+ +C(x,cy,r,notchBg||'#ffffff')+C(x+w,cy,r,notchBg||'#ffffff')}
+/* ---------- 공용: 부드러운 버블 배경 ---------- */
+function bubbles(list,fill){return list.map(([x,y,r,o])=>C(x,y,r,fill,` opacity="${o}"`)).join('')}
+
+/* ============================================================
+   디자인 9 · 아쿠아 블루 — 버블 히어로 + 다크 특가 카드 + 블루 티켓
+   ============================================================ */
+function buildD9(d){const P=[];let y=0;
+ const BLUE='#1F7AE0',DEEP='#0B3E86',INK='#12233D',SUB='#5E7591',SOFT='#DCEEFB';
+ P.push(`<defs>
+  <linearGradient id="d9sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4F4FE"/><stop offset=".55" stop-color="#BFE4FA"/><stop offset="1" stop-color="#8FCFF2"/></linearGradient>
+  <linearGradient id="d9scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient>
+  <linearGradient id="d9tk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3E93F0"/><stop offset="1" stop-color="#1B5FC4"/></linearGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=900;
+ P.push(R(0,0,W,heroH,0,'url(#d9sky)'));
+ P.push(bubbles([[92,150,54,.5],[150,96,26,.4],[770,120,64,.45],[820,240,30,.35],[64,470,40,.35],[806,560,52,.4],[726,700,26,.3]],'#ffffff'));
+ P.push(bubbles([[120,660,70,.28],[790,410,44,.25]],'#7FC4EE'));
+ if(d.spec){const sw2=tw(d.spec,20,700)+56;
+  P.push(R(W/2-sw2/2,44,sw2,44,22,INK),T(W/2,66,d.spec,{size:20,weight:700,fill:'#fff',anchor:'middle'}))}
+ const m9=Math.min(76,Math.floor(76*(W-110)/Math.max(1,tw(d.model,76,700,F_GM))));
+ P.push(T(W/2,156,d.model,{size:m9,weight:700,family:F_GM,fill:BLUE,anchor:'middle',ls:'-.5'}));
+ P.push(T(W/2,230,d.title,{size:60,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+ if(d.ds&&d.de)P.push(T(W/2,292,`${dotY(d.ds)} - ${dotY(d.de)}`,{size:21,weight:700,fill:'#33628F',anchor:'middle'}));
+ P.push(`<ellipse cx="${W/2}" cy="812" rx="250" ry="24" fill="${DEEP}" opacity=".12"/>`);
+ P.push(productArt(W/2,600,610,330,'d9scr'));
+ y=heroH;
+ /* --- EVENT 01 (화이트) --- */
+ function evDot9(yy,t,fill){const w2=tw(t,17,800)+70;
+  return R(W/2-w2/2,yy,w2,38,19,fill||INK)
+  +C(W/2-w2/2+22,yy+19,3.4,'#fff')+C(W/2+w2/2-22,yy+19,3.4,'#fff')
+  +T(W/2,yy+20,t,{size:17,weight:800,fill:'#fff',anchor:'middle',ls:'1'})}
+ const s1H=d.upTxt?552:430;
+ P.push(R(0,y,W,s1H,0,'#fff'));
+ P.push(evDot9(y+54,'Event 01'));
+ {const t1='출시기념 ',t2='특가',t3=' 이벤트',sz=48;
+  const w1=tw(t1,sz,700,F_GM),w2=tw(t2,sz,700,F_GM),w3=tw(t3,sz,700,F_GM);
+  let x=W/2-(w1+w2+w3)/2-(d.limitTxt?54:0);
+  P.push(T(x+w1/2,y+164,t1,{size:sz,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+  P.push(T(x+w1+w2/2,y+164,t2,{size:sz,weight:700,family:F_GM,fill:BLUE,anchor:'middle',ls:'-1'}));
+  P.push(T(x+w1+w2+w3/2,y+164,t3,{size:sz,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+  if(d.limitTxt)P.push(T(x+w1+w2+w3+22,y+140,d.limitTxt,{size:20,weight:700,fill:SUB}))}
+ /* 가격 행 */
+ const py=y+254;
+ if(d.orig)P.push(T(W/2-232,py,won(d.orig),{size:30,weight:600,fill:'#A9B6C4',anchor:'middle',deco:'line-through'}));
+ P.push(`<path d="M ${W/2-132} ${py+8} L ${W/2-100} ${py-6}" stroke="#A9B6C4" stroke-width="3" stroke-linecap="round"/>`);
+ if(d.sale){const st=won(d.sale),ssz=64,sw3=tw(st,ssz,900);
+  P.push(T(W/2-70+sw3/2,py+4,st,{size:ssz,weight:900,fill:BLUE,anchor:'middle'}));
+  if(d.discTxt){const bt=`${d.discTxt} 할인`,bw=tw(bt,18,800)+30;
+   P.push(R(W/2-70+sw3-bw+18,py-64,bw,34,6,'#FFE873'));
+   P.push(T(W/2-70+sw3-bw/2+18,py-47,bt,{size:18,weight:800,fill:INK,anchor:'middle'}))}}
+ /* 다크 업그레이드 카드 */
+ if(d.upTxt){const uy=y+340,uw=W-200;
+  P.push(R(100,uy,uw,116,20,INK));
+  P.push(C(180,uy+58,28,BLUE),T(180,uy+59,'+',{size:34,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(W/2+30,uy+42,`${d.up}만원 상당`,{size:28,weight:800,fill:'#7FC8FF',anchor:'middle'}));
+  P.push(T(W/2+30,uy+80,'무결점 무상업그레이드',{size:26,weight:700,fill:'#fff',anchor:'middle'}))}
+ y+=s1H;
+ /* --- EVENT 02 (연블루) --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-230);
+ const hbH=54+tagsL.length*30+26;
+ const s2H=54+38+140+230+64+hbH+56;
+ P.push(R(0,y,W,s2H,0,SOFT));
+ P.push(evDot9(y+54,'Event 02',BLUE));
+ P.push(T(W/2,y+152,'출시기념',{size:46,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+ {const t1='포토상품평 ',t2='이벤트',sz=46;
+  const w1=tw(t1,sz,700,F_GM),w2=tw(t2,sz,700,F_GM),x0=W/2-(w1+w2)/2;
+  P.push(T(x0+w1/2,y+212,t1,{size:sz,weight:700,family:F_GM,fill:BLUE,anchor:'middle',ls:'-1'}));
+  P.push(T(x0+w1+w2/2,y+212,t2,{size:sz,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}))}
+ const rcy=y+300;
+ d.reviews.forEach((rv,i)=>{const cx=W/2+(i-1)*268;
+  P.push(T(cx,rcy,rv.req,{size:12.5,weight:500,fill:SUB,anchor:'middle'}));
+  P.push(T(cx,rcy+26,`${rv.n1} ${rv.n2}`,{size:14,weight:600,fill:SUB,anchor:'middle'}));
+  P.push(T(cx,rcy+58,`네이버페이 ${won(rv.amt)}`,{size:22,weight:900,fill:INK,anchor:'middle'}));
+  P.push(`<g transform="rotate(-7 ${cx} ${rcy+140})">`);
+  P.push(ticket(cx,rcy+140,206,86,i===1?'#ffffff':'url(#d9tk)',SOFT,i===1?` stroke="${BLUE}" stroke-width="2"`:''));
+  P.push(`<line x1="${cx+52}" y1="${rcy+108}" x2="${cx+52}" y2="${rcy+172}" stroke="${i===1?'#BBD9F5':'#8FC3F2'}" stroke-width="2" stroke-dasharray="6 6"/>`);
+  P.push(T(cx-24,rcy+124,'NAVER PAY',{size:10,weight:800,fill:i===1?'#7FA8D8':'#CFE6FF',anchor:'middle',ls:'1'}));
+  P.push(T(cx-24,rcy+152,'₩'+comma(rv.amt),{size:26,weight:900,fill:i===1?BLUE:'#fff',anchor:'middle'}));
+  P.push('</g>')});
+ if(d.totalTxt)P.push(T(W/2,rcy+232,'*'+d.totalTxt.replace(/^※\s*/,''),{size:14.5,weight:600,fill:'#43617F',anchor:'middle'}));
+ const hby=rcy+296;
+ P.push(R(70,hby,W-140,hbH,12,'#fff'));
+ P.push(R(70,hby,W-140,42,12,BLUE),R(70,hby+30,W-140,12,0,BLUE));
+ P.push(T(W/2,hby+21,'필수해시태그',{size:17,weight:800,fill:'#fff',anchor:'middle'}));
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby+70+i*30,l,{size:15.5,weight:600,fill:BLUE,anchor:'middle'})));
+ y+=s2H;
+ /* --- 접수 정보 --- */
+ const ir=infoRows(d,80,y+48,{pillBg:BLUE,pillInk:'#fff',ink:'#3A5673',lw:104});
+ P.push(R(0,y,W,48+ir.h+52,0,SOFT));P.push(ir.svg);
+ y+=48+ir.h+52;
+ /* --- 유의사항 (화이트) --- */
+ const nf=noticeFooter(d,y,{bg:'#FFFFFF',ink:'#6E7C8C',head:'이벤트 유의사항',headSvg:yy=>
+  C(70,yy,13,'none',` stroke="${BLUE}" stroke-width="2"`)+T(70,yy+1,'!',{size:15,weight:900,fill:BLUE,anchor:'middle'})+T(96,yy,'이벤트 유의사항',{size:17,weight:800,fill:INK})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
+   디자인 10 · 민트 그라데 — 블루→라임 2톤 + 선물상자 + N pay 카드
+   ============================================================ */
+function buildD10(d){const P=[];let y=0;
+ const BLUE='#2E6BE6',DEEP='#1B3F94',LIME='#B7E86A',INK='#16305E',SUB='#5A7196';
+ P.push(`<defs>
+  <linearGradient id="d10sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7BA9F2"/><stop offset=".6" stop-color="#A7C6F7"/><stop offset="1" stop-color="#C9DDFB"/></linearGradient>
+  <linearGradient id="d10ttl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DFF7A8"/><stop offset=".5" stop-color="#EAF9D8"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+  <linearGradient id="d10scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=880;
+ P.push(R(0,0,W,heroH,0,'url(#d10sky)'));
+ for(let i=0;i<7;i++)P.push(R(60+i*128,-40+((i%3)*70),90,90,14,'#ffffff',' opacity=".12" transform="rotate(20 '+(105+i*128)+' 5)"'));
+ P.push(gift(96,258,74,'#8FD0F5',-10,'#fff'),gift(786,690,66,'#CDEA92',9,'#fff'),gift(60,742,54,'#A9C6F7',6,'#fff'));
+ [[300,110,10],[600,86,7],[760,330,9]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.9)));
+ const m10=Math.min(84,Math.floor(84*(W-140)/Math.max(1,tw(d.model,84,700,F_GM))));
+ P.push(T(W/2,142,d.model,{size:m10,weight:700,family:F_GM,fill:'url(#d10ttl)',anchor:'middle',ls:'-1',stroke:'rgba(27,63,148,.25)',sw:3}));
+ P.push(T(W/2,224,d.title,{size:60,weight:700,family:F_GM,fill:'#ffffff',anchor:'middle',ls:'-1',stroke:'rgba(27,63,148,.25)',sw:3}));
+ if(d.ds&&d.de){const dt=`${dotY(d.ds)} ~ ${dotY(d.de)}`;
+  P.push(T(W/2-30,288,dt,{size:20,weight:700,fill:'#fff',anchor:'middle'}));
+  if(d.feats[0]){const fw=tw(d.feats[0],16,800)+30;
+   P.push(R(W/2+tw(dt,20,700)/2-14,272,fw,32,16,LIME),T(W/2+tw(dt,20,700)/2-14+fw/2,289,d.feats[0],{size:16,weight:800,fill:INK,anchor:'middle'}))}}
+ P.push(productArt(W/2,600,600,330,'d10scr'));
+ /* 좌우 스펙 칩 */
+ if(d.feats[1]){const t=d.feats[1],cw2=tw(t,17,800)+34;
+  P.push(R(110,470,cw2,38,19,LIME),T(110+cw2/2,489,t,{size:17,weight:800,fill:INK,anchor:'middle'}))}
+ if(d.feats[2]){const t=d.feats[2],cw2=tw(t,17,800)+34;
+  P.push(R(W-110-cw2,560,cw2,38,19,LIME),T(W-110-cw2/2,579,t,{size:17,weight:800,fill:INK,anchor:'middle'}))}
+ y=heroH;
+ /* --- EVENT 01 (연블루) --- */
+ function pinLabel(x,yy,t,color){
+  return `<path d="M ${x} ${yy-9} l 7 -7 a 5 5 0 0 1 7 7 l -7 7 z" fill="${color}"/>`
+  +`<line x1="${x}" y1="${yy-2}" x2="${x-9}" y2="${yy+9}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>`
+  +T(x+22,yy,t,{size:19,weight:800,fill:color,ls:'1'})}
+ const s1H=d.upTxt?486:400;
+ P.push(R(0,y,W,s1H,0,'#E7EFFD'));
+ P.push(pinLabel(64,y+56,'EVENT 01',BLUE));
+ if(d.limitTxt)P.push(T(W/2,y+134,d.limitTxt,{size:26,weight:700,fill:INK,anchor:'middle'}));
+ {const t1='출시기념 ',t2='특가 이벤트',sz=44;
+  const w1=tw(t1,sz,700,F_GM),w2=tw(t2,sz,700,F_GM),x0=W/2-(w1+w2)/2;
+  P.push(`<line x1="${x0-70}" y1="${y+192}" x2="${x0-24}" y2="${y+192}" stroke="${INK}" stroke-width="2"/>`);
+  P.push(T(x0+w1/2,y+192,t1,{size:sz,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+  P.push(T(x0+w1+w2/2,y+192,t2,{size:sz,weight:700,family:F_GM,fill:BLUE,anchor:'middle',ls:'-1'}));
+  P.push(`<line x1="${x0+w1+w2+24}" y1="${y+192}" x2="${x0+w1+w2+70}" y2="${y+192}" stroke="${INK}" stroke-width="2"/>`)}
+ const py=y+272;
+ if(d.orig)P.push(T(W/2-210,py,won(d.orig),{size:34,weight:700,fill:'#93A6C4',anchor:'middle',deco:'line-through'}));
+ P.push(`<path d="M ${W/2-96} ${py+10} L ${W/2-60} ${py-8}" stroke="#93A6C4" stroke-width="3" stroke-linecap="round"/>`);
+ if(d.sale)P.push(T(W/2+120,py+2,won(d.sale),{size:56,weight:900,fill:INK,anchor:'middle'}));
+ if(d.discTxt){const bw=tw(d.discTxt,20,900)+40,bx=W/2+232,by2=py-78;
+  P.push(R(bx-bw/2,by2,bw,42,8,LIME));
+  P.push(`<path d="M ${bx-16} ${by2+42} L ${bx+16} ${by2+42} L ${bx} ${by2+62} Z" fill="${LIME}"/>`);
+  P.push(T(bx,by2+21,d.discTxt,{size:20,weight:900,fill:INK,anchor:'middle'}))}
+ if(d.upTxt){const uy=y+336,uw=W-200;
+  P.push(R(100,uy,uw,110,22,BLUE));
+  P.push(C(178,uy+55,26,'#7FA9F5'),T(178,uy+56,'+',{size:30,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(W/2+34,uy+40,`${d.up}만원 상당`,{size:27,weight:800,fill:'#EAF9D8',anchor:'middle'}));
+  P.push(T(W/2+34,uy+78,'무결점 무상업그레이드',{size:25,weight:700,fill:'#fff',anchor:'middle'}))}
+ y+=s1H;
+ /* --- EVENT 02 (연라임) --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-260);
+ const hbH=56+tagsL.length*30+28;
+ const s2H=56+120+250+56+hbH+56;
+ P.push(R(0,y,W,s2H,0,'#F0F9DC'));
+ P.push(pinLabel(64,y+56,'EVENT 02',BLUE));
+ P.push(T(W/2,y+128,'출시기념',{size:44,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+ P.push(T(W/2,y+186,'포토상품평 이벤트',{size:44,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+ const rcw=232,rgap=24,rx0=W/2-(rcw*3+rgap*2)/2,rcy=y+232;
+ d.reviews.forEach((rv,i)=>{const rx=rx0+i*(rcw+rgap);
+  P.push(R(rx,rcy,rcw,206,16,'#fff'));
+  P.push(R(rx+16,rcy+16,rcw-32,74,10,'#EAF2FE'));
+  P.push(C(rx+40,rcy+38,11,'#03C75A'),T(rx+40,rcy+38.5,'N',{size:13,weight:900,fill:'#fff',anchor:'middle',family:'Arial, sans-serif'}));
+  P.push(T(rx+60,rcy+39,'pay',{size:14,weight:800,fill:INK,family:'Arial, sans-serif'}));
+  P.push(T(rx+rcw/2,rcy+70,won(rv.amt),{size:24,weight:900,fill:BLUE,anchor:'middle'}));
+  P.push(T(rx+rcw/2,rcy+118,`${rv.n1} ${rv.n2}`,{size:13.5,weight:700,fill:INK,anchor:'middle',deco:'underline'}));
+  P.push(T(rx+rcw/2,rcy+140,rv.req,{size:11.5,weight:500,fill:SUB,anchor:'middle'}));
+  P.push(T(rx+rcw/2,rcy+170,'네이버페이',{size:14,weight:600,fill:SUB,anchor:'middle'}));
+  P.push(T(rx+rcw/2,rcy+192,won(rv.amt),{size:19,weight:800,fill:INK,anchor:'middle'}))});
+ if(d.totalTxt)P.push(T(W/2,rcy+248,'＊'+d.totalTxt.replace(/^※\s*/,''),{size:14.5,weight:600,fill:'#41586F',anchor:'middle'}));
+ const hby=rcy+294;
+ P.push(R(70,hby,W-140,hbH,16,'#fff'));
+ P.push(T(W/2,hby+32,'포토상품평 필수 해시태그',{size:19,weight:800,fill:INK,anchor:'middle'}));
+ P.push(R(102,hby+52,W-204,hbH-70,10,'#F4FAE6'));
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby+80+i*30,l,{size:15.5,weight:600,fill:'#3F5C2E',anchor:'middle'})));
+ y+=s2H;
+ const ir=infoRows(d,80,y+48,{pillBg:'#DCE8FA',pillInk:INK,ink:'#4A5F7C'});
+ P.push(R(0,y,W,48+ir.h+52,0,'#F0F9DC'));P.push(ir.svg);
+ y+=48+ir.h+52;
+ const nf=noticeFooter(d,y,{bg:'#2A2E36',ink:'#A3AAB6',head:'주의사항',headSvg:yy=>
+  C(72,yy,14,'none',' stroke="#A3AAB6" stroke-width="2"')+T(72,yy+1,'!',{size:16,weight:900,fill:'#A3AAB6',anchor:'middle'})+T(100,yy,'주의사항',{size:17,weight:800,fill:'#fff'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
+   디자인 11 · 딥퍼플 이벤트 — EVENT 탭 헤더 + 아웃라인 타이포
+   ============================================================ */
+function buildD11(d){const P=[];let y=0;
+ const PUR='#5B2BD9',LIGHT='#8E6BF2',CYAN='#7FE3FF',INK='#1B1440';
+ P.push(`<defs>
+  <linearGradient id="d11sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B2AA0"/><stop offset=".55" stop-color="#5B3FD6"/><stop offset="1" stop-color="#7B5BEE"/></linearGradient>
+  <linearGradient id="d11ttl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFE9FF"/></linearGradient>
+  <linearGradient id="d11scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a855f7"/><stop offset=".5" stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=920;
+ P.push(R(0,0,W,heroH,0,'url(#d11sky)'));
+ P.push(bubbles([[110,180,90,.10],[790,300,110,.10],[700,760,80,.08]],'#ffffff'));
+ [[86,120,16],[790,150,13],[812,470,11],[120,560,10],[664,86,9]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,CYAN,.9)));
+ /* 야자수 두들 */
+ P.push(`<g stroke="${CYAN}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9">
+  <path d="M 690 176 C 700 150 716 138 736 136"/><path d="M 690 176 C 706 158 730 152 750 158"/>
+  <path d="M 690 176 C 700 186 716 196 730 200"/><path d="M 690 176 C 676 158 660 152 642 156"/>
+  <path d="M 688 178 C 686 200 682 218 674 236"/></g>`);
+ const m11=Math.min(46,Math.floor(46*(W-160)/Math.max(1,tw(d.model,46,700,F_GM))));
+ P.push(T(W/2,92,d.model,{size:m11,weight:700,family:F_GM,fill:'#fff',anchor:'middle',ls:'1'}));
+ P.push(T(W/2,186,d.title,{size:74,weight:700,family:F_GM,fill:'url(#d11ttl)',anchor:'middle',ls:'-1',stroke:'rgba(20,10,70,.35)',sw:3}));
+ P.push(T(W/2,278,'EVENT',{size:78,weight:700,family:F_GM,fill:'none',anchor:'middle',ls:'6',stroke:CYAN,sw:3}));
+ if(d.periodK)P.push(T(W/2,336,d.periodK,{size:18,weight:600,fill:'#D8CCFF',anchor:'middle'}));
+ P.push(productArt(W/2,624,620,340,'d11scr'));
+ if(d.spec)P.push(T(W/2,852,d.spec,{size:24,weight:800,fill:'#fff',anchor:'middle'}));
+ y=heroH;
+ /* --- 탭 헤더 --- */
+ function tabs11(yy,active,bg){const tw1='EVENT 1',tw2='EVENT 2',bw=250,bh=52;
+  let s='';
+  [[0,tw1],[1,tw2]].forEach(([i,t])=>{const x=i===0?60:W/2+20;
+   const on=active===i;
+   s+=`<path d="M ${x} ${yy+bh} V ${yy+14} Q ${x} ${yy} ${x+14} ${yy} H ${x+bw-14} Q ${x+bw} ${yy} ${x+bw} ${yy+14} V ${yy+bh} Z" fill="${on?INK:'none'}"/>`;
+   s+=T(x+bw/2,yy+bh/2+2,t,{size:24,weight:800,family:F_GM,fill:on?'#fff':(bg==='dark'?'rgba(255,255,255,.35)':'rgba(91,43,217,.3)'),anchor:'middle',ls:'1'})});
+  return s}
+ /* --- EVENT 1 (화이트) --- */
+ const s1H=d.upTxt?438:360;
+ P.push(R(0,y,W,s1H,0,'#fff'));
+ P.push(tabs11(y+16,0,'light'));
+ if(d.limitTxt)P.push(T(W/2,y+140,d.limitTxt,{size:36,weight:700,family:F_GM,fill:PUR,anchor:'middle',ls:'-.5'}));
+ P.push(T(W/2,y+206,'출시특가!',{size:60,weight:700,family:F_GM,fill:INK,anchor:'middle',ls:'-1'}));
+ if(d.orig){const ot='₩'+comma(d.orig)+'원',ow=tw(ot,26,600);
+  P.push(T(W/2,y+258,ot,{size:26,weight:600,fill:'#9A93B5',anchor:'middle'}));
+  P.push(`<line x1="${W/2-ow/2-14}" y1="${y+258}" x2="${W/2+ow/2+14}" y2="${y+258}" stroke="#9A93B5" stroke-width="2.4"/>`)}
+ if(d.sale)P.push(T(W/2,y+312,`₩${comma(d.sale)}원${d.discTxt?`(${d.discTxt}할인)`:''}`,{size:38,weight:900,fill:INK,anchor:'middle'}));
+ if(d.upTxt){const uy=y+372;
+  P.push(C(W/2-190,uy,16,PUR),T(W/2-190,uy+1,'+',{size:22,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(W/2-160,uy,`${d.up}만원 상당`,{size:23,weight:900,fill:INK}));
+  P.push(T(W/2-160+tw(`${d.up}만원 상당`,23,900),uy,'의 무결점 무상업그레이드',{size:23,weight:600,fill:'#3E3560'}))}
+ y+=s1H;
+ /* --- EVENT 2 (퍼플) --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-240);
+ const hbH=52+tagsL.length*30+26;
+ const s2H=16+52+150+284+56+hbH+56;
+ P.push(R(0,y,W,s2H,0,PUR));
+ P.push(tabs11(y+16,1,'dark'));
+ P.push(T(W/2,y+164,'포토상품평',{size:70,weight:700,family:F_GM,fill:'none',anchor:'middle',ls:'2',stroke:CYAN,sw:3}));
+ P.push(T(W/2,y+224,'구매처 리뷰 작성시 포인트 증정',{size:20,weight:700,fill:'#fff',anchor:'middle'}));
+ const rcy=y+330;
+ d.reviews.forEach((rv,i)=>{const cx=W/2+(i-1)*262;
+  P.push(`<g transform="rotate(-6 ${cx} ${rcy})">`);
+  P.push(ticket(cx,rcy,206,96,INK,PUR));
+  P.push(T(cx,rcy-18,'네이버페이',{size:13,weight:700,fill:'#B9AEE8',anchor:'middle'}));
+  P.push(T(cx,rcy+18,won(rv.amt),{size:30,weight:900,fill:'#fff',anchor:'middle'}));
+  P.push('</g>');
+  P.push(T(cx,rcy+92,rv.n1,{size:17,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(cx,rcy+116,rv.n2,{size:15,weight:700,fill:'#fff',anchor:'middle'}));
+  P.push(T(cx,rcy+140,rv.req,{size:12.5,weight:500,fill:'#D5CBF7',anchor:'middle'}))});
+ if(d.totalTxt)P.push(T(W/2,rcy+196,d.totalTxt,{size:14.5,weight:600,fill:'#D5CBF7',anchor:'middle'}));
+ const hby=rcy+250;
+ P.push(R(70,hby,W-140,hbH,14,'#4A1FB8'));
+ P.push(T(W/2,hby+30,'＋  필수해시태그  ＋',{size:18,weight:800,fill:'#fff',anchor:'middle'}));
+ tagsL.forEach((l,i)=>P.push(T(W/2,hby+70+i*30,l,{size:15.5,weight:600,fill:'#CFC0FF',anchor:'middle'})));
+ y+=s2H;
+ const ir=infoRows(d,80,y+48,{pillBg:'#7B5BEE',pillInk:'#fff',ink:'#3E3560'});
+ P.push(R(0,y,W,48+ir.h+52,0,'#F2EEFD'));P.push(ir.svg);
+ y+=48+ir.h+52;
+ const nf=noticeFooter(d,y,{bg:'#211A45',ink:'#9C93C4',head:'이벤트 유의사항',headSvg:yy=>
+  C(72,yy,14,'none',' stroke="#9C93C4" stroke-width="2"')+T(72,yy+1,'!',{size:16,weight:900,fill:'#9C93C4',anchor:'middle'})+T(100,yy,'이벤트 유의사항',{size:17,weight:800,fill:'#fff'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
+/* ============================================================
+   디자인 12 · 로즈 가을 — 단풍·풍선 장식 + 원형 EVENT 배지
+   ============================================================ */
+function leaf12(x,yy,s,fill,rot){return `<g transform="translate(${x},${yy}) rotate(${rot||0})" opacity=".85">`
+ +`<path d="M 0 ${-s} C ${s*.75} ${-s*.5} ${s*.9} ${s*.25} 0 ${s} C ${-s*.9} ${s*.25} ${-s*.75} ${-s*.5} 0 ${-s} Z" fill="${fill}"/>`
+ +`<path d="M 0 ${-s*.8} V ${s*.9}" stroke="#ffffff" stroke-width="1.4" opacity=".5"/></g>`}
+function balloon12(x,yy,s,fill){return C(x,yy,s,fill)+`<path d="M ${x-s*.2} ${yy+s} L ${x} ${yy+s*1.2} L ${x+s*.2} ${yy+s} Z" fill="${fill}"/>`
+ +`<path d="M ${x} ${yy+s*1.2} C ${x+s*.5} ${yy+s*1.8} ${x-s*.4} ${yy+s*2.2} ${x+s*.1} ${yy+s*2.8}" stroke="${fill}" stroke-width="1.6" fill="none"/>`}
+function buildD12(d){const P=[];let y=0;
+ const ROSE='#E8628F',DEEP='#B93A68',BRN='#6B4A3A',CARD='#FDEEF3',INK='#3F2733';
+ P.push(`<defs>
+  <linearGradient id="d12sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE7EE"/><stop offset=".5" stop-color="#F9C9DA"/><stop offset="1" stop-color="#F4AEC7"/></linearGradient>
+  <linearGradient id="d12scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb7185"/><stop offset=".5" stop-color="#c084fc"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+  <radialGradient id="d12orb"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ </defs>`);
+ /* --- 히어로 --- */
+ const heroH=900;
+ P.push(R(0,0,W,heroH,0,'url(#d12sky)'));
+ P.push(C(120,110,90,'url(#d12orb)'),C(770,300,110,'url(#d12orb)'),C(700,760,80,'url(#d12orb)'));
+ P.push(leaf12(64,148,30,'#E8734F',-24),leaf12(126,86,22,'#F0A05C',18),leaf12(800,120,26,'#E8734F',30),leaf12(806,430,22,'#F0A05C',-12),leaf12(72,620,24,'#E8734F',14));
+ [[300,96,12],[620,120,9],[790,660,11],[110,420,8],[560,300,7]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.95)));
+ if(d.spec)P.push(T(W/2,62,d.spec,{size:19,weight:600,fill:BRN,anchor:'middle'}));
+ {const mw=tw(d.model,22,800)+52;
+  P.push(R(W/2-mw/2,92,mw,42,21,ROSE),T(W/2,113,d.model,{size:22,weight:800,fill:'#fff',anchor:'middle',ls:'.5'}))}
+ const tls=d.title.split(' ');
+ const l1=tls.length>2?tls.slice(0,tls.length-1).join(' '):(tls[0]||d.title);
+ const l2=tls.length>1?tls[tls.length-1]:'';
+ P.push(T(W/2,196,l1,{size:58,weight:700,family:F_GM,fill:'#FFF3F7',anchor:'middle',ls:'-1',stroke:'rgba(185,58,104,.35)',sw:5}));
+ if(l2)P.push(T(W/2,268,l2,{size:58,weight:700,family:F_GM,fill:'#FFF3F7',anchor:'middle',ls:'-1',stroke:'rgba(185,58,104,.35)',sw:5}));
+ P.push(productArt(W/2,588,580,320,'d12scr'));
+ if(d.ds&&d.de)P.push(T(W/2,832,`이벤트 기간 │ ${dotY(d.ds)} - ${dotY(d.de)}`,{size:19,weight:700,fill:BRN,anchor:'middle'}));
+ y=heroH;
+ /* --- 공용: 라운드 카드 + 원형 EVENT 배지 --- */
+ function evCard(yy,h,no){let s=R(50,yy,W-100,h,26,CARD);
+  const bx=W-124,by=yy+6;
+  s+=C(bx,by,46,DEEP);
+  s+=T(bx,by-12,'EVENT',{size:13,weight:800,fill:'#fff',anchor:'middle',ls:'1.5'});
+  s+=T(bx,by+14,no,{size:26,weight:900,fill:'#fff',anchor:'middle'});
+  /* 페이지 컬 */
+  s+=`<path d="M ${W-50} ${yy+h-60} L ${W-50} ${yy+h-26} Q ${W-50} ${yy+h} ${W-76} ${yy+h} L ${W-110} ${yy+h} Z" fill="#F6D9E4"/>`;
+  return s}
+ /* --- EVENT 01 --- */
+ const c1H=d.upTxt?396:314;
+ P.push(R(0,y,W,c1H+96,0,'#FCE9F0'));
+ const c1y=y+48;
+ P.push(evCard(c1y,c1H,'01'));
+ P.push(T(96,c1y+82,'출시기념 특가 이벤트',{size:40,weight:700,family:F_GM,fill:INK,ls:'-1'}));
+ /* 해시 칩 */
+ {let cx=96;[d.limitTxt,d.discTxt?d.discTxt+'할인':'',d.upTxt?'무상업그레이드':''].filter(Boolean).forEach(t=>{
+   const w2=tw('#'+t,15,700)+30;
+   P.push(R(cx,c1y+118,w2,32,16,'#fff'),T(cx+w2/2,c1y+134,'#'+t,{size:15,weight:700,fill:ROSE,anchor:'middle'}));
+   cx+=w2+10})}
+ if(d.orig){const ot=won(d.orig),ow=tw(ot,32,600);
+  P.push(T(96,c1y+188,ot,{size:32,weight:600,fill:'#B79AA6'}));
+  P.push(`<path d="M 90 ${c1y+200} L ${96+ow+10} ${c1y+176}" stroke="#B79AA6" stroke-width="2.4"/>`)}
+ if(d.sale)P.push(T(96,c1y+244,won(d.sale),{size:52,weight:900,fill:ROSE}));
+ P.push(gift(W-190,c1y+228,86,'#C7A8E8',-8,'#F7E9A8'),gift(W-118,c1y+248,64,'#F2A9C4',10,'#F7E9A8'));
+ if(d.upTxt){const uy=c1y+306,uw=Math.max(tw(d.upTxt,22,800,F_GM)+96,520);
+  P.push(R(96,uy,uw,62,31,'#F6D9E4'));
+  P.push(C(130,uy+31,15,ROSE),T(130,uy+32,'+',{size:20,weight:800,fill:'#fff',anchor:'middle'}));
+  P.push(T(156,uy+32,`${d.up}만원 상당`,{size:22,weight:800,family:F_GM,fill:ROSE}));
+  P.push(T(156+tw(`${d.up}만원 상당`,22,800,F_GM)+6,uy+32,'의 무결점 무상 업그레이드',{size:20,weight:600,fill:INK}))}
+ y+=c1H+96;
+ /* --- EVENT 02 --- */
+ const c2H=418;
+ P.push(R(0,y,W,c2H+72,0,'#FCE9F0'));
+ const c2y=y+24;
+ P.push(evCard(c2y,c2H,'02'));
+ P.push(balloon12(W-236,c2y-26,20,'#C7A8E8'),balloon12(W-196,c2y-46,15,'#F2C36B'));
+ P.push(T(96,c2y+74,'포토상품평 이벤트',{size:40,weight:700,family:F_GM,fill:INK,ls:'-1'}));
+ const rcw=222,rgap=26,rx0=W/2-(rcw*3+rgap*2)/2,rcy=c2y+136;
+ d.reviews.forEach((rv,i)=>{const rx=rx0+i*(rcw+rgap);
+  P.push(`<g transform="rotate(-2 ${rx+rcw/2} ${rcy+44})">`);
+  P.push(R(rx,rcy,rcw,88,6,'#fff'));
+  P.push(R(rx+rcw-30,rcy,30,88,6,'#F6D9E4'));
+  P.push(`<line x1="${rx+rcw-30}" y1="${rcy+6}" x2="${rx+rcw-30}" y2="${rcy+82}" stroke="#E7B9CB" stroke-width="2" stroke-dasharray="5 5"/>`);
+  P.push(T(rx+18,rcy+22,'네이버페이',{size:11,weight:700,fill:'#9E7F8D'}));
+  P.push(T(rx+18,rcy+58,comma(rv.amt)+'원',{size:28,weight:900,fill:INK}));
+  P.push('</g>');
+  P.push(T(rx+rcw/2,rcy+124,`${rv.n1} ${rv.n2}`,{size:14,weight:700,fill:ROSE,anchor:'middle'}));
+  P.push(T(rx+rcw/2,rcy+156,'네이버페이',{size:17,weight:700,fill:INK,anchor:'middle'}));
+  P.push(T(rx+rcw/2,rcy+184,won(rv.amt),{size:22,weight:900,fill:ROSE,anchor:'middle'}));
+  P.push(T(rx+rcw/2,rcy+208,rv.req,{size:11.5,weight:500,fill:'#9E7F8D',anchor:'middle'}))});
+ if(d.total){P.push(T(W/2,rcy+256,'구매처+네이버 블로그+SNS,커뮤니티',{size:22,weight:800,fill:INK,anchor:'middle'}));
+  const t1='리뷰 모두 참여시 ',t2=`총 네이버페이 ${manwon(d.total)}`;
+  const w1=tw(t1,22,800),w2=tw(t2,22,900),x0=W/2-(w1+w2)/2;
+  P.push(T(x0,rcy+290,t1,{size:22,weight:800,fill:INK}));
+  P.push(R(x0+w1-6,rcy+274,w2+12,32,4,'#F7DDA8'));
+  P.push(T(x0+w1,rcy+290,t2,{size:22,weight:900,fill:INK}))}
+ y+=c2H+72;
+ /* --- 해시태그 + 접수 --- */
+ const tagsL=tagLines(d.tags,15.5,600,W-220);
+ const hbH=44+tagsL.length*30;
+ P.push(R(0,y,W,hbH+56,0,'#FCE9F0'));
+ {const hw=tw('필수해시태그',16,800)+44;
+  P.push(R(96,y+8,hw,34,17,'#F6D9E4'),T(96+hw/2,y+25,'필수해시태그',{size:16,weight:800,fill:INK,anchor:'middle'}))}
+ tagsL.forEach((l,i)=>P.push(T(W/2,y+72+i*30,l,{size:15.5,weight:600,fill:INK,anchor:'middle'})));
+ y+=hbH+56;
+ const ir=infoRows(d,96,y+40,{pillBg:'#F6D9E4',pillInk:INK,ink:'#5C4550'});
+ P.push(R(0,y,W,40+ir.h+52,0,'#FCE9F0'));P.push(ir.svg);
+ y+=40+ir.h+52;
+ const nf=noticeFooter(d,y,{bg:'#26212A',ink:'#A69AA2',head:'NOTICE',headSvg:yy=>
+  `<path d="M 60 ${yy+12} L 74 ${yy-13} L 88 ${yy+12} Z" fill="#ffffff"/>`+T(74,yy+6,'!',{size:13,weight:900,fill:'#26212A',anchor:'middle'})+T(102,yy,'NOTICE',{size:17,weight:800,fill:'#fff',ls:'1.5'})});
+ P.push(nf.svg);y+=nf.h;
+ return{svg:P.join(''),H:y}}
+
 /* ============================================================
    미니 배너 284×400 — 메인과 같은 디자인 언어의 히어로 압축판
    ============================================================ */
@@ -1301,13 +1755,84 @@ function buildM8(d){const P=[];
  P.push(`<ellipse cx="${MW/2}" cy="${MH-42}" rx="86" ry="9" fill="${DEEP}" opacity=".15"/>`);
  P.push(miniProduct(MW/2,MH-140,228,160,'m8scr'));
  return P.join('')}
-const MINI={1:buildM1,2:buildM2,3:buildM3,4:buildM4,5:buildM5,6:buildM6,7:buildM7,8:buildM8};
-function buildMiniSVG(d){return `<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}">${MINI[state.design](d)}</svg>`}
+function buildM9(d){const P=[];
+ const BLUE='#1F7AE0',INK='#12233D';
+ P.push(`<defs><linearGradient id="m9sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4F4FE"/><stop offset=".55" stop-color="#BFE4FA"/><stop offset="1" stop-color="#8FCFF2"/></linearGradient>
+ <linearGradient id="m9scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m9sky)'));
+ P.push(bubbles([[36,58,26,.5],[252,44,30,.45],[262,190,18,.35],[24,236,22,.3]],'#ffffff'));
+ if(d.spec){const sl=wrap(d.spec,10,700,MW-56)[0],sw2=tw(sl,10,700)+26;
+  P.push(R(MW/2-sw2/2,16,sw2,22,11,INK),T(MW/2,27.5,sl,{size:10,weight:700,fill:'#fff',anchor:'middle'}))}
+ const m9=Math.min(34,Math.floor(34*(MW-26)/Math.max(1,tw(d.model,34,700,F_GM))));
+ P.push(T(MW/2,64,d.model,{size:m9,weight:700,family:F_GM,fill:BLUE,anchor:'middle'}));
+ const t9=Math.min(28,Math.floor(28*(MW-26)/Math.max(1,tw(d.title,28,700,F_GM))));
+ P.push(T(MW/2,100,d.title,{size:t9,weight:700,family:F_GM,fill:INK,anchor:'middle'}));
+ if(d.ds&&d.de)P.push(T(MW/2,128,`${dotS(d.ds)} - ${dotS(d.de)}`,{size:11,weight:700,fill:'#33628F',anchor:'middle'}));
+ P.push(`<ellipse cx="${MW/2}" cy="${MH-40}" rx="88" ry="9" fill="#0B3E86" opacity=".12"/>`);
+ P.push(miniProduct(MW/2,MH-136,230,158,'m9scr'));
+ return P.join('')}
+function buildM10(d){const P=[];
+ const INK='#16305E',LIME='#B7E86A';
+ P.push(`<defs><linearGradient id="m10sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7BA9F2"/><stop offset=".6" stop-color="#A7C6F7"/><stop offset="1" stop-color="#C9DDFB"/></linearGradient>
+ <linearGradient id="m10ttl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DFF7A8"/><stop offset=".5" stop-color="#EAF9D8"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+ <linearGradient id="m10scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m10sky)'));
+ for(let i=0;i<4;i++)P.push(R(20+i*76,-16+((i%2)*40),52,52,9,'#ffffff',' opacity=".12" transform="rotate(20 '+(46+i*76)+' 10)"'));
+ P.push(gift(36,104,30,'#8FD0F5',-10,'#fff'),gift(254,250,26,'#CDEA92',9,'#fff'));
+ P.push(sparkle(100,42,7,'#fff',.9),sparkle(240,120,6,'#fff',.9));
+ const m10=Math.min(36,Math.floor(36*(MW-26)/Math.max(1,tw(d.model,36,700,F_GM))));
+ P.push(T(MW/2,58,d.model,{size:m10,weight:700,family:F_GM,fill:'url(#m10ttl)',anchor:'middle',stroke:'rgba(27,63,148,.28)',sw:1.6}));
+ const t10=Math.min(28,Math.floor(28*(MW-26)/Math.max(1,tw(d.title,28,700,F_GM))));
+ P.push(T(MW/2,96,d.title,{size:t10,weight:700,family:F_GM,fill:'#fff',anchor:'middle',stroke:'rgba(27,63,148,.28)',sw:1.6}));
+ if(d.ds&&d.de)P.push(T(MW/2,126,`${dotS(d.ds)} ~ ${dotS(d.de)}`,{size:11,weight:700,fill:'#fff',anchor:'middle'}));
+ if(d.feats[0]){const t=d.feats[0],cw2=tw(t,11,800)+22;
+  P.push(R(MW/2-cw2/2,142,cw2,24,12,LIME),T(MW/2,154,t,{size:11,weight:800,fill:INK,anchor:'middle'}))}
+ P.push(miniProduct(MW/2,MH-128,228,152,'m10scr'));
+ return P.join('')}
+function buildM11(d){const P=[];
+ const CYAN='#7FE3FF';
+ P.push(`<defs><linearGradient id="m11sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B2AA0"/><stop offset=".55" stop-color="#5B3FD6"/><stop offset="1" stop-color="#7B5BEE"/></linearGradient>
+ <linearGradient id="m11ttl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFE9FF"/></linearGradient>
+ <linearGradient id="m11scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a855f7"/><stop offset=".5" stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m11sky)'));
+ P.push(bubbles([[38,74,40,.10],[254,180,46,.10]],'#ffffff'));
+ [[30,40,8],[256,52,7],[262,268,6]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,CYAN,.9)));
+ const m11=Math.min(20,Math.floor(20*(MW-40)/Math.max(1,tw(d.model,20,700,F_GM))));
+ P.push(T(MW/2,28,d.model,{size:m11,weight:700,family:F_GM,fill:'#fff',anchor:'middle',ls:'.5'}));
+ const t11=Math.min(38,Math.floor(38*(MW-30)/Math.max(1,tw(d.title,38,700,F_GM))));
+ P.push(T(MW/2,72,d.title,{size:t11,weight:700,family:F_GM,fill:'url(#m11ttl)',anchor:'middle',stroke:'rgba(20,10,70,.35)',sw:1.6}));
+ P.push(T(MW/2,118,'EVENT',{size:38,weight:700,family:F_GM,fill:'none',anchor:'middle',ls:'3',stroke:CYAN,sw:1.8}));
+ if(d.ds&&d.de)P.push(T(MW/2,152,`${dotY(d.ds)} ~ ${dotY(d.de)}`,{size:10.5,weight:600,fill:'#D8CCFF',anchor:'middle'}));
+ P.push(miniProduct(MW/2,MH-124,230,156,'m11scr'));
+ if(d.spec){const sl=wrap(d.spec,11,800,MW-30)[0];P.push(T(MW/2,MH-22,sl,{size:11,weight:800,fill:'#fff',anchor:'middle'}))}
+ return P.join('')}
+function buildM12(d){const P=[];
+ const ROSE='#E8628F',BRN='#6B4A3A';
+ P.push(`<defs><linearGradient id="m12sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE7EE"/><stop offset=".5" stop-color="#F9C9DA"/><stop offset="1" stop-color="#F4AEC7"/></linearGradient>
+ <linearGradient id="m12scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb7185"/><stop offset=".5" stop-color="#c084fc"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+ <radialGradient id="m12orb"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`);
+ P.push(R(0,0,MW,MH,0,'url(#m12sky)'));
+ P.push(C(40,60,44,'url(#m12orb)'),C(252,210,50,'url(#m12orb)'));
+ P.push(leaf12(28,66,16,'#E8734F',-24),leaf12(258,52,14,'#F0A05C',26),leaf12(262,300,13,'#E8734F',12));
+ [[110,34,7],[236,140,6],[40,250,6]].forEach(([x,yy,s])=>P.push(sparkle(x,yy,s,'#fff',.95)));
+ if(d.spec){const sl=wrap(d.spec,10,600,MW-40)[0];P.push(T(MW/2,22,sl,{size:10,weight:600,fill:BRN,anchor:'middle'}))}
+ {const mw=tw(d.model,12,800)+28;
+  P.push(R(MW/2-mw/2,36,mw,24,12,ROSE),T(MW/2,48,d.model,{size:12,weight:800,fill:'#fff',anchor:'middle'}))}
+ const tls=d.title.split(' ');
+ const l1=tls.length>2?tls.slice(0,tls.length-1).join(' '):(tls[0]||d.title),l2=tls.length>1?tls[tls.length-1]:'';
+ const t12=Math.min(28,Math.floor(28*(MW-26)/Math.max(1,tw(l1,28,700,F_GM))));
+ P.push(T(MW/2,86,l1,{size:t12,weight:700,family:F_GM,fill:'#FFF3F7',anchor:'middle',stroke:'rgba(185,58,104,.35)',sw:2.6}));
+ if(l2)P.push(T(MW/2,120,l2,{size:t12,weight:700,family:F_GM,fill:'#FFF3F7',anchor:'middle',stroke:'rgba(185,58,104,.35)',sw:2.6}));
+ P.push(miniProduct(MW/2,MH-126,224,150,'m12scr'));
+ if(d.ds&&d.de)P.push(T(MW/2,MH-22,`${dotS(d.ds)} - ${dotS(d.de)}`,{size:11,weight:700,fill:BRN,anchor:'middle'}));
+ return P.join('')}
+const MINI={1:buildM1,2:buildM2,3:buildM3,4:buildM4,5:buildM5,6:buildM6,7:buildM7,8:buildM8,9:buildM9,10:buildM10,11:buildM11,12:buildM12};
+function buildMiniSVG(d){return retint(`<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}">${MINI[state.design](d)}</svg>`)}
 
 /* ---------- 렌더 & 저장 ---------- */
-const BUILDERS={1:buildD1,2:buildD2,3:buildD3,4:buildD4,5:buildD5,6:buildD6,7:buildD7,8:buildD8};
+const BUILDERS={1:buildD1,2:buildD2,3:buildD3,4:buildD4,5:buildD5,6:buildD6,7:buildD7,8:buildD8,9:buildD9,10:buildD10,11:buildD11,12:buildD12};
 function buildSVG(){const d=collect();const{svg,H}=BUILDERS[state.design](d);
- return{svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Math.round(H)}" viewBox="0 0 ${W} ${Math.round(H)}">${svg}</svg>`,H:Math.round(H),d}}
+ return{svg:retint(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Math.round(H)}" viewBox="0 0 ${W} ${Math.round(H)}">${svg}</svg>`),H:Math.round(H),d}}
 let _rt=null;
 function render(){clearTimeout(_rt);_rt=setTimeout(()=>{try{
  const{svg,H,d}=buildSVG();
@@ -1385,6 +1910,12 @@ $('#bgRm').onclick=()=>{state.bgRemove=!state.bgRemove;$('#bgRm').classList.togg
 $$('#designs .dcard').forEach(b=>b.onclick=()=>{$$('#designs .dcard').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.design=b.dataset.d;
  const t=$('#title');if(!t.dataset.user)t.placeholder=`비우면 "${DEFAULT_TITLE[state.design]}" 사용`;render()});
 $('#title').addEventListener('input',e=>{e.target.dataset.user=e.target.value?'1':''});
+/* 색감 컨트롤 */
+$$('#palettes .pal').forEach(b=>b.onclick=()=>{
+ $$('#palettes .pal').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ state.tint.target=b.dataset.h?Number(b.dataset.h):null;render()});
+$('#hue').addEventListener('input',e=>{state.tint.hue=Number(e.target.value);$('#hueVal').textContent=e.target.value+'°';render()});
+$('#sat').addEventListener('input',e=>{state.tint.sat=Number(e.target.value);$('#satVal').textContent=e.target.value+'%';render()});
 $$('input,textarea').forEach(el=>el.addEventListener('input',render));
 render();
 /* 디스플레이 폰트 4종 선로드 후 재렌더 (canvas 측정값·디자인 전환이 폰트에 의존) */
