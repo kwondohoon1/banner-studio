@@ -90,7 +90,7 @@ main{padding:16px;max-width:520px}
   <input type="file" id="caseFile" accept="image/*" multiple hidden>
   <div class="hint" id="caseHint"></div>
 
-  <button class="primary" id="zipBtn" disabled>PNG 전체 ZIP 저장</button>
+  <button class="primary" id="zipBtn" disabled>JPG 전체 ZIP 저장</button>
   <button class="ghost" id="saveBtn" disabled>SVG 다운로드</button>
   <div id="status" class="status"></div>
   <div class="preview-shell" id="preview"></div>
@@ -731,7 +731,7 @@ function iconOps(key) {
 /**
  * 줄 목록을 그리기 명령 배열로 바꾼다.
  * SVG 렌더러와 캔버스 렌더러가 이 배열 하나를 공유하므로
- * 미리보기·에디터·PNG가 항상 같은 그림이 된다.
+ * 미리보기·에디터·JPG가 항상 같은 그림이 된다.
  */
 function layout(rows, caseImg) {
   const ops = [];
@@ -1617,13 +1617,18 @@ async function ensureFonts(ops) {
   await document.fonts.ready;
 }
 
-async function pngBlob(ops) {
+const JPG_QUALITY = 0.92;   // 에디터의 JPG 내보내기와 같은 값
+
+async function jpgBlob(ops) {
   await ensureFonts(ops);
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
+  // JPG는 투명도가 없다. 케이스 사진의 뚫린 배경이 검게 나오지 않도록 흰색을 먼저 깐다.
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
   renderCanvas(ops, ctx);
-  return new Promise((res) => cv.toBlob(res, 'image/png'));
+  return new Promise((res) => cv.toBlob(res, 'image/jpeg', JPG_QUALITY));
 }
 
 async function exportZip() {
@@ -1633,10 +1638,10 @@ async function exportZip() {
   try {
     const zip = new JSZip();
     for (let i = 0; i < configs.length; i++) {
-      setStatus(`PNG 만드는 중… ${i + 1} / ${configs.length}`);
+      setStatus(`JPG 만드는 중… ${i + 1} / ${configs.length}`);
       const ops = layout(rowsOf(configs[i]), await prepareCase(configs[i]));
-      const blob = await pngBlob(ops);
-      zip.file(`${Matcher.summarize(configs[i], i, DANAWA.names)}.png`, blob);
+      const blob = await jpgBlob(ops);
+      zip.file(`${Matcher.summarize(configs[i], i, DANAWA.names)}.jpg`, blob);
       await new Promise((r2) => setTimeout(r2, 0)); // 화면 갱신 여유
     }
     setStatus('ZIP 묶는 중…');
@@ -1646,7 +1651,7 @@ async function exportZip() {
     a.download = `desktop-thumbnails-${configs.length}.zip`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-    setStatus(`PNG ${configs.length}장을 ZIP으로 저장했습니다.`);
+    setStatus(`JPG ${configs.length}장을 ZIP으로 저장했습니다.`);
   } catch (e) {
     setStatus(`ZIP 저장 실패: ${e.message}`, true);
   }
@@ -1657,7 +1662,7 @@ function syncButtons() {
   const on = configs.length > 0;
   $('#zipBtn').disabled = !on;
   $('#saveBtn').disabled = !on;
-  $('#zipBtn').textContent = on ? `PNG ${configs.length}장 ZIP 저장` : 'PNG 전체 ZIP 저장';
+  $('#zipBtn').textContent = on ? `JPG ${configs.length}장 ZIP 저장` : 'JPG 전체 ZIP 저장';
 }
 
 /* ───────────────── 배선 ───────────────── */
