@@ -36,6 +36,8 @@
    좁은 단일 컬럼, 스티키 상단 헤더, `.step` 폼 섹션, `.primary` 버튼, 스케일되는 `.preview-shell`.
 6. **이미지 첨부는 드래그&드롭 지원(필수)** — 파일뿐 아니라 **웹페이지(다나와 등)의 이미지를 드래그해서** 넣을 수 있어야 한다. 공용 헬퍼 `image-drop.js`(같은 `plugins/` 폴더)를 포함하고 각 `<input type=file>`에 연결한다. 외부 이미지는 CORS 차단 시 이미지 프록시(`images.weserv.nl`)로 우회해 **data URI로 임베드**한다. (6절 참조)
 
+7. **배너 폰트는 SVG에 같이 실어 보낸다** — 배너에 쓴 웹폰트의 `@font-face`(절대 URL)를 **출력 SVG 루트 바로 아래 `<style>`** 에 넣는다. 에디터가 이걸 읽어 폰트를 자동 등록하므로 화면과 PNG 내보내기가 같아진다. (2.5절)
+
 > 계약의 유일한 필수 접점은 **`postMessage({pluginMessage:{type:'save-svg', filename, svg}})`** 입니다. 이 한 줄만 지키면 어떤 방식으로 만들어도 에디터에 붙습니다.
 
 ---
@@ -45,7 +47,7 @@
 ```css
 :root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}  /* UI 폰트는 Pretendard 고정. 배너에 쓸 폰트의 @font-face는 여기(head)에도 넣을 것 — 2.5절 */
 .top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
 .logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
 main{padding:16px;max-width:520px}
@@ -59,6 +61,83 @@ main{padding:16px;max-width:520px}
 ```
 
 ---
+
+## 2.5 폰트 — 배너마다 다르게 (눈누에서 직접 고른다)
+
+**UI 폰트와 배너 폰트는 다르다.**
+
+- **플러그인 UI(도구 화면)** = `Pretendard` 고정. 도구끼리 생김새가 같아야 한다.
+- **배너 SVG 안의 글자** = 이 배너에 맞는 폰트를 **직접 고른다.** 여기까지 Pretendard로 쓰면 모든 배너가 똑같아 보인다.
+
+### 고르는 법 — 정해진 목록은 없다
+
+[눈누(noonnu.cc)](https://noonnu.cc/)에서 배너 성격에 맞는 폰트를 **자유롭게** 고른다. 폰트 페이지의
+**'웹폰트로 사용'** 코드(`cdn.jsdelivr.net/gh/projectnoonnu/...` 형식)를 그대로 복사해 쓰면 된다.
+레포에 그 폰트가 없어도 **아무 등록 없이 바로 동작한다** — CORS가 열린 절대 URL이고, 에디터가 SVG에 실린
+`@font-face`를 읽어 자동 등록하기 때문이다.
+
+> ⚠️ **주소를 추측해서 쓰지 마라.** 눈누 주소는 월별 레포(`projectnoonnu/2404@1.0` 등)라 기억으로 맞힐 수 없다.
+> 웹을 볼 수 있으면 눈누에서 **실제 코드를 확인해 복사**하고, 볼 수 없으면 아래 **기본 폰트**에서 골라라.
+>
+> 상업적 사용이 가능한 폰트만 쓴다(눈누는 라이선스가 폰트 페이지에 표기돼 있다).
+
+### 기본 폰트 — 주소 확인이 불가능할 때 (레포에 있어 검증 불필요)
+
+`https://cdn.jsdelivr.net/gh/kwondohoon1/banner-studio@main/fonts/<파일명>.woff2`
+
+| font-family | 성격 | 파일(굵기) |
+|---|---|---|
+| `Gmarket Sans` | 굵고 상업적 — 특가·가격강조 | `GmarketSansLight`(300) `GmarketSansMedium`(500) `GmarketSansBold`(700) |
+| `S-Core Dream` | 얇고 정제됨 — 프리미엄·미니멀 | `SCDream4`(400) `SCDream6`(600) `SCDream8`(800) |
+| `NanumSquareNeo` | 각지고 힘있음 — 게이밍·스펙 | `NanumSquareNeo-Rg`(400) `-Bd`(700) `-Eb`(800) |
+| `NanumSquareRound` | 둥글고 친근 — 이벤트·안내 | `NanumSquareRoundR`(400) `NanumSquareRoundB`(700) |
+| `NanumMyeongjoEco` | 명조 — 감성·브랜드 | `NanumMyeongjoEco`(400) `NanumMyeongjoEcoBold`(700) |
+| `Nanum Brush` | 붓글씨 | `NanumBrush`(400) |
+| `NanumBarunpen` | 손글씨 펜 | `NanumBarunpenR`(400) `NanumBarunpenB`(700) |
+| `DungGeunMo` / `DNF Bit Bit v2` | 픽셀·도트 — Y2K·레트로 | `DungGeunMo`(400) / `DNFBitBitv2`(400) |
+| `Pretendard` | 중립·가독 — 정보형 본문 | 3절 스켈레톤의 CDN 주소 |
+
+**조합 규칙** — 제목과 본문에 **서로 다른 폰트** 또는 **300 이상의 굵기 차**. 한 배너에 **2종까지**.
+배너 제목에 `Pretendard`를 그대로 쓰지 않는다(스펙·정보형만 예외).
+
+### 넣는 법 — 두 군데 모두
+
+```js
+const FONT_TITLE = "Gmarket Sans";     // 이 배너의 제목 폰트
+const FONT_BODY  = "Pretendard";       // 본문
+const FONT_CSS = `
+@font-face{{font-family:'Gmarket Sans';font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/kwondohoon1/banner-studio@main/fonts/GmarketSansBold.woff2) format('woff2')}}`;
+```
+
+1. **플러그인 `<head>`의 `<style>`** → 도구 안 미리보기가 제대로 보인다.
+2. **출력 SVG 루트 바로 아래 `<style>`** → 에디터가 자동 등록해 **PNG 내보내기까지** 같은 폰트로 구워진다.
+
+```js
+return `<svg xmlns="http://www.w3.org/2000/svg" width="${{W}}" height="${{H}}" viewBox="0 0 ${{W}} ${{H}}">`+
+  `<style>${{FONT_CSS}}</style>`+
+  `<text ... font-family="${{FONT_TITLE}}, sans-serif" font-weight="700">...</text>`+
+  `</svg>`;
+```
+
+> 2번을 빠뜨리면 화면에는 보이는데 **PNG로 내보낼 때만 다른 폰트로 구워진다.**
+> (`<img>` 래스터화는 격리 문서라 외부 URL 폰트가 차단된다.)
+
+### 폰트 자가진단 (필수)
+
+주소가 틀리면 조용히 기본 폰트로 보이기 때문에, **만든 직후 드러나게** 한다.
+
+```js
+async function checkFonts(){
+  const fams = [FONT_TITLE, FONT_BODY];
+  for (const f of fams) { try { await document.fonts.load(`40px "${{f}}"`, '가나다Ag'); } catch(e){{}} }
+  const bad = fams.filter(f => !document.fonts.check(`40px "${{f}}"`));
+  if (bad.length) setStatus('⚠ 폰트 로드 실패: ' + bad.join(', ') + ' — FONT_CSS 주소를 확인하세요');
+  render();                      // 폰트 적용 후 다시 그린다
+}
+window.addEventListener('load', checkFonts);
+```
+
+> 캔버스로 글자 폭을 재는 플러그인이라면 **폰트 로드 후 재렌더**가 특히 중요하다(로드 전엔 폴백 폭으로 계산된다).
 
 ## 3. 최소 스켈레톤 (복붙 시작점)
 
@@ -80,12 +159,16 @@ const inFrame = window.parent !== window;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+// 배너 폰트 — 2.5절 표에서 배너 성격에 맞는 것으로 바꿔 쓴다 (UI 폰트와 별개)
+const FONT_TITLE = "Gmarket Sans";
+const FONT_CSS = `@font-face{font-family:'Gmarket Sans';font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/kwondohoon1/banner-studio@main/fonts/GmarketSansBold.woff2) format('woff2')}`;
 function buildSVG(){
   const W=600,H=400, title=$('#title').value;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`+
+    `<style>${FONT_CSS}</style>`+                      /* 에디터가 읽어 폰트를 자동 등록 → PNG까지 동일 */
     `<rect x="0" y="0" width="${W}" height="${H}" fill="#f5f5f1"/>`+
     `<text x="${W/2}" y="${H/2}" text-anchor="middle" dominant-baseline="central" `+
-    `font-family="Pretendard, sans-serif" font-size="44" font-weight="800" fill="#171814">${esc(title)}</text>`+
+    `font-family="${FONT_TITLE}, sans-serif" font-size="44" font-weight="700" fill="#171814">${esc(title)}</text>`+
     `</svg>`;
 }
 function render(){ $('#preview').innerHTML = buildSVG(); }
@@ -131,6 +214,25 @@ render();
   { "id": "my-banner", "title": "내 배너", "description": "설명", "file": "plugins/my-banner.html" }
   ```
 
+
+### 폰트까지 상시 등록 (정식 등록 시, 선택)
+
+플러그인이 눈누 폰트를 쓰더라도 **등록 없이 그대로 동작한다.** 다만 그 폰트가 마음에 들어
+다른 배너에서도 쓰고 싶거나 외부 CDN 의존을 없애고 싶으면, 관리자가 **두 단계**로 상시 등록한다.
+
+1. woff2 파일을 `fonts/` 에 복사
+2. `fonts/fonts.json` 의 `fonts` 배열에 항목 추가
+
+```json
+{ "family": "HangamePoker", "note": "눈누 · 굵은 각진 제목용", "source": "https://noonnu.cc/",
+  "faces": [ { "weight": 400, "file": "HangamePoker-Regular.woff2" },
+             { "weight": 700, "file": "HangamePoker-Bold.woff2" } ] }
+```
+
+등록하면 **에디터 폰트 드롭다운에 상시 노출**되고 **PNG 내보내기 임베드**에도 자동 반영된다.
+(`local-fonts.css` / `EMBED_FONTS` 는 기존 폰트용이므로 건드리지 않는다. 새 폰트는 `fonts.json` 한 곳만.)
+파일을 복사하지 않고 CDN 주소를 그대로 쓰려면 `file` 대신 `"url": "https://cdn.jsdelivr.net/..."` 로 적는다.
+
 ---
 
 ## 5. 새 플러그인 생성용 조건 프롬프트 (AI에게 그대로 붙여넣기)
@@ -154,6 +256,19 @@ render();
 7) 이미지 첨부는 파일 업로드뿐 아니라 웹페이지(다나와 등) 이미지 드래그&드롭을 지원한다.
    같은 폴더의 image-drop.js를 포함하고 window load 시 ImageDrop.wire('파일입력id', ['#미리보기'], setStatus)로 연결한다.
    (외부 CORS 차단 이미지는 헬퍼가 images.weserv.nl 프록시로 우회해 임베드한다.)
+8) 폰트: UI(도구 화면)는 Pretendard 고정. 배너 SVG 안의 글자는 이 배너에 맞는 폰트를 직접 고른다.
+   눈누(https://noonnu.cc/)에서 배너 성격에 맞는 폰트를 자유롭게 골라 '웹폰트로 사용' 코드
+   (cdn.jsdelivr.net/gh/projectnoonnu/... 형식)를 그대로 쓴다. 레포 등록 없이 바로 동작한다.
+   ★ 주소를 추측해서 지어내지 마라. 웹을 볼 수 있으면 눈누에서 실제 코드를 확인해 복사하고,
+   볼 수 없으면 아래 기본 폰트에서 골라라(주소 확인 불필요):
+   https://cdn.jsdelivr.net/gh/kwondohoon1/banner-studio@main/fonts/<파일>.woff2
+   GmarketSansBold(특가) / SCDream6(프리미엄) / NanumSquareNeo-Bd(게이밍) / NanumSquareRoundB(이벤트)
+   / NanumMyeongjoEcoBold(감성) / NanumBrush(붓글씨) / NanumBarunpenR(손글씨) / DungGeunMo·DNFBitBitv2(픽셀)
+   제목/본문에 서로 다른 폰트 또는 300 이상의 굵기 차, 한 배너에 2종까지.
+   배너 제목에 Pretendard를 그대로 쓰지 마라(정보형만 예외). 상업적 사용 가능한 폰트만.
+   @font-face는 플러그인 <head>와 출력 SVG 루트 바로 아래 <style> 양쪽에 넣는다.
+   시작 시 document.fonts.load 후 check()가 false면 상태줄에 "⚠ 폰트 로드 실패: <패밀리>"를 띄우고,
+   폰트 로드 후 미리보기를 다시 그린다.
 
 만들 배너: << 여기에 배너 종류/크기/문구/레이아웃/색을 설명 >>
 ```
