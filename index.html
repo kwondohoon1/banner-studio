@@ -110,6 +110,17 @@
   .iconTile img{width:100%;height:100%;object-fit:contain;pointer-events:none}
   .iconTile:hover{border-color:var(--accent);background:#f6f7f1}
   .iconHint{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.5;padding:4px 2px}
+  .fontPaste{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;font-size:11px;line-height:1.4;resize:vertical;background:#fff;color:var(--text);outline:none}
+  .fontPaste:focus{border-color:var(--accent)}
+  .fontRow{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .fontRow .iconHint{grid-column:auto;flex:1;padding:0}
+  .fontLink{font-size:10px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:2px 6px;background:#fff;white-space:nowrap}
+  .fontLink:hover{color:var(--text);border-color:var(--accent)}
+  #fontPanel .iconHead b{margin-right:auto}
+  #fontPanel .iconHead{gap:6px}
+  #fontList{margin-top:6px;max-height:132px;overflow:auto}
+  .fontItem{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 2px;border-top:1px solid var(--line);font-size:12px}
+  .fontItem button{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;padding:2px 6px;cursor:pointer;color:var(--muted)}
   .stageWrap.panready{cursor:grab}
   .stageWrap.panning,.stageWrap.panning *{cursor:grabbing !important}
   .stageWrap.erasing,.stageWrap.erasing *{cursor:crosshair !important}
@@ -269,6 +280,15 @@
             <input type="color" id="iconColor" value="#20221d" title="아이콘 색">
           </div>
           <div class="iconResults" id="iconResults"><div class="iconHint">키워드 검색 후 결과를 캔버스로 <b>드래그</b>하거나 <b>클릭</b>해 넣으세요. (예: 특가·sale·star)</div></div>
+        </div>
+      </aside>
+      <!-- 폰트 추가(눈누 등 외부 웹폰트) -->
+      <aside class="iconPanel" id="fontPanel">
+        <div class="iconHead"><b>🔤 폰트 추가</b><a class="fontLink" href="https://noonnu.cc/" target="_blank" rel="noopener" title="눈누 — 상업용 무료 한글폰트 모음">눈누 ↗</a><button id="fontToggle" title="접기/펴기">▾</button></div>
+        <div class="iconBody" id="fontBody">
+          <textarea class="fontPaste" id="fontPaste" rows="3" placeholder="눈누(noonnu.cc)의 '웹폰트로 사용' 코드를 그대로 붙여넣기 — @font-face{...} 또는 woff2 주소"></textarea>
+          <div class="fontRow"><button class="tb" id="fontAdd">추가</button><span class="iconHint" id="fontMsg"></span></div>
+          <div id="fontList"></div>
         </div>
       </aside>
     </div>
@@ -539,6 +559,24 @@ const PLUGIN_PROMPT = `너는 "배너 스튜디오" 에디터에 붙는 독립 �
 첨부한 PLUGIN_SPEC.md의 계약(단일 HTML, 편집가능 SVG 출력, 이미지 data URI 임베드, 저장 시 parent.postMessage({pluginMessage:{type:'save-svg', filename, svg}}))을 반드시 지켜라.
 결과는 다른 설명 없이 완성된 HTML 파일 하나로만 줘.
 
+[폰트 — 배너마다 다르게, 반드시 지킬 것]
+· 플러그인 UI(도구 화면)는 Pretendard 고정. 배너 SVG 안의 글자는 이 배너에 맞는 폰트를 직접 고른다.
+· 폰트는 눈누(https://noonnu.cc/)에서 배너 성격에 맞는 것으로 **네가 직접 골라라.** 정해진 목록은 없다.
+  눈누 폰트 페이지의 '웹폰트로 사용' 코드(cdn.jsdelivr.net/gh/projectnoonnu/... 형식)를 그대로 쓴다.
+· ★ 주소를 기억이나 추측으로 지어내지 마라. 웹을 볼 수 있으면 눈누에서 실제 코드를 확인해 복사하고,
+  볼 수 없으면 아래 검증된 기본 폰트에서 골라라(주소 확인 불필요):
+  https://cdn.jsdelivr.net/gh/kwondohoon1/banner-studio@main/fonts/<파일>.woff2
+  GmarketSansBold(특가·굵음) / SCDream6(프리미엄·얇음) / NanumSquareNeo-Bd(게이밍·각짐)
+  / NanumSquareRoundB(이벤트·둥금) / NanumMyeongjoEcoBold(감성·명조) / NanumBrush(붓글씨)
+  / NanumBarunpenR(손글씨) / DungGeunMo·DNFBitBitv2(픽셀)
+· 제목과 본문에 서로 다른 폰트 또는 최소 300 이상의 굵기 차를 준다. 한 배너에 폰트는 2종까지.
+· 배너 제목에 Pretendard를 그대로 쓰지 마라(스펙·정보형 배너만 예외).
+· @font-face는 ① 플러그인 <head>의 <style> ② 출력 SVG 루트 바로 아래 <style> **양쪽**에 넣어라.
+  ②가 있어야 에디터가 폰트를 자동 등록해 화면과 PNG 내보내기가 같아진다.
+· 폰트 자가진단을 넣어라 — 시작 시 document.fonts.load 후 check()가 false면
+  상태줄에 "⚠ 폰트 로드 실패: <패밀리>" 를 띄운다. 주소가 틀리면 즉시 드러나야 한다.
+· 상업적 사용이 가능한 폰트만 쓴다.
+
 만들 배너: << 여기에 원하는 배너를 자유롭게 적기 (예: 여름 세일 배너, 보라색 톤, 큰 제목, 쿠폰 3개) >>`;
 $("phSpecLink").href = PLUGIN_SPEC_URL;
 function openPluginHelp() { $("pluginHelp").classList.add("show"); $("pluginHelpBtn").classList.add("on"); }
@@ -726,6 +764,160 @@ $("iconSearch").addEventListener("input", () => { clearTimeout(iconSearchT); ico
 $("iconColor").addEventListener("change", iconSearch);
 $("iconToggle").onclick = () => { const p = $("iconPanel"); p.classList.toggle("collapsed"); $("iconToggle").textContent = p.classList.contains("collapsed") ? "▸" : "▾"; };
 
+/* ===== 폰트 추가(눈누 등 외부 웹폰트) =====
+   눈누에서 복사한 @font-face 코드(또는 woff2 주소)를 붙여넣으면 FontFace API로 즉시 등록
+   → 폰트 드롭다운 · 화면 · 내보내기(base64 임베드)에 한꺼번에 반영된다.
+   localStorage에는 주소만 저장(폰트 바이너리는 저장하지 않음)하고, 시작할 때 다시 로드한다. */
+const USER_FONTS_KEY = "bs-user-fonts";
+let USER_FONTS = {};                 // { 패밀리명: [[weight, url], ...] }  ← EMBED_FONTS와 같은 모양
+
+function fontExt(url) { const m = String(url).split("?")[0].match(/\.(woff2|woff|ttf|otf)$/i); return m ? m[1].toLowerCase() : "woff2"; }
+function fontFormat(url) { return { woff2: "woff2", woff: "woff", ttf: "truetype", otf: "opentype" }[fontExt(url)]; }
+function fontMime(url) { return { woff2: "font/woff2", woff: "font/woff", ttf: "font/ttf", otf: "font/otf" }[fontExt(url)]; }
+// 화면·내보내기 공통 조회: 기본 내장 폰트 → 사용자가 추가한 폰트
+function embedFacesOf(fam) { return EMBED_FONTS[fam] || REGISTRY_FONTS[fam] || USER_FONTS[fam] || null; }
+
+// 눈누 코드(@font-face 여러 개 가능) 또는 주소만 → [{family, weight, url}]
+function parseFontPaste(text) {
+  const out = [];
+  (String(text).match(/@font-face\s*{[^}]*}/gi) || []).forEach(b => {
+    const fm = b.match(/font-family\s*:\s*['"]?([^;'"]+?)['"]?\s*;/i);
+    const urls = (b.match(/url\(\s*['"]?(https?:\/\/[^'")\s]+)/gi) || []).map(u => u.replace(/^url\(\s*['"]?/i, ""));
+    if (!fm || !urls.length) return;
+    const url = urls.find(u => /\.woff2(\?|$)/i.test(u)) || urls[0];
+    const wRaw = (b.match(/font-weight\s*:\s*([^;}]+)/i) || [])[1];
+    let w = (wRaw || "400").trim().toLowerCase();
+    // "400 900" 같은 범위는 그대로 둔다(단일 굵기 폰트를 모든 굵기에 원본 그대로 쓰는 표기)
+    w = /^\d+\s+\d+$/.test(w) ? w.replace(/\s+/, " ")
+      : w === "normal" ? 400 : w === "bold" ? 700 : (parseInt(w, 10) || 400);
+    out.push({ family: fm[1].trim(), weight: w, url: url });
+  });
+  if (!out.length) {                                   // 코드 없이 주소만 붙여넣은 경우
+    const u = (String(text).match(/https?:\/\/\S+\.(?:woff2|woff|ttf|otf)(?:\?\S*)?/i) || [])[0];
+    if (u) out.push({ family: decodeURIComponent(u.split("/").pop().split("?")[0]).replace(/\.(woff2|woff|ttf|otf)$/i, ""), weight: 400, url: u });
+  }
+  return out;
+}
+async function registerUserFace(family, weight, url) {
+  const ff = new FontFace(family, `url(${url}) format('${fontFormat(url)}')`, { weight: String(weight), style: "normal" });
+  await ff.load();                                     // 404·CORS·형식 오류는 여기서 throw
+  document.fonts.add(ff);
+}
+function saveUserFonts() { try { localStorage.setItem(USER_FONTS_KEY, JSON.stringify(USER_FONTS)); } catch (e) {} }
+function fontListAdd(family) { if (!FONTS.includes(family)) FONTS.unshift(family); }   // 드롭다운 맨 위
+function removeUserFont(family) {
+  delete USER_FONTS[family];
+  const i = FONTS.indexOf(family); if (i >= 0) FONTS.splice(i, 1);
+  const drop = []; document.fonts.forEach(f => { if (f.family === family) drop.push(f); });
+  drop.forEach(f => document.fonts.delete(f));
+  saveUserFonts(); renderUserFonts();
+}
+function renderUserFonts() {
+  const box = $("fontList"); if (!box) return;
+  const fams = Object.keys(USER_FONTS);
+  if (!fams.length) { box.innerHTML = `<div class="iconHint">추가한 폰트가 없습니다. 눈누에서 폰트의 <b>웹폰트 코드</b>를 복사해 위에 붙여넣고 <b>추가</b>를 누르세요.</div>`; return; }
+  box.innerHTML = "";
+  fams.forEach(f => {
+    const row = document.createElement("div"); row.className = "fontItem";
+    const name = document.createElement("span");
+    name.style.fontFamily = `'${f}', sans-serif`;
+    name.textContent = f + "  가나다 Ag 123";
+    const del = document.createElement("button"); del.textContent = "삭제";
+    del.onclick = () => { if (confirm(`'${f}' 폰트를 목록에서 지울까요?`)) removeUserFont(f); };
+    row.appendChild(name); row.appendChild(del); box.appendChild(row);
+  });
+}
+async function addUserFontFromPaste() {
+  const msg = $("fontMsg"), ta = $("fontPaste");
+  const faces = parseFontPaste(ta.value);
+  if (!faces.length) { msg.textContent = "@font-face 코드나 폰트 주소를 찾지 못했어요."; return; }
+  msg.textContent = "폰트 확인 중…";
+  let ok = 0, fail = 0;
+  for (const f of faces) {
+    try {
+      await registerUserFace(f.family, f.weight, f.url);
+      const arr = USER_FONTS[f.family] || (USER_FONTS[f.family] = []);
+      if (!arr.some(x => x[1] === f.url)) arr.push([f.weight, f.url]);
+      arr.sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10));
+      fontListAdd(f.family); ok++;
+    } catch (e) { fail++; }
+  }
+  saveUserFonts(); renderUserFonts();
+  msg.textContent = ok ? `${ok}개 등록${fail ? ` · ${fail}개 실패` : ""} — 폰트 드롭다운 맨 위에 있어요.` : "등록 실패 — 주소·CORS를 확인하세요.";
+  if (ok) { ta.value = ""; showToast("폰트를 추가했습니다."); }
+}
+/* ===== 상시 폰트 레지스트리 (fonts/fonts.json) =====
+   관리자가 플러그인을 정식 등록할 때 그 폰트도 여기 한 줄로 등록하면
+   드롭다운·PNG 임베드에 자동 반영된다. 기존 폰트는 local-fonts.css + EMBED_FONTS가 담당(그대로 둔다).
+   파일이 없거나 file:// 로 열어 fetch가 막혀도 무해 — 기존 폰트로 그대로 동작한다. */
+let REGISTRY_FONTS = {};             // { 패밀리명: [[weight, url], ...] }
+async function loadFontRegistry() {
+  let data;
+  try { const r = await fetch("fonts/fonts.json", { cache: "no-cache" }); if (!r.ok) return; data = await r.json(); }
+  catch (e) { return; }
+  const list = (data && data.fonts) || [];
+  const rules = [];
+  list.forEach(f => {
+    if (!f || !f.family || !Array.isArray(f.faces)) return;
+    const faces = f.faces
+      .map(x => [/^\d+\s+\d+$/.test(String(x.weight)) ? String(x.weight) : (Number(x.weight) || 400), x.url || ("fonts/" + x.file)])
+      .filter(x => x[1] && !/undefined/.test(x[1]));
+    if (!faces.length) return;
+    REGISTRY_FONTS[f.family] = faces;
+    fontListAdd(f.family);
+    faces.forEach(([w, u]) => rules.push(`@font-face{font-family:'${f.family}';font-style:normal;font-weight:${w};font-display:swap;src:url('${u}') format('${fontFormat(u)}')}`));
+  });
+  if (rules.length) { const st = document.createElement("style"); st.id = "fontRegistryCss"; st.textContent = rules.join(""); document.head.appendChild(st); }
+}
+
+/* 폰트 드롭다운을 폰트 모양 그대로 보여주기 위한 1회 프리로드
+   (텍스트 요소를 처음 선택할 때 시작 — 열기 전에 대부분 준비된다) */
+let fontPreviewPreloaded = false;
+function preloadFontPreviews() {
+  if (fontPreviewPreloaded || !document.fonts || !document.fonts.load) return;
+  fontPreviewPreloaded = true;
+  FONTS.forEach(f => { try { document.fonts.load(`14px "${f}"`, "가나다 Ag"); } catch (e) {} });
+}
+
+/* 플러그인이 보낸 SVG 안의 @font-face를 흡수해 에디터에 등록한다.
+   PNG 내보내기는 <img> 격리 문서라 외부 URL 폰트가 차단된다 → 여기서 등록해야
+   base64 임베드 대상이 되어 화면과 내보내기 폰트가 같아진다. */
+function absorbSvgFonts(root) {
+  if (!root || !root.querySelectorAll) return;
+  let css = "";
+  root.querySelectorAll("style").forEach(st => { css += st.textContent + "\n"; });
+  if (!/@font-face/i.test(css)) return;
+  const fresh = parseFontPaste(css).filter(f => !EMBED_FONTS[f.family] && !REGISTRY_FONTS[f.family] && !(USER_FONTS[f.family] || []).some(x => x[1] === f.url));
+  if (!fresh.length) return;
+  (async () => {
+    const done = new Set(), bad = new Set();
+    for (const f of fresh) {
+      try {
+        await registerUserFace(f.family, f.weight, f.url);
+        const arr = USER_FONTS[f.family] || (USER_FONTS[f.family] = []);
+        if (!arr.some(x => x[1] === f.url)) arr.push([f.weight, f.url]);
+        arr.sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10));
+        fontListAdd(f.family); done.add(f.family);
+      } catch (e) { bad.add(f.family + " (" + f.url.split("/").slice(-1)[0] + ")"); }
+    }
+    if (done.size) { saveUserFonts(); renderUserFonts(); showToast("폰트를 불러왔어요: " + [...done].join(", ")); }
+    if (bad.size) showToast("폰트 주소를 불러오지 못했어요: " + [...bad].join(", ") + " — 기본 폰트로 보입니다.", true);
+  })();
+}
+
+function initUserFonts() {
+  try { USER_FONTS = JSON.parse(localStorage.getItem(USER_FONTS_KEY) || "{}") || {}; } catch (e) { USER_FONTS = {}; }
+  Object.keys(USER_FONTS).forEach(fam => {
+    fontListAdd(fam);
+    USER_FONTS[fam].forEach(f => registerUserFace(fam, f[0], f[1]).catch(() => {}));
+  });
+  renderUserFonts();
+}
+loadFontRegistry();
+$("fontAdd").onclick = addUserFontFromPaste;
+$("fontToggle").onclick = () => { const p = $("fontPanel"); p.classList.toggle("collapsed"); $("fontToggle").textContent = p.classList.contains("collapsed") ? "▸" : "▾"; };
+initUserFonts();
+
 /* ================= 페이지(포토샵식 여러 문서) ================= */
 function getWorkingData() {
   return { html: state.svg ? state.svg.outerHTML : null, vbW: state.vbW, vbH: state.vbH, undo: state.undo.slice(), redo: state.redo.slice(), zoom: state.zoom };
@@ -827,6 +1019,7 @@ function loadSVG(text) {
   const stage = $("stage");
   stage.innerHTML = "";
   stage.appendChild(imported);
+  absorbSvgFonts(imported);      // 플러그인이 실어 보낸 웹폰트 자동 등록
   $("emptyState").style.display = "none";
 
   bindSelectable();
@@ -1540,6 +1733,7 @@ function renderProps() {
   let html = "";
 
   if (t === "text") {
+    preloadFontPreviews();      // 드롭다운을 폰트 모양대로 보여주기 위해
     const fs = parseFloat(el.getAttribute("font-size")) || 16;
     const fam = (el.getAttribute("font-family") || "").replace(/['"]/g, "").split(",")[0].trim();
     const fw = el.getAttribute("font-weight") || "400";
@@ -1549,7 +1743,7 @@ function renderProps() {
     html += `<div class="grp">텍스트</div>
       <label>내용 <small style="color:var(--muted);font-weight:500">Enter 줄바꿈 · 스페이스 유지</small></label><textarea id="txtArea" data-p="text" rows="3" style="white-space:pre">${escapeHtml(rm.text)}</textarea>
       <label>폰트</label>
-      <select data-p="font-family">${FONTS.map(f => `<option ${f === fam ? "selected" : ""}>${f}</option>`).join("")}</select>
+      <select data-p="font-family" class="fontSel">${FONTS.map(f => `<option ${f === fam ? "selected" : ""} style="font-family:'${f}', sans-serif;font-size:14px">${f}</option>`).join("")}</select>
       <div class="row2">
         <div class="cell"><label>크기(px)</label><input type="number" data-p="font-size" value="${round(fs, 1)}" min="1" step="1"></div>
         <div class="cell"><label>자간</label><input type="number" data-p="letter-spacing" value="${ls}" step="0.5"></div>
@@ -1952,12 +2146,12 @@ async function fontDataUrl(url) {
   const r = await fetch(url); if (!r.ok) throw new Error("font " + r.status);
   const u8 = new Uint8Array(await r.arrayBuffer());
   let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
-  const d = "data:font/woff2;base64," + btoa(s);
+  const d = "data:" + fontMime(url) + ";base64," + btoa(s);
   _fontB64.set(url, d); return d;
 }
 function usedEmbedFamilies(root) {
   const set = new Set();
-  const take = v => String(v || "").split(",").forEach(f => { f = f.trim().replace(/^['"]|['"]$/g, ""); if (EMBED_FONTS[f]) set.add(f); });
+  const take = v => String(v || "").split(",").forEach(f => { f = f.trim().replace(/^['"]|['"]$/g, ""); if (embedFacesOf(f)) set.add(f); });
   root.querySelectorAll("[font-family]").forEach(e => take(e.getAttribute("font-family")));
   root.querySelectorAll('[style*="font-family"]').forEach(e => { const m = (e.getAttribute("style") || "").match(/font-family:\s*([^;]+)/i); if (m) take(m[1]); });
   return [...set];
@@ -1965,8 +2159,8 @@ function usedEmbedFamilies(root) {
 async function fontEmbedStyle(root) {
   const fams = usedEmbedFamilies(root);
   const rules = [];
-  for (const fam of fams) for (const [w, u] of EMBED_FONTS[fam]) {
-    try { rules.push(`@font-face{font-family:'${fam}';font-weight:${w};src:url(${await fontDataUrl(u)}) format('woff2')}`); }
+  for (const fam of fams) for (const [w, u] of embedFacesOf(fam)) {
+    try { rules.push(`@font-face{font-family:'${fam}';font-weight:${w};src:url(${await fontDataUrl(u)}) format('${fontFormat(u)}')}`); }
     catch (e) { /* 폰트 하나 실패해도 나머지는 임베드 */ }
   }
   return rules.length ? `<style>${rules.join("")}</style>` : "";

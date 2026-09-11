@@ -1,0 +1,20 @@
+{
+  "_설명": "에디터에 상시 제공할 폰트 레지스트리. 새 폰트는 여기에만 추가한다(local-fonts.css / EMBED_FONTS는 기존 폰트용이므로 건드리지 말 것). 등록하면 폰트 드롭다운·PNG 내보내기 임베드에 자동 반영된다.",
+  "_넣는법": "① woff2를 fonts/ 에 복사 ② 아래 fonts 배열에 항목 추가. file은 fonts/ 기준 파일명, url은 외부 CDN을 그대로 쓸 때만(둘 중 하나).",
+  "_예시": {
+    "family": "HangamePoker",
+    "note": "눈누 · 굵은 각진 제목용",
+    "source": "https://noonnu.cc/",
+    "faces": [
+      {
+        "weight": 400,
+        "file": "HangamePoker-Regular.woff2"
+      },
+      {
+        "weight": 700,
+        "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2501-1@1.0/HangamePoker-Bold.woff2"
+      }
+    ]
+  },
+  "fonts": []
+}
