@@ -19,6 +19,7 @@ main{padding:16px;max-width:560px}
 .imgbox.has{border-style:solid;border-color:#cfd1c9}
 .imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+[hidden]{display:none!important}   /* grid/flex는 hidden 속성을 무시하므로 강제 */
 .fld{display:flex;flex-direction:column;gap:4px}
 .fld label{font-size:10px;color:#85877e;font-weight:700;padding-left:2px}
 input[type=text]{width:100%;border:1px solid #cfd1c9;border-radius:10px;background:#fff;padding:9px 11px;font:inherit;outline:none}
@@ -57,6 +58,12 @@ label.chk input{width:16px;height:16px}
     <div class="fld"><label>패널기술 (예: LED·OLED)</label><input type="text" id="f_tech" value="LED"></div>
     <div class="fld"><label>패널기술 2줄 (예: 576 Zones)</label><input type="text" id="f_tech2" value=""></div>
   </div>
+  <label class="chk" style="margin-top:10px"><input type="checkbox" id="dualOn"> 듀얼 모드 — 해상도·주사율 2가지 (가운데 전환 화살표)</label>
+  <div class="grid2" id="dualFields" hidden>
+    <div class="fld"><label>해상도 등급 2</label><input type="text" id="f_grade2" value="FHD"></div>
+    <div class="fld"><label>주사율 2</label><input type="text" id="f_hz2" value="320Hz"></div>
+  </div>
+  <div class="hint" id="dualHint" hidden>듀얼 모드에서는 <b>해상도 등급</b>과 <b>주사율</b>이 한 쌍으로 묶여 두 벌 그려지고, 그 사이에 전환 화살표가 들어갑니다. (해상도 숫자 칸은 쓰이지 않습니다)</div>
   <label class="chk" style="margin-top:10px"><input type="checkbox" id="techRing" checked> OLED — O를 무지개로 표시 (패널기술엔 "LED"만 입력)</label>
   <label class="chk" style="margin-top:8px"><input type="checkbox" id="warrantyOn" checked> 3년 무상보증 뱃지(좌하단)</label>
 
@@ -100,6 +107,7 @@ const RS = { x:52, y:176, w:896, h:566 };  // 기본 화면(디스플레이) 사
 const state = {
   img:'', imgW:0, imgH:0,
   inch:'27"', cm:'67.3cm', grade:'QHD', res:'2560X1440', hz:'240Hz', ms:'0.03ms', ratio:'16:9', panel:'평면',
+  dual:false, grade2:'FHD', hz2:'320Hz',
   tech:'LED', tech2:'', techRing:true, warrantyOn:true,
   screen:{...RS}, showGuide:true, ciOn:true,
   ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0, standImg:'', imgFit:null
@@ -118,6 +126,37 @@ function standIcon(cx,topY,k){
   if(state.standImg) return IMG(state.standImg, cx-33.5*k, topY, 67*k, 23*k, 'xMidYMid meet');
   return `<g fill="#fff"><rect x="${fmt(cx-13.5*k)}" y="${fmt(topY)}" width="${fmt(27*k)}" height="${fmt(14*k)}"/>`+
     `<rect x="${fmt(cx-32.5*k)}" y="${fmt(topY+16*k)}" width="${fmt(65*k)}" height="${fmt(6*k)}" rx="${fmt(3*k)}"/></g>`;
+}
+
+/* 듀얼 모드 전환 화살표 — 두 해상도 사이의 순환(⟳) 아이콘 */
+function cycleArrow(cx,cy,r,sw){
+  const P=d=>{const t=d*Math.PI/180;return [cx+r*Math.cos(t), cy+r*Math.sin(t)];};
+  const arc=(a1,a2)=>{const s0=P(a1),e0=P(a2);
+    return `<path d="M ${fmt(s0[0])} ${fmt(s0[1])} A ${fmt(r)} ${fmt(r)} 0 0 1 ${fmt(e0[0])} ${fmt(e0[1])}" fill="none" stroke="#fff" stroke-width="${fmt(sw)}" stroke-linecap="round"/>`;};
+  const head=(d,sz)=>{const t=d*Math.PI/180, px=cx+r*Math.cos(t), py=cy+r*Math.sin(t);
+    const tx=-Math.sin(t), ty=Math.cos(t), nx=Math.cos(t), ny=Math.sin(t);   // 접선(진행방향) · 법선(바깥)
+    const p=[[px+tx*sz*1.15, py+ty*sz*1.15],[px-tx*sz*0.25+nx*sz, py-ty*sz*0.25+ny*sz],[px-tx*sz*0.25-nx*sz, py-ty*sz*0.25-ny*sz]];
+    return `<polygon points="${p.map(q=>fmt(q[0])+','+fmt(q[1])).join(' ')}" fill="#fff"/>`;};
+  // 위쪽 호(왼→오른쪽) + 아래쪽 호(오른→왼쪽) — 각 끝에 화살촉
+  return arc(206,318)+head(332,sw*1.55)+arc(26,138)+head(152,sw*1.55);
+}
+/* 듀얼 모드 한 벌: 테두리 박스(등급) → 스탠드 → 주사율. 밑단은 bottomY 정렬 */
+function modeUnit(grade,hz,ex,bottomY,qk){
+  let o=''; const ew=241*qk, cx=ex+ew/2;
+  const hzBig=104*qk, hzSm=hzBig*0.6;
+  const boxTop = bottomY - hzBig - 26*qk - 103*qk;
+  o+=rrect(ex+2*qk,boxTop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
+  o+=T(grade,cx,boxTop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
+  o+=standIcon(cx,boxTop+104*qk,qk);
+  if(hz){
+    const sp=splitNum(hz), wN=measure(sp.n,hzBig,900), wU=sp.u?measure(sp.u,hzSm,900):0;
+    let x=cx-(wN+wU)/2;
+    o+=`<g filter="url(#hzShadow)">`;
+    o+=T(sp.n,x,bottomY,{size:hzBig,weight:900,fill:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+    if(sp.u) o+=T(sp.u,x+wN,bottomY,{size:hzSm,weight:900,fill:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+    o+=`</g>`;
+  }
+  return o;
 }
 
 /* ---------- 스펙 뱃지 — 시트(제목없음) 실측값 기반, 하단 밑단 정렬 ----------
@@ -148,9 +187,26 @@ function badges(){
     if(state.tech) out+=T(state.tech,gx,baseY,{size:f1,weight:800,fill:'#fff',anchor:'start',stroke:'#000',sw:f1*0.075});
     if(state.tech2) out+=T(state.tech2,rightX,baseY+f2*1.2,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
   }
-  // 3) QHD 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY) — 다른 요소와 균형 맞춰 축소
+  // 3) 해상도 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY) — 다른 요소와 균형 맞춰 축소
   let leftEnd = S.x + m;
-  if(state.grade){
+  const dual = !!(state.dual && state.grade && state.grade2);
+  if(dual){
+    // 듀얼 모드: [등급1 + 주사율1] ⟳ [등급2 + 주사율2] — 주사율은 각 박스 아래로 들어간다
+    const msS = state.ms ? splitNum(state.ms) : null;
+    // 응답속도 자리는 실제 글자 폭으로 예약한다(HY견고딕 이탤릭은 측정보다 넓게 렌더 → 8% 여유 + 좌우 간격)
+    const msW = msS ? (measure(msS.n,128*k,900)+(msS.u?measure(msS.u,80*k,900):0))*1.08 + 0.07*u : 0;
+    const rsvRight = ((state.ratio||state.panel) ? 175*k + 0.02*u : 0) + msW;
+    let qk = k*0.68, gapW = ()=>110*qk, need = ()=>241*qk*2 + gapW();
+    const availW = S.w - 2*m - rsvRight;
+    if(need() > availW) qk *= availW/need();                 // 좁으면 통째로 축소
+    const ew=241*qk, ex1=S.x+m, ex2=ex1+ew+gapW();
+    out+=modeUnit(state.grade, state.hz, ex1, bottomY, qk);
+    out+=modeUnit(state.grade2, state.hz2, ex2, bottomY, qk);
+    const acx=ex1+ew+gapW()/2, acy=bottomY-104*qk-26*qk-51*qk;   // 두 박스 사이, 박스 세로 중앙
+    out+=cycleArrow(acx, acy, 36*qk, 10*qk);
+    leftEnd = ex2+ew;
+  }
+  else if(state.grade){
     const qk=k*0.82, ew=241*qk, ex=S.x+m, etop=bottomY-178*qk;
     out+=rrect(ex+2*qk,etop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
     out+=T(state.grade,ex+ew/2,etop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
@@ -171,12 +227,13 @@ function badges(){
     rightStart = ex;
   }
   // 5) 주사율/응답 — 좌우 사이 가운데, 밑단=bottomY (HY견고딕 이탤릭, 응답 #75c289)
-  if(state.hz||state.ms){
+  const hzHere = state.hz && !dual;      // 듀얼이면 주사율은 각 해상도 박스 아래에 이미 있다
+  if(hzHere||state.ms){
     const availL=leftEnd+0.018*u, availR=rightStart-0.018*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
     let big=128*k, sm=80*k;
     const build=()=>{ const g=[];
-      if(state.hz){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
-      if(state.hz&&state.ms)g.push({gap:big*0.42});
+      if(hzHere){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
+      if(hzHere&&state.ms)g.push({gap:big*0.42});
       if(state.ms){const s=splitNum(state.ms);g.push({t:s.n,size:big,mint:true});if(s.u)g.push({t:s.u,size:sm,mint:true});}
       return g; };
     let segs=build();
@@ -312,6 +369,9 @@ function outputSVG(filename,svg){ if(inFrame) parent.postMessage({pluginMessage:
 /* ---------- 바인딩 ---------- */
 const bind=(id,key)=>$(id).addEventListener('input',e=>{ state[key]=e.target.value; render(); });
 bind('#f_inch','inch');bind('#f_cm','cm');bind('#f_grade','grade');bind('#f_res','res');bind('#f_hz','hz');bind('#f_ms','ms');bind('#f_ratio','ratio');bind('#f_panel','panel');bind('#f_tech','tech');bind('#f_tech2','tech2');
+bind('#f_grade2','grade2');bind('#f_hz2','hz2');
+$('#dualOn').addEventListener('change',e=>{ state.dual=e.target.checked;
+  $('#dualFields').hidden=!state.dual; $('#dualHint').hidden=!state.dual; render(); });
 $('#techRing').addEventListener('change',e=>{state.techRing=e.target.checked;render();});
 $('#warrantyOn').addEventListener('change',e=>{state.warrantyOn=e.target.checked;render();});
 $('#imgInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readImage(f);e.target.value='';});
