@@ -188,22 +188,24 @@ function badges(){
     if(state.tech2) out+=T(state.tech2,rightX,baseY+f2*1.2,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
   }
   // 3) 해상도 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY) — 다른 요소와 균형 맞춰 축소
-  let leftEnd = S.x + m;
+  let leftEnd = S.x + m, dualQk = 0;
   const dual = !!(state.dual && state.grade && state.grade2);
   if(dual){
     // 듀얼 모드: [등급1 + 주사율1] ⟳ [등급2 + 주사율2] — 주사율은 각 박스 아래로 들어간다
+    // 응답속도를 주사율과 "같은 눈높이"로 그렸을 때 필요한 폭을 먼저 예약한다.
+    // 0.03ms처럼 글자가 길면 두 벌이 그만큼 작아지고, 1ms처럼 짧으면 두 벌이 커진다
+    // → 어느 쪽도 혼자 커지지 않고 셋(해상도 두 벌 · 응답속도 · 16:9)의 비율이 유지된다.
+    let qk = k*0.72, gapW = ()=>95*qk, need = ()=>241*qk*2 + gapW();
     const msS = state.ms ? splitNum(state.ms) : null;
-    // 응답속도 자리는 실제 글자 폭으로 예약한다(HY견고딕 이탤릭은 측정보다 넓게 렌더 → 8% 여유 + 좌우 간격)
-    const msW = msS ? (measure(msS.n,128*k,900)+(msS.u?measure(msS.u,80*k,900):0))*1.08 + 0.07*u : 0;
-    const rsvRight = ((state.ratio||state.panel) ? 175*k + 0.02*u : 0) + msW;
-    let qk = k*0.68, gapW = ()=>110*qk, need = ()=>241*qk*2 + gapW();
-    const availW = S.w - 2*m - rsvRight;
-    if(need() > availW) qk *= availW/need();                 // 좁으면 통째로 축소
+    const msRsv = msS ? (measure(msS.n,104*qk,900)+(msS.u?measure(msS.u,62*qk,900):0))*1.08 + 0.03*u : 0;
+    const availW = S.w - 2*m - ((state.ratio||state.panel) ? 175*k + 0.02*u : 0) - msRsv;
+    if(need() > availW) qk = Math.max(k*0.60, qk*availW/need());   // 하한을 둬 지나치게 작아지지 않게
     const ew=241*qk, ex1=S.x+m, ex2=ex1+ew+gapW();
     out+=modeUnit(state.grade, state.hz, ex1, bottomY, qk);
     out+=modeUnit(state.grade2, state.hz2, ex2, bottomY, qk);
     const acx=ex1+ew+gapW()/2, acy=bottomY-104*qk-26*qk-51*qk;   // 두 박스 사이, 박스 세로 중앙
     out+=cycleArrow(acx, acy, 36*qk, 10*qk);
+    dualQk = qk;
     leftEnd = ex2+ew;
   }
   else if(state.grade){
@@ -229,8 +231,9 @@ function badges(){
   // 5) 주사율/응답 — 좌우 사이 가운데, 밑단=bottomY (HY견고딕 이탤릭, 응답 #75c289)
   const hzHere = state.hz && !dual;      // 듀얼이면 주사율은 각 해상도 박스 아래에 이미 있다
   if(hzHere||state.ms){
-    const availL=leftEnd+0.018*u, availR=rightStart-0.018*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
-    let big=128*k, sm=80*k;
+    const availL=leftEnd+(dual?0.035:0.018)*u, availR=rightStart-0.018*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
+    // 듀얼이면 응답속도를 주사율과 같은 크기로 맞춘다(단일 모드는 기존 크기 유지)
+    let big = dual ? 104*dualQk : 128*k, sm = dual ? big*0.6 : 80*k;
     const build=()=>{ const g=[];
       if(hzHere){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
       if(hzHere&&state.ms)g.push({gap:big*0.42});
