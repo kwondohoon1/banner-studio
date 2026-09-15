@@ -53,6 +53,10 @@ input[type=color]{width:38px;height:32px;border:1px solid #cfd1c9;border-radius:
   <div class="row"><span style="width:52px;color:#5b5d54;font-weight:700">크기</span><input type="range" id="ciScale" min="0.5" max="2" step="0.05" value="1"><span id="ciScaleV" style="width:38px;text-align:right;font-weight:700">100%</span></div>
   <div class="row" id="colorRow"><span style="width:52px;color:#5b5d54;font-weight:700">색상</span><input type="color" id="ciColor" value="#0b0b0b"><span class="hint" style="margin:0">기본 텍스트 CI 전용 · 어두운 제품엔 흰색</span></div>
 
+  <div class="step"><b>PBM (Powered by MSI)</b><span class="num">04 PBM</span></div>
+  <label class="chk"><input type="checkbox" id="pbmOn"> PBM 추가 — CI 바로 아래에 배치</label>
+  <div class="row" id="pbmRow"><span style="width:52px;color:#5b5d54;font-weight:700">크기</span><input type="range" id="pbmScale" min="0.5" max="2" step="0.05" value="1"><span id="pbmScaleV" style="width:38px;text-align:right;font-weight:700">100%</span></div>
+
   <button class="primary" id="saveBtn">제작</button>
   <div id="status" class="status"></div>
   <div class="preview-shell" id="preview"></div>
@@ -67,8 +71,11 @@ const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt
 const fmt = n => Math.round(n*100)/100;
 function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
 
-const state = { img:'', imgW:0, imgH:0, ci:'', ciW:0, ciH:0, ciOn:true, corner:'tr', ciScale:1, ciColor:'#0b0b0b' };
+const state = { img:'', imgW:0, imgH:0, ci:'', ciW:0, ciH:0, ciOn:true, corner:'tr', ciScale:1, ciColor:'#0b0b0b',
+                pbmOn:false, pbm:'', pbmW:0, pbmH:0, pbmScale:1, ciPadT:0, ciPadB:0 };
 const CI_BASE_W = 232;   // 업로드 CI 기본 가로폭(px, scale 1 기준) — 완성본 로고 폭에 맞춤
+const PBM_BASE_W = 164;  // PBM 기본 가로폭 — 완성본에서 CI 폭의 약 0.7배
+const PBM_GAP = 14;      // CI와 PBM 사이 간격
 
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
 const CI_TAGLINE = '좋은컴퓨터를만드는사람들';
@@ -100,6 +107,57 @@ function ciSVG(){
   `</g>`;
 }
 
+/* CI 이미지 안의 위·아래 빈 여백 비율을 재둔다.
+   (로고 파일은 대개 여백을 품고 있어서, 그대로 이어붙이면 PBM이 멀찍이 떨어져 보인다) */
+function measureCIPad(dataUrl){
+  const im = new Image();
+  im.onload = ()=>{
+    try{
+      const w = Math.min(320, im.naturalWidth), h = Math.max(1, Math.round(im.naturalHeight*w/im.naturalWidth));
+      const c = document.createElement('canvas'); c.width=w; c.height=h;
+      const cx = c.getContext('2d'); cx.drawImage(im,0,0,w,h);
+      const d = cx.getImageData(0,0,w,h).data;
+      let top=-1, bot=-1;
+      for(let y=0;y<h;y++){
+        let ink=false;
+        for(let x=0;x<w;x++){
+          const i=(y*w+x)*4;
+          if(d[i+3]>30 && !(d[i]>235 && d[i+1]>235 && d[i+2]>235)){ ink=true; break; }   // 투명·흰색이 아니면 내용
+        }
+        if(ink){ if(top<0) top=y; bot=y; }
+      }
+      if(top<0){ state.ciPadT=0; state.ciPadB=0; }
+      else { state.ciPadT = top/h; state.ciPadB = (h-1-bot)/h; }
+      render();
+    }catch(e){ state.ciPadT=0; state.ciPadB=0; }
+  };
+  im.src = dataUrl;
+}
+/* CI가 세로로 차지하는 높이 — PBM을 그 아래(하단 코너면 그 위)에 붙이는 기준.
+   이미지 안의 빈 여백은 빼서, 로고가 끝나는 지점에 PBM이 붙게 한다. */
+function ciBlockH(){
+  if(!state.ciOn) return 0;
+  const s = state.ciScale;
+  if(state.ci && state.ciW && state.ciH){
+    const boxH = CI_BASE_W * s * (state.ciH/state.ciW);
+    const top = state.corner==='tl'||state.corner==='tr';
+    return boxH * (1 - (top ? (state.ciPadB||0) : (state.ciPadT||0)));
+  }
+  return 98 * s;                       // 기본 텍스트 CI(태그라인+한성컴퓨터) 높이
+}
+/* PBM(Powered by MSI) — CI와 같은 코너에 세로로 이어 붙인다 */
+function pbmSVG(){
+  if(!state.pbmOn || !state.pbm || !state.pbmW || !state.pbmH) return '';
+  const W=1000, H=1000, m=38;
+  const right = state.corner==='tr'||state.corner==='br';
+  const top   = state.corner==='tl'||state.corner==='tr';
+  const w = PBM_BASE_W * state.pbmScale, h = w * (state.pbmH/state.pbmW);
+  const x = right ? (W-m-w) : m;
+  const cih = ciBlockH(), gap = cih ? PBM_GAP*state.ciScale : 0;
+  const y = top ? (m + cih + gap) : (H - m - cih - gap - h);
+  return `<image href="${state.pbm}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+
 function buildSVG(){
   const W=1000,H=1000;
   const body=[];
@@ -111,6 +169,7 @@ function buildSVG(){
     body.push(`<text x="${W/2}" y="${H/2}" font-family="${FONT}" font-size="34" font-weight="700" fill="#9aa2b4" text-anchor="middle" dominant-baseline="central">제품 이미지를 드롭하세요</text>`);
   }
   body.push(ciSVG());
+  body.push(pbmSVG());
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body.join('')}</svg>`;
 }
 function render(){ $('#preview').innerHTML = buildSVG(); }
@@ -138,6 +197,7 @@ function readCI(file){
     const im = new Image();
     im.onload = ()=>{
       state.ci = r.result; state.ciW = im.naturalWidth; state.ciH = im.naturalHeight;
+      measureCIPad(r.result);
       const box=$('#ciBox'); box.classList.add('has'); box.style.backgroundImage=`url("${r.result}")`;
       $('#ciHint').style.display='none'; if(!state.ciOn){ state.ciOn=true; $('#ciOn').checked=true; }
       render();
@@ -164,6 +224,11 @@ $('#cornerSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{
 });
 $('#ciScale').addEventListener('input', e=>{ state.ciScale=parseFloat(e.target.value); $('#ciScaleV').textContent=Math.round(state.ciScale*100)+'%'; render(); });
 $('#ciColor').addEventListener('input', e=>{ state.ciColor=e.target.value; render(); });
+$('#pbmOn').addEventListener('change', e=>{
+  if(e.target.checked && !state.pbm){ setStatus('PBM 이미지를 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.'); e.target.checked=false; return; }
+  state.pbmOn=e.target.checked; render();
+});
+$('#pbmScale').addEventListener('input', e=>{ state.pbmScale=parseFloat(e.target.value); $('#pbmScaleV').textContent=Math.round(state.pbmScale*100)+'%'; render(); });
 $('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기' : '제작 → SVG 저장';
 $('#saveBtn').onclick = ()=>{
   const svg = buildSVG();
@@ -178,9 +243,26 @@ const CI_DEFAULT_SRC = 'assets/hansung-ci.jpg';
 (function loadDefaultCI(){
   fetch(CI_DEFAULT_SRC).then(r=>{ if(!r.ok) throw 0; return r.blob(); }).then(blob=>{
     const fr=new FileReader();
-    fr.onload=()=>{ const im=new Image(); im.onload=()=>{ if(state.ci) return; /* 이미 업로드했으면 유지 */ state.ci=fr.result; state.ciW=im.naturalWidth; state.ciH=im.naturalHeight; const b=$('#ciBox'); b.classList.add('has'); b.style.backgroundImage=`url("${fr.result}")`; $('#ciHint').style.display='none'; render(); }; im.src=fr.result; };
+    fr.onload=()=>{ const im=new Image(); im.onload=()=>{ if(state.ci) return; /* 이미 업로드했으면 유지 */ state.ci=fr.result; state.ciW=im.naturalWidth; state.ciH=im.naturalHeight; measureCIPad(fr.result); const b=$('#ciBox'); b.classList.add('has'); b.style.backgroundImage=`url("${fr.result}")`; $('#ciHint').style.display='none'; render(); }; im.src=fr.result; };
     fr.readAsDataURL(blob);
   }).catch(()=>{ /* 실패 시 기본 텍스트 CI 유지 */ });
+})();
+
+/* PBM 로고를 레포에서 불러와 data URI로 임베드한다.
+   업로드(blob:) 상태에서는 상대경로가 잡히지 않으므로 jsDelivr 절대 URL로 한 번 더 시도한다. */
+const PBM_SRCS = ['assets/msi-advanced.png',
+                  'https://cdn.jsdelivr.net/gh/kwondohoon1/banner-studio@main/plugins/assets/msi-advanced.png'];
+(function loadPBM(i){
+  i = i || 0;
+  if(i >= PBM_SRCS.length) return;
+  fetch(PBM_SRCS[i]).then(r=>{ if(!r.ok) throw 0; return r.blob(); }).then(blob=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const im=new Image(); im.onload=()=>{
+      state.pbm=fr.result; state.pbmW=im.naturalWidth; state.pbmH=im.naturalHeight;
+      if(state.pbmOn) render();
+    }; im.src=fr.result; };
+    fr.readAsDataURL(blob);
+  }).catch(()=>loadPBM(i+1));
 })();
 
 render();
