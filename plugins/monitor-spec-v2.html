@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>모니터스펙v2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top b{font-size:14px}.top small{font-size:9px;color:var(--muted);display:block;letter-spacing:.4px}
+main{padding:16px;max-width:560px}
+.step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.imgbox{margin-top:8px;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8 center/contain no-repeat;min-height:130px;display:grid;place-items:center;cursor:pointer;color:#a9aba2;font-size:13px;text-align:center;padding:14px}
+.imgbox.has{border-style:solid;border-color:#cfd1c9}
+.imgbox.drop{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+[hidden]{display:none!important}   /* grid/flex는 hidden 속성을 무시하므로 강제 */
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:10px;color:#85877e;font-weight:700;padding-left:2px}
+input[type=text]{width:100%;border:1px solid #cfd1c9;border-radius:10px;background:#fff;padding:9px 11px;font:inherit;outline:none}
+input[type=text]:focus{border-color:#6f7268}
+.rowbtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.sbtn{border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:9px 13px;font:inherit;font-weight:700;cursor:pointer;color:#5b5d54}
+.sbtn.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+label.chk{display:flex;align-items:center;gap:8px;font-weight:700;color:#4f5148;cursor:pointer}
+label.chk input{width:16px;height:16px}
+.hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.55}
+.primary{width:100%;margin-top:18px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(30,32,27,.14)}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px;line-height:1.45}.status.show{display:block}
+.preview-shell{position:relative;background:#d9dbd4;border-radius:14px;padding:8px;margin-top:12px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+#selCatcher{position:absolute;inset:8px;display:none;cursor:crosshair;border-radius:8px}
+#selCatcher.on{display:block}
+#selRect{position:absolute;border:2px dashed #e23;background:rgba(238,51,51,.08);display:none;pointer-events:none;z-index:2}
+/* --- v2: 모델 검색 --- */
+.searchwrap{position:relative;margin-top:8px}
+.sres{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;background:#fff;border:1px solid #cfd1c9;border-radius:12px;box-shadow:0 14px 34px rgba(23,24,20,.16);max-height:330px;overflow:auto;display:none}
+.sres.on{display:block}
+.sitem{padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f1ea}
+.sitem:last-child{border-bottom:0}
+.sitem:hover,.sitem.sel{background:#f2f4e4}
+.sitem b{display:block;font-size:12px;font-weight:800;color:#20221d;line-height:1.35}
+.sitem i{display:block;font-style:normal;font-size:10px;color:#85877e;margin-top:3px}
+.picked{display:none;margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--dark);color:#fff;gap:10px;align-items:center;justify-content:space-between}
+.picked.on{display:flex}
+.picked b{font-size:11.5px;font-weight:800;display:block;line-height:1.35}
+.picked i{font-style:normal;font-size:10px;color:#c9cbbe;display:block;margin-top:3px}
+.picked .acts{display:flex;gap:6px;flex:0 0 auto}
+.picked a,.picked button{border:1px solid #4a4d43;background:#2c2e28;color:#eef0e4;border-radius:8px;padding:6px 9px;font:inherit;font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap}
+.picked a:hover,.picked button:hover{background:#3a3d35}
+.dbhint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.55}
+.spin{display:inline-block;width:9px;height:9px;border:2px solid #c8cabd;border-top-color:#20221d;border-radius:99px;animation:sp .7s linear infinite;vertical-align:-1px;margin-right:5px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">S2</div><div><b>모니터스펙v2</b><small>다나와 모델 검색 → 스펙·이미지 자동 → 스펙 이미지(1000×1000)</small></div></header>
+<main>
+  <div class="step"><b>모델 검색 <small style="color:var(--muted);font-weight:500">다나와 스펙 자동 적용</small></b><span class="num">00 SEARCH</span></div>
+  <div class="searchwrap">
+    <input type="text" id="q" placeholder="한성 모니터 모델명 — 예: TFG24F24P" autocomplete="off" spellcheck="false">
+    <div class="sres" id="sres"></div>
+  </div>
+  <div class="picked" id="picked">
+    <div><b id="pkName"></b><i id="pkSpec"></i></div>
+    <div class="acts"><button id="pkRetry" type="button">이미지 다시</button><a id="pkLink" href="#" target="_blank" rel="noopener">다나와 ↗</a></div>
+  </div>
+  <div class="dbhint" id="dbHint">스펙 DB 불러오는 중…</div>
+
+  <div class="step"><b>모니터 이미지</b><span class="num">01 IMAGE</span></div>
+  <label class="imgbox" id="imgBox"><input type="file" id="imgInput" accept="image/*" hidden><span id="imgHint">＋ 모니터 이미지 업로드 · 드래그해서 넣기</span></label>
+
+  <div class="step"><b>스펙 입력 <small style="color:var(--muted);font-weight:500">빈칸은 자동 생략</small></b><span class="num">02 SPEC</span></div>
+  <div class="grid2">
+    <div class="fld"><label>인치</label><input type="text" id="f_inch" value='27"'></div>
+    <div class="fld"><label>cm</label><input type="text" id="f_cm" value="67.3cm"></div>
+    <div class="fld"><label>해상도 등급</label><input type="text" id="f_grade" value="QHD"></div>
+    <div class="fld"><label>해상도</label><input type="text" id="f_res" value="2560X1440"></div>
+    <div class="fld"><label>주사율</label><input type="text" id="f_hz" value="240Hz"></div>
+    <div class="fld"><label>응답속도 (민트)</label><input type="text" id="f_ms" value="0.03ms"></div>
+    <div class="fld"><label>화면비</label><input type="text" id="f_ratio" value="16:9"></div>
+    <div class="fld"><label>패널</label><input type="text" id="f_panel" value="평면"></div>
+    <div class="fld"><label>패널기술 (예: LED·OLED)</label><input type="text" id="f_tech" value="LED"></div>
+    <div class="fld"><label>패널기술 2줄 (예: 576 Zones)</label><input type="text" id="f_tech2" value=""></div>
+  </div>
+  <label class="chk" style="margin-top:10px"><input type="checkbox" id="dualOn"> 듀얼 모드 — 해상도·주사율 2가지 (가운데 전환 화살표)</label>
+  <div class="grid2" id="dualFields" hidden>
+    <div class="fld"><label>해상도 등급 2</label><input type="text" id="f_grade2" value="FHD"></div>
+    <div class="fld"><label>주사율 2</label><input type="text" id="f_hz2" value="320Hz"></div>
+  </div>
+  <div class="hint" id="dualHint" hidden>듀얼 모드에서는 <b>해상도 등급</b>과 <b>주사율</b>이 한 쌍으로 묶여 두 벌 그려지고, 그 사이에 전환 화살표가 들어갑니다. (해상도 숫자 칸은 쓰이지 않습니다)</div>
+  <label class="chk" style="margin-top:10px"><input type="checkbox" id="techRing" checked> OLED — O를 무지개로 표시 (패널기술엔 "LED"만 입력)</label>
+  <label class="chk" style="margin-top:8px"><input type="checkbox" id="warrantyOn" checked> 3년 무상보증 뱃지(좌하단)</label>
+
+  <div class="step"><b>화면 범위 지정 <small style="color:var(--muted);font-weight:500">스펙이 얹힐 화면 영역</small></b><span class="num">03 SCREEN</span></div>
+  <div class="hint">아래 미리보기에서 <b>범위 지정</b>을 누르고 모니터 <b>화면(디스플레이) 영역</b>을 드래그하세요. 그 영역에 맞춰 스펙이 정확히 배치됩니다.</div>
+  <div class="rowbtns">
+    <button class="sbtn" id="autoBtn">🎯 자동 인식 (테두리 기준)</button>
+    <button class="sbtn" id="selBtn">🖱 범위 지정</button>
+    <button class="sbtn" id="selReset">기본값</button>
+    <label class="chk" style="margin:0"><input type="checkbox" id="showGuide" checked> 영역 가이드 표시</label>
+  </div>
+
+  <div class="step"><b>CI (한성컴퓨터)</b><span class="num">04 CI</span></div>
+  <label class="chk"><input type="checkbox" id="ciOn" checked> CI 넣기 (우상단)</label>
+
+  <button class="primary" id="saveBtn">제작</button>
+  <div id="status" class="status"></div>
+
+  <div class="preview-shell" id="pvShell">
+    <div id="preview"></div>
+    <div id="selCatcher"></div>
+    <div id="selRect"></div>
+  </div>
+</main>
+
+<script src="image-drop.js"></script>
+<script>
+"use strict";
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt = n => Math.round(n*100)/100;
+const mctx = document.createElement('canvas').getContext('2d');
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
+const FONT_HZ = "'HY견고딕','HYGothic-Medium','HY Gothic','Pretendard','Noto Sans KR',sans-serif";
+const MINT='#75c289', BLACK='#111214';
+const RS = { x:52, y:176, w:896, h:566 };  // 기본 화면(디스플레이) 사각형
+
+const state = {
+  img:'', imgW:0, imgH:0,
+  inch:'27"', cm:'67.3cm', grade:'QHD', res:'2560X1440', hz:'240Hz', ms:'0.03ms', ratio:'16:9', panel:'평면',
+  dual:false, grade2:'FHD', hz2:'320Hz',
+  tech:'LED', tech2:'', techRing:true, warrantyOn:true,
+  screen:{...RS}, showGuide:true, ciOn:true,
+  ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0, standImg:'', imgFit:null
+};
+
+function measure(t,size,weight){ mctx.font=`${weight} ${size}px ${FONT}`; return mctx.measureText(String(t)).width; }
+function T(str,x,y,o){ o=o||{}; const ls=o.ls?` letter-spacing="${o.ls}"`:''; const it=o.italic?` font-style="italic"`:''; const ff=o.font||FONT;
+  const st=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||2)}" paint-order="stroke" stroke-linejoin="round"`:'';
+  return `<text x="${fmt(x)}" y="${fmt(y)}" font-family="${ff}" font-size="${fmt(o.size||14)}" font-weight="${o.weight||700}" fill="${o.fill||'#fff'}" text-anchor="${o.anchor||'start'}" dominant-baseline="${o.baseline||'alphabetic'}"${it}${st}${ls}>${esc(str)}</text>`; }
+function rrect(x,y,w,h,r,o){ o=o||{}; const s=o.stroke?` stroke="${o.stroke}" stroke-width="${fmt(o.sw||3)}"`:''; const f=o.filter?` filter="${o.filter}"`:'';
+  return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" rx="${fmt(r)}" fill="${o.fill||'none'}"${s}${f}/>`; }
+function IMG(href,x,y,w,h,par){ return `<image href="${href}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" preserveAspectRatio="${par||'xMidYMid meet'}"/>`; }
+function splitNum(v){ const m=String(v||'').match(/^\s*([\d.,]+)\s*(.*)$/); return m?{n:m[1],u:m[2]}:{n:String(v||''),u:''}; }
+// QHD 박스 아래 스탠드+받침 (박스 자체가 모니터 화면이 되는 디자인) — 시트 원본 PNG 사용
+function standIcon(cx,topY,k){
+  if(state.standImg) return IMG(state.standImg, cx-33.5*k, topY, 67*k, 23*k, 'xMidYMid meet');
+  return `<g fill="#fff"><rect x="${fmt(cx-13.5*k)}" y="${fmt(topY)}" width="${fmt(27*k)}" height="${fmt(14*k)}"/>`+
+    `<rect x="${fmt(cx-32.5*k)}" y="${fmt(topY+16*k)}" width="${fmt(65*k)}" height="${fmt(6*k)}" rx="${fmt(3*k)}"/></g>`;
+}
+
+/* 듀얼 모드 전환 화살표 — 두 해상도 사이의 순환(⟳) 아이콘 */
+function cycleArrow(cx,cy,r,sw){
+  const P=d=>{const t=d*Math.PI/180;return [cx+r*Math.cos(t), cy+r*Math.sin(t)];};
+  const arc=(a1,a2)=>{const s0=P(a1),e0=P(a2);
+    return `<path d="M ${fmt(s0[0])} ${fmt(s0[1])} A ${fmt(r)} ${fmt(r)} 0 0 1 ${fmt(e0[0])} ${fmt(e0[1])}" fill="none" stroke="#fff" stroke-width="${fmt(sw)}" stroke-linecap="round"/>`;};
+  const head=(d,sz)=>{const t=d*Math.PI/180, px=cx+r*Math.cos(t), py=cy+r*Math.sin(t);
+    const tx=-Math.sin(t), ty=Math.cos(t), nx=Math.cos(t), ny=Math.sin(t);   // 접선(진행방향) · 법선(바깥)
+    const p=[[px+tx*sz*1.15, py+ty*sz*1.15],[px-tx*sz*0.25+nx*sz, py-ty*sz*0.25+ny*sz],[px-tx*sz*0.25-nx*sz, py-ty*sz*0.25-ny*sz]];
+    return `<polygon points="${p.map(q=>fmt(q[0])+','+fmt(q[1])).join(' ')}" fill="#fff"/>`;};
+  // 위쪽 호(왼→오른쪽) + 아래쪽 호(오른→왼쪽) — 각 끝에 화살촉
+  return arc(206,318)+head(332,sw*1.55)+arc(26,138)+head(152,sw*1.55);
+}
+/* 듀얼 모드 한 벌: 테두리 박스(등급) → 스탠드 → 주사율. 밑단은 bottomY 정렬 */
+function modeUnit(grade,hz,ex,bottomY,qk){
+  let o=''; const ew=241*qk, cx=ex+ew/2;
+  const hzBig=104*qk, hzSm=hzBig*0.6;
+  const boxTop = bottomY - hzBig - 26*qk - 103*qk;
+  o+=rrect(ex+2*qk,boxTop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
+  o+=T(grade,cx,boxTop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
+  o+=standIcon(cx,boxTop+104*qk,qk);
+  if(hz){
+    const sp=splitNum(hz), wN=measure(sp.n,hzBig,900), wU=sp.u?measure(sp.u,hzSm,900):0;
+    let x=cx-(wN+wU)/2;
+    o+=`<g filter="url(#hzShadow)">`;
+    o+=T(sp.n,x,bottomY,{size:hzBig,weight:900,fill:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+    if(sp.u) o+=T(sp.u,x+wN,bottomY,{size:hzSm,weight:900,fill:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+    o+=`</g>`;
+  }
+  return o;
+}
+
+/* ---------- 스펙 뱃지 — 시트(제목없음) 실측값 기반, 하단 밑단 정렬 ----------
+   시트 실측(px): QHD요소 241×179(박스236×103·선4·QHD글자76·아이콘109×47·해상도42)
+   16:9요소 175×110(16:9글자70 / 아래 흰스트립44에 검정 평면38) · 27"배지 219×144(흰박스200×76·인치57·cm42) */
+function badges(){
+  const S=state.screen, u=S.h, k=u/520, m=0.045*u; let out='';
+  const stroke=4*k;
+  const bottomY = S.y + S.h - 0.055*u;   // 하단 요소 공통 밑단 (화면 끝에 닿지 않을 만큼만 여백)
+  // 1) 27" 배지 — 좌상단 (검정 배지 + 흰 채움 박스 + 검정 인치 / 흰 cm)
+  if(state.inch||state.cm){
+    const bw=219*k, bh=144*k, bx=S.x+m, by=S.y+m;
+    out+=rrect(bx,by,bw,bh,14*k,{fill:BLACK});
+    out+=rrect(bx+9.5*k,by+10*k,200*k,76*k,10*k,{fill:'#ffffff'});
+    if(state.inch) out+=T(state.inch,bx+bw/2,by+10*k+62*k,{size:57*k,weight:900,fill:'#111214',anchor:'middle'});
+    if(state.cm) out+=T(state.cm,bx+bw/2,by+130*k,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
+  }
+  // 2) 패널기술 — 우상단. 무지개 링은 OLED의 "O" 글자 역할: 캡하이트 크기 + 베이스라인 정렬
+  if(state.tech||state.tech2){
+    const rightX=S.x+S.w-m, topY=S.y+m, f1=0.155*u, f2=0.08*u;
+    const t1w=state.tech?measure(state.tech,f1,800):0;
+    const ringOn = state.techRing && state.ringImg;
+    const rd=f1*0.78, gap=f1*0.05;          // 링 지름 = 글자 캡하이트 수준
+    const grpW = (ringOn?rd+gap:0)+t1w;
+    let gx=rightX-grpW;
+    const baseY = topY + rd;                 // 링 하단 = 글자 베이스라인
+    if(ringOn){ out+=IMG(state.ringImg,gx,topY,rd,rd,'xMidYMid meet'); gx+=rd+gap; }
+    if(state.tech) out+=T(state.tech,gx,baseY,{size:f1,weight:800,fill:'#fff',anchor:'start',stroke:'#000',sw:f1*0.075});
+    if(state.tech2) out+=T(state.tech2,rightX,baseY+f2*1.2,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
+  }
+  // 3) 해상도 요소 — 좌하단 (테두리 박스 → 아이콘 → 해상도, 밑단=bottomY) — 다른 요소와 균형 맞춰 축소
+  let leftEnd = S.x + m, dualQk = 0;
+  const dual = !!(state.dual && state.grade && state.grade2);
+  if(dual){
+    // 듀얼 모드: [등급1 + 주사율1] ⟳ [등급2 + 주사율2] — 주사율은 각 박스 아래로 들어간다
+    // 응답속도를 주사율과 "같은 눈높이"로 그렸을 때 필요한 폭을 먼저 예약한다.
+    // 0.03ms처럼 글자가 길면 두 벌이 그만큼 작아지고, 1ms처럼 짧으면 두 벌이 커진다
+    // → 어느 쪽도 혼자 커지지 않고 셋(해상도 두 벌 · 응답속도 · 16:9)의 비율이 유지된다.
+    let qk = k*0.72, gapW = ()=>95*qk, need = ()=>241*qk*2 + gapW();
+    const msS = state.ms ? splitNum(state.ms) : null;
+    const msRsv = msS ? (measure(msS.n,104*qk,900)+(msS.u?measure(msS.u,62*qk,900):0))*1.08 + 0.03*u : 0;
+    const availW = S.w - 2*m - ((state.ratio||state.panel) ? 175*k + 0.02*u : 0) - msRsv;
+    if(need() > availW) qk = Math.max(k*0.60, qk*availW/need());   // 하한을 둬 지나치게 작아지지 않게
+    const ew=241*qk, ex1=S.x+m, ex2=ex1+ew+gapW();
+    out+=modeUnit(state.grade, state.hz, ex1, bottomY, qk);
+    out+=modeUnit(state.grade2, state.hz2, ex2, bottomY, qk);
+    const acx=ex1+ew+gapW()/2, acy=bottomY-104*qk-26*qk-51*qk;   // 두 박스 사이, 박스 세로 중앙
+    out+=cycleArrow(acx, acy, 36*qk, 10*qk);
+    dualQk = qk;
+    leftEnd = ex2+ew;
+  }
+  else if(state.grade){
+    const qk=k*0.82, ew=241*qk, ex=S.x+m, etop=bottomY-178*qk;
+    out+=rrect(ex+2*qk,etop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
+    out+=T(state.grade,ex+ew/2,etop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
+    out+=standIcon(ex+ew/2,etop+104*qk,qk);
+    if(state.res) out+=T(state.res,ex+ew/2,bottomY,{size:42*qk,weight:800,fill:'#fff',anchor:'middle'});
+    leftEnd = ex+ew;
+  }
+  // 4) 16:9 요소 — 우하단 (테두리 박스 / 위 16:9 / 아래 흰 스트립+검정 평면, 밑단=bottomY)
+  let rightStart = S.x+S.w-m;
+  if(state.ratio||state.panel){
+    const ew=175*k, eh=110*k, ex=S.x+S.w-m-ew, etop=bottomY-eh;
+    // 아래 흰색 채움 스트립(아래 모서리만 라운드)
+    out+=rrect(ex,etop+66*k,ew,44*k,10*k,{fill:'#ffffff'});
+    out+=`<rect x="${fmt(ex)}" y="${fmt(etop+66*k)}" width="${fmt(ew)}" height="${fmt(22*k)}" fill="#ffffff"/>`;
+    out+=rrect(ex,etop,ew,eh,10*k,{fill:'none',stroke:'#fff',sw:stroke});
+    if(state.ratio) out+=T(state.ratio,ex+ew/2,etop+62*k,{size:70*k,weight:900,fill:'#fff',anchor:'middle'});
+    if(state.panel) out+=T(state.panel,ex+ew/2,etop+101*k,{size:38*k,weight:800,fill:'#111214',anchor:'middle',ls:4*k});
+    rightStart = ex;
+  }
+  // 5) 주사율/응답 — 좌우 사이 가운데, 밑단=bottomY (HY견고딕 이탤릭, 응답 #75c289)
+  const hzHere = state.hz && !dual;      // 듀얼이면 주사율은 각 해상도 박스 아래에 이미 있다
+  if(hzHere||state.ms){
+    const availL=leftEnd+(dual?0.035:0.018)*u, availR=rightStart-0.018*u, availC=(availL+availR)/2, availW=Math.max(80,availR-availL);
+    // 듀얼이면 응답속도를 주사율과 같은 크기로 맞춘다(단일 모드는 기존 크기 유지)
+    let big = dual ? 104*dualQk : 128*k, sm = dual ? big*0.6 : 80*k;
+    const build=()=>{ const g=[];
+      if(hzHere){const s=splitNum(state.hz);g.push({t:s.n,size:big});if(s.u)g.push({t:s.u,size:sm});}
+      if(hzHere&&state.ms)g.push({gap:big*0.42});
+      if(state.ms){const s=splitNum(state.ms);g.push({t:s.n,size:big,mint:true});if(s.u)g.push({t:s.u,size:sm,mint:true});}
+      return g; };
+    let segs=build();
+    const totalW=()=>segs.reduce((a,g)=>a+(g.gap!=null?g.gap:measure(g.t,g.size,900)),0);
+    // HY견고딕 이탤릭은 측정(Pretendard)보다 넓게 렌더됨 → 8% 안전폭으로 16:9 박스에 닿지 않게
+    let t=totalW();
+    if(t*1.08>availW){ const f=availW/(t*1.08); big*=f; sm*=f; segs=build(); t=totalW(); }
+    let x=availC-t/2;
+    out+=`<g filter="url(#hzShadow)">`;
+    segs.forEach(g=>{
+      if(g.gap!=null){ x+=g.gap; return; }
+      out+=T(g.t,x,bottomY,{size:g.size,weight:900,fill:g.mint?MINT:'#fff',anchor:'start',italic:true,font:FONT_HZ});
+      x+=measure(g.t,g.size,900);
+    });
+    out+=`</g>`;
+  }
+  return out;
+}
+
+/* ---------- 캔버스 레벨: 보증 뱃지(좌하단) + CI(우상단) ---------- */
+function warrantySVG(){
+  if(!state.warrantyOn || !state.warImg) return '';
+  const s=210, x=40, y=1000-40-s*(state.warH/state.warW);
+  return IMG(state.warImg,x,y,s,s*(state.warH/state.warW),'xMidYMid meet');
+}
+function ciSVG(){
+  if(!state.ciOn) return '';
+  const W=1000,m=38;
+  if(state.ci && state.ciW && state.ciH){ const w=232,h=w*(state.ciH/state.ciW); return IMG(state.ci,W-m-w,m,w,h,'xMidYMid meet'); }
+  const x=W-m;
+  return `<g>`+T('좋은컴퓨터를만드는사람들',x,68,{size:14.5,weight:600,fill:'#0b0b0b',anchor:'end',ls:1.8})+T('한성컴퓨터',x,128,{size:48,weight:800,fill:'#0b0b0b',anchor:'end',ls:-1.5})+`</g>`;
+}
+function guideSVG(){ if(!state.showGuide) return ''; const S=state.screen; return `<rect x="${fmt(S.x)}" y="${fmt(S.y)}" width="${fmt(S.w)}" height="${fmt(S.h)}" fill="none" stroke="#e23" stroke-width="2" stroke-dasharray="12 10" opacity=".8"/>`; }
+
+function buildSVG(withGuide){
+  const W=1000,H=1000, body=[];
+  body.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`);
+  if(state.img && state.imgW && state.imgH){
+    const f=state.imgFit;
+    if(f) body.push(IMG(state.img,f.x,f.y,1000*f.s,1000*f.s,'xMidYMid meet'));
+    else body.push(IMG(state.img,0,0,W,H,'xMidYMid meet'));
+  } else {
+    body.push(`<text x="${W/2}" y="${H/2}" font-family="${FONT}" font-size="34" font-weight="700" fill="#9aa2b4" text-anchor="middle" dominant-baseline="central">모니터 이미지를 넣어주세요</text>`);
+  }
+  // 화면 하단 검정 그라데이션(스크림) — 스펙이 잘 보이도록
+  const S=state.screen;
+  body.push(`<defs><linearGradient id="specScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101012" stop-opacity="0"/><stop offset="0.55" stop-color="#101012" stop-opacity="0.28"/><stop offset="1" stop-color="#101012" stop-opacity="0.72"/></linearGradient>`+
+    `<filter id="hzShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="2" dy="3" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.45"/></filter></defs>`);
+  body.push(`<rect x="${fmt(S.x)}" y="${fmt(S.y+S.h*0.46)}" width="${fmt(S.w)}" height="${fmt(S.h*0.54)}" fill="url(#specScrim)"/>`);
+  body.push(badges());
+  body.push(warrantySVG());
+  body.push(ciSVG());
+  if(withGuide) body.push(guideSVG());
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body.join('')}</svg>`;
+}
+function render(){ $('#preview').innerHTML = buildSVG(true); }
+
+/* ---------- 이미지 ---------- */
+function readImage(file){ if(!file||!/^image\//.test(file.type)){setStatus('이미지 파일이 아니에요.');return;} const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>{ state.img=r.result;state.imgW=im.naturalWidth;state.imgH=im.naturalHeight; const b=$('#imgBox');b.classList.add('has');b.style.backgroundImage=`url("${r.result}")`;$('#imgHint').style.display='none'; render(); autoDetectScreen(); }; im.src=r.result; }; r.readAsDataURL(file); }
+function loadAsset(path, onload){ fetch(path).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{ const fr=new FileReader(); fr.onload=()=>{ const im=new Image(); im.onload=()=>onload(fr.result,im.naturalWidth,im.naturalHeight); im.src=fr.result; }; fr.readAsDataURL(b); }).catch(()=>{}); }
+
+/* ---------- 모니터 테두리 자동 인식 ---------- */
+// 흰 배경 제품컷에서 모니터 패널(베젤 포함) 사각형을 찾고, 베젤 두께만큼 안쪽으로 들어가 화면 영역을 잡는다
+function autoDetectScreen(){
+  if(!state.img) return;
+  const im=new Image();
+  im.onload=()=>{
+    try{
+      const N=250, cv=document.createElement('canvas'); cv.width=N; cv.height=N;
+      const cx=cv.getContext('2d',{willReadFrequently:true});
+      cx.fillStyle='#fff'; cx.fillRect(0,0,N,N);
+      const s=Math.min(1000/im.naturalWidth,1000/im.naturalHeight);
+      const dw=im.naturalWidth*s/1000*N, dh=im.naturalHeight*s/1000*N;
+      cx.drawImage(im,(N-dw)/2,(N-dh)/2,dw,dh);
+      const d=cx.getImageData(0,0,N,N).data;
+      const isBg=i=> d[i]>235&&d[i+1]>235&&d[i+2]>235;
+      const K=1000/N;
+      // (A) 전체 제품(모니터+스탠드) bbox → 캔버스에 꽉 차게 확대 (TFG32Q14FMW 비율)
+      let cx0=N,cy0=N,cx1=-1,cy1=-1;
+      for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=(y*N+x)*4;if(!isBg(i)){if(x<cx0)cx0=x;if(x>cx1)cx1=x;if(y<cy0)cy0=y;if(y>cy1)cy1=y;}}
+      if(cx1<0){ setStatus('모니터를 인식하지 못했어요.'); return; }
+      const CB={x:cx0*K,y:cy0*K,w:(cx1-cx0+1)*K,h:(cy1-cy0+1)*K};
+      const TX=28,TW=944,TY=state.ciOn?170:28,TB=975,TH=TB-TY;   // 목표 영역: CI 켜짐이면 위 공간 확보, 꺼짐이면 위까지 꽉 차게
+      let fs2=Math.min(TW/CB.w, TH/CB.h); fs2=Math.min(fs2,2.2);
+      const offX=(TX+TW/2)-(CB.x+CB.w/2)*fs2;
+      const offY=(TY+TH/2)-(CB.y+CB.h/2)*fs2;
+      state.imgFit={s:fs2,x:offX,y:offY};
+      // 행별 비배경 폭 → 가장 넓은 연속 구간이 패널(스탠드는 좁음)
+      const rows=[];
+      for(let y=0;y<N;y++){ let x0=-1,x1=-1; for(let x=0;x<N;x++){ const i=(y*N+x)*4; if(!isBg(i)){ if(x0<0)x0=x; x1=x; } } rows.push({x0,x1,w:x0<0?0:x1-x0+1}); }
+      const maxW=Math.max(...rows.map(r=>r.w));
+      if(maxW<N*0.3){ setStatus('모니터를 인식하지 못했어요. 범위 지정으로 직접 잡아주세요.'); return; }
+      let top=0; while(top<N&&rows[top].w<maxW*0.8) top++;
+      let bot=top; while(bot+1<N&&rows[bot+1].w>=maxW*0.72) bot++;
+      if(bot-top<N*0.08){ setStatus('모니터를 인식하지 못했어요. 범위 지정으로 직접 잡아주세요.'); return; }
+      const seg=rows.slice(top,bot+1);
+      const left=Math.min(...seg.map(r=>r.x0)), right=Math.max(...seg.map(r=>r.x1));
+      // 베젤 인셋: 중앙 행/열에서 어두운 픽셀(베젤)을 통과
+      const midY=(top+bot)>>1, midX=(left+right)>>1;
+      const dark=(x,y)=>{ const i=(y*N+x)*4; return d[i]+d[i+1]+d[i+2]<180; };
+      let l=left; while(l<midX&&dark(l,midY)) l++;
+      let r=right; while(r>midX&&dark(r,midY)) r--;
+      let t=top; while(t<midY&&dark(midX,t)) t++;
+      let b=bot; while(b>midY&&dark(midX,b)) b--;
+      // 화면 내용이 어두워 과도하게 들어간 경우 제한
+      const capX=(right-left)*0.06, capY=(bot-top)*0.09;
+      if(l-left>capX) l=left+Math.round(capX*0.4);
+      if(right-r>capX) r=right-Math.round(capX*0.4);
+      if(t-top>capY) t=top+Math.round(capY*0.5);
+      if(bot-b>capY) b=bot-Math.round(capY*0.5);
+      state.screen={x:(l*K)*fs2+offX, y:(t*K)*fs2+offY, w:(r-l)*K*fs2, h:(b-t)*K*fs2};
+      render();
+      setStatus('모니터를 꽉 차게 배치하고 화면 영역을 자동으로 잡았어요. (미세조정: 범위 지정)');
+    }catch(e){ /* 실패 시 조용히 기본값 유지 */ }
+  };
+  im.src=state.img;
+}
+
+/* ---------- 화면 범위 드래그 ---------- */
+let selMode=false, dragStart=null;
+function toSvgXY(cx,cy){ const r=$('#selCatcher').getBoundingClientRect(); const k=1000/r.width; return {x:Math.max(0,Math.min(1000,(cx-r.left)*k)),y:Math.max(0,Math.min(1000,(cy-r.top)*k))}; }
+function setSelMode(on){ selMode=on; $('#selCatcher').classList.toggle('on',on); $('#selBtn').classList.toggle('on',on); if(!on)$('#selRect').style.display='none'; setStatus(on?'모니터 화면 영역을 드래그하세요.':''); }
+$('#autoBtn').onclick=()=>{ if(!state.img){ setStatus('먼저 모니터 이미지를 넣어주세요.'); return; } autoDetectScreen(); };
+$('#selBtn').onclick=()=>setSelMode(!selMode);
+$('#selReset').onclick=()=>{ state.screen={...RS}; render(); setStatus('화면 영역을 기본값으로 되돌렸어요.'); };
+$('#selCatcher').addEventListener('mousedown',e=>{ if(!selMode)return; e.preventDefault(); const sh=$('#pvShell').getBoundingClientRect(); dragStart={cx:e.clientX,cy:e.clientY}; const sr=$('#selRect'); sr.style.display='block'; sr.style.left=(e.clientX-sh.left)+'px'; sr.style.top=(e.clientY-sh.top)+'px'; sr.style.width='0px'; sr.style.height='0px'; });
+document.addEventListener('mousemove',e=>{ if(!selMode||!dragStart)return; const sh=$('#pvShell').getBoundingClientRect(); const x1=Math.min(dragStart.cx,e.clientX),y1=Math.min(dragStart.cy,e.clientY),x2=Math.max(dragStart.cx,e.clientX),y2=Math.max(dragStart.cy,e.clientY); const sr=$('#selRect'); sr.style.left=(x1-sh.left)+'px'; sr.style.top=(y1-sh.top)+'px'; sr.style.width=(x2-x1)+'px'; sr.style.height=(y2-y1)+'px'; });
+document.addEventListener('mouseup',e=>{ if(!selMode||!dragStart)return; const a=toSvgXY(Math.min(dragStart.cx,e.clientX),Math.min(dragStart.cy,e.clientY)),b=toSvgXY(Math.max(dragStart.cx,e.clientX),Math.max(dragStart.cy,e.clientY)); dragStart=null; const w=b.x-a.x,h=b.y-a.y; if(w>40&&h>40){ state.screen={x:a.x,y:a.y,w,h}; render(); setStatus('화면 영역을 지정했어요.'); } setSelMode(false); });
+
+/* ---------- 저장 ---------- */
+function outputSVG(filename,svg){ if(inFrame) parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*'); else { const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1200);} }
+
+/* ---------- 바인딩 ---------- */
+const bind=(id,key)=>$(id).addEventListener('input',e=>{ state[key]=e.target.value; render(); });
+bind('#f_inch','inch');bind('#f_cm','cm');bind('#f_grade','grade');bind('#f_res','res');bind('#f_hz','hz');bind('#f_ms','ms');bind('#f_ratio','ratio');bind('#f_panel','panel');bind('#f_tech','tech');bind('#f_tech2','tech2');
+bind('#f_grade2','grade2');bind('#f_hz2','hz2');
+$('#dualOn').addEventListener('change',e=>{ state.dual=e.target.checked;
+  $('#dualFields').hidden=!state.dual; $('#dualHint').hidden=!state.dual; render(); });
+$('#techRing').addEventListener('change',e=>{state.techRing=e.target.checked;render();});
+$('#warrantyOn').addEventListener('change',e=>{state.warrantyOn=e.target.checked;render();});
+$('#imgInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)readImage(f);e.target.value='';});
+$('#ciOn').addEventListener('change',e=>{ state.ciOn=e.target.checked; if(state.img) autoDetectScreen(); else render(); });
+$('#showGuide').addEventListener('change',e=>{state.showGuide=e.target.checked;render();});
+$('#saveBtn').textContent = inFrame ? '제작 → 에디터로 보내기' : '제작 → SVG 저장';
+$('#saveBtn').onclick=()=>{ outputSVG('monitor-spec-1000.svg', buildSVG(false)); setStatus(inFrame?'에디터로 보냈어요.':'SVG를 저장했어요.'); };
+window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message);});
+window.addEventListener('load',()=>{ if(window.ImageDrop) ImageDrop.wire('imgInput',['#imgBox'],setStatus); });
+
+// 레포의 에셋(무지개 링·골드 보증뱃지·CI)을 data URI로 임베드
+loadAsset('assets/rainbow-ring.png',(d,w,h)=>{ state.ringImg=d;state.ringW=w;state.ringH=h; render(); });
+loadAsset('assets/qhd-stand.png',(d)=>{ state.standImg=d; render(); });
+loadAsset('assets/warranty-3y.png',(d,w,h)=>{ state.warImg=d;state.warW=w;state.warH=h; render(); });
+loadAsset('assets/hansung-ci.jpg',(d,w,h)=>{ if(state.ci)return; state.ci=d;state.ciW=w;state.ciH=h; render(); });
+
+render();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(render);
+
+/* ===================== v2: 다나와 모델 검색 → 스펙·이미지 자동 =====================
+   스펙 출처: kwondohoon1/danawa-monitor-crawler 의 monitor_specs.csv (raw, CORS 열림)
+   이미지 출처: 다나와 상품페이지 og:image — 다나와 이미지 서버는 CORS 헤더가 없어
+                공개 프록시를 경유한다. 실패하면 조용히 수동 업로드로 떨어진다. */
+const CSV_URL='https://raw.githubusercontent.com/kwondohoon1/danawa-monitor-crawler/main/data/specs/monitor_specs.csv';
+const CACHE_KEY='msv2:hansung:1', CACHE_TTL=24*3600*1000;
+const SNAPSHOT=[["16904675","한성컴퓨터 TFG24F07FB 프리싱크 리얼 75","60.4cm(24인치)","FHD(1920x1080)","75Hz","VA","와이드(16:9)","평면","4ms","2022/04"],["16904705","한성컴퓨터 TFG24F07FB 프리싱크 리얼 75 무결점","60.4cm(24인치)","FHD(1920x1080)","75Hz","VA","와이드(16:9)","평면","4ms","2022/04"],["10496610","한성컴퓨터 TFG24F07V 1500R 리얼 75 게이밍","59.8cm(24인치)","FHD(1920x1080)","75Hz","VA","와이드(16:9)","커브드","3ms","2020/02"],["10496625","한성컴퓨터 TFG24F07V 1500R 리얼 75 게이밍 무결점","59.8cm(24인치)","FHD(1920x1080)","75Hz","VA","와이드(16:9)","커브드","3ms","2020/02"],["18901640","한성컴퓨터 TFG24F07W 울트라와이드","59.18cm(23.3인치)","WFHD(2560x1080)","75Hz","VA","울트라와이드(21:9)","평면","4ms","2023/02"],["18901673","한성컴퓨터 TFG24F07W 울트라와이드 무결점","59.18cm(23.3인치)","WFHD(2560x1080)","75Hz","VA","울트라와이드(21:9)","평면","4ms","2023/02"],["122701889","한성컴퓨터 TFG24F10F 게이밍 리얼 100 (중고)","60.4cm(24인치)","FHD(1920x1080)","100Hz","VA","와이드(16:9)","평면","4ms","2023/04"],["78781265","한성컴퓨터 TFG24F14P2 FHD IPS 144 게이밍","62.2cm(24인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/03"],["122702016","한성컴퓨터 TFG24F14P2 FHD IPS 144 게이밍 (중고)","62.2cm(24인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/03"],["78781277","한성컴퓨터 TFG24F14P2 FHD IPS 144 게이밍 무결점","62.2cm(24인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/03"],["90646616","한성컴퓨터 TFG24F14PB FHD IPS 144 게이밍","62.2cm(24인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/05"],["90646619","한성컴퓨터 TFG24F14PB FHD IPS 144 게이밍 무결점","62.2cm(24인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/05"],["45191087","한성컴퓨터 TFG24F18P Fast IPS 리얼 180 게이밍 무결점","62.2m(24인치)","FHD(1920x1080)","180Hz","Fast IPS","와이드(16:9)","평면","1ms","2024/04"],["90506087","한성컴퓨터 TFG24F18V FHD 180 게이밍","60cm(24인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/05"],["90506096","한성컴퓨터 TFG24F18V FHD 180 게이밍 무결점","60cm(24인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/05"],["91495595","한성컴퓨터 TFG24F24P Fast IPS FHD 240 게이밍","62.2cm(24인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["91495604","한성컴퓨터 TFG24F24P Fast IPS FHD 240 게이밍 무결점","62.2cm(24인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["91637267","한성컴퓨터 TFG24F24PB Fast IPS FHD 240 게이밍","62.2cm(24인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["91637276","한성컴퓨터 TFG24F24PB Fast IPS FHD 240 게이밍 무결점","62.2cm(24인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["99889298","한성컴퓨터 TFG24F24V FHD 240 게이밍","59.8cm(24인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/11"],["99889319","한성컴퓨터 TFG24F24V FHD 240 게이밍 무결점","59.8cm(24인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/11"],["73948937","한성컴퓨터 TFG24F30T FHD Fast TN 리얼 300 게이밍","61.3m(24인치)","FHD(1920x1080)","300Hz","Fast TN","와이드(16:9)","평면","1ms","2025/01"],["73948985","한성컴퓨터 TFG24F30T FHD Fast TN 리얼 300 게이밍 무결점","61.3m(24인치)","FHD(1920x1080)","300Hz","Fast TN","와이드(16:9)","평면","1ms","2025/01"],["76333139","한성컴퓨터 TFG24F32P FHD Fast IPS 리얼 320 게이밍","62.2cm(24인치)","FHD(1920x1080)","320Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/02"],["76333163","한성컴퓨터 TFG24F32P FHD Fast IPS 리얼 320 게이밍 무결점","62.2cm(24인치)","FHD(1920x1080)","320Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/02"],["106721861","한성컴퓨터 TFG24F40PCMW FHD Fast IPS 400 게이밍 화이트","62.2cm(24인치)","FHD(1920x1080)","400Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/02"],["106721864","한성컴퓨터 TFG24F40PCMW FHD Fast IPS 400 게이밍 화이트 무결점","62.2cm(24인치)","FHD(1920x1080)","400Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/02"],["122665529","한성컴퓨터 TFG24F40PM180Z FHD Fast IPS Mini LED 400 게이밍","62.2cm(24인치)","FHD(1920x1080)","400Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/05"],["122665574","한성컴퓨터 TFG24F40PM180Z FHD Fast IPS Mini LED 400 게이밍 무결점","62.2cm(24인치)","FHD(1920x1080)","400Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/05"],["72009740","한성컴퓨터 TFG24F54T FHD Fast TN 리얼 540 게이밍","61.3cm(24인치)","FHD(1920x1080)","540Hz","Fast TN","와이드(16:9)","평면","0.2ms","2024/11"],["72009755","한성컴퓨터 TFG24F54T FHD Fast TN 리얼 540 게이밍 무결점","61.3cm(24인치)","FHD(1920x1080)","540Hz","Fast TN","와이드(16:9)","평면","0.2ms","2024/11"],["122701560","한성컴퓨터 TFG24F62TCMW FHD Fast TN 620 게이밍 화이트","61.3cm(24인치)","FHD(1920x1080)","620Hz","QD-Fast TN","와이드(16:9)","평면","0.5ms","2026/06"],["122701609","한성컴퓨터 TFG24F62TCMW FHD Fast TN 620 게이밍 화이트 무결점","61.3cm(24인치)","FHD(1920x1080)","620Hz","QD-Fast TN","와이드(16:9)","평면","0.5ms","2026/06"],["96852119","한성컴퓨터 TFG24Q14P QHD IPS 144 게이밍","60.4cm(24인치)","QHD(2560x1440)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/08"],["96852128","한성컴퓨터 TFG24Q14P QHD IPS 144 게이밍 무결점","60.4cm(24인치)","QHD(2560x1440)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/08"],["97470836","한성컴퓨터 TFG24Q24PM576Z QHD Fast IPS QD Mini LED 240 게이밍","62cm(24인치)","QHD(2560x1440)","240Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/09"],["97470863","한성컴퓨터 TFG24Q24PM576Z QHD Fast IPS QD Mini LED 240 게이밍 무결점","62cm(24인치)","QHD(2560x1440)","240Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/09"],["122693760","한성컴퓨터 TFG24Q27P QHD Fast IPS 275 게이밍","62cm(24인치)","QHD(2560x1440)","275Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/06"],["122693794","한성컴퓨터 TFG24Q27P QHD Fast IPS 275 게이밍 무결점","62cm(24인치)","QHD(2560x1440)","275Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/06"],["15374369","한성컴퓨터 TFG26F07WP IPS 울트라와이드","65.3cm(26인치)","WFHD(2560x1080)","75Hz","IPS","울트라와이드(21:9)","평면","4ms","2021/10"],["15374387","한성컴퓨터 TFG26F07WP IPS 울트라와이드 무결점","65.3cm(26인치)","WFHD(2560x1080)","75Hz","IPS","울트라와이드(21:9)","평면","4ms","2021/10"],["36157202","한성컴퓨터 TFG27F07FS 스마트","68.47cm(27인치)","FHD(1920x1080)","60Hz","VA","와이드(16:9)","평면","5ms","2024/02"],["36157214","한성컴퓨터 TFG27F07FS 스마트 무결점","68.47cm(27인치)","FHD(1920x1080)","60Hz","VA","와이드(16:9)","평면","5ms","2024/02"],["122704813","한성컴퓨터 TFG27F12P 프리싱크 IPS 리얼 120 (중고)","68.6cm(27인치)","FHD(1920x1080)","120Hz","IPS","와이드(16:9)","평면","5ms","2024/10"],["79385003","한성컴퓨터 TFG27F14P2 FHD IPS 144 게이밍","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/04"],["100269737","한성컴퓨터 TFG27F14P2 FHD IPS 144 게이밍 (중고)","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/04"],["79385018","한성컴퓨터 TFG27F14P2 FHD IPS 144 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/04"],["90646697","한성컴퓨터 TFG27F14PB FHD IPS 144 게이밍","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/05"],["90646706","한성컴퓨터 TFG27F14PB FHD IPS 144 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/05"],["104615321","한성컴퓨터 TFG27F14PMW FHD IPS 144 게이밍 화이트","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2026/01"],["104615327","한성컴퓨터 TFG27F14PMW FHD IPS 144 게이밍 화이트 무결점","68.6cm(27인치)","FHD(1920x1080)","144Hz","IPS","와이드(16:9)","평면","1ms","2026/01"],["91114205","한성컴퓨터 TFG27F14V FHD 144 게이밍","68.6cm(27인치)","FHD(1920x1080)","144Hz","VA","와이드(16:9)","커브드","1ms","2025/05"],["91114247","한성컴퓨터 TFG27F14V FHD 144 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","144Hz","VA","와이드(16:9)","커브드","1ms","2025/05"],["16917314","한성컴퓨터 TFG27F16FB 리얼 180 게이밍","68.6cm(27인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","평면","1ms","2022/04"],["16917344","한성컴퓨터 TFG27F16FB 리얼 180 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","평면","1ms","2022/04"],["77709980","한성컴퓨터 TFG27F20P FHD Fast IPS 200 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","200Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/03"],["11739002","한성컴퓨터 TFG27F24P IPS 리얼 240 게이밍","68cm(27인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2020/07"],["79401962","한성컴퓨터 TFG27F24P2 FHD Fast IPS 240 게이밍","68.6cm(27인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/04"],["79401980","한성컴퓨터 TFG27F24P2 FHD Fast IPS 240 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/04"],["89607674","한성컴퓨터 TFG27F24V2 FHD 240 게이밍","68.6cm(27인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/04"],["89607683","한성컴퓨터 TFG27F24V2 FHD 240 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/04"],["80570411","한성컴퓨터 TFG27F30V FHD 300 게이밍","68.6cm(27인치)","FHD(1920x1080)","300Hz","VA","와이드(16:9)","커브드","1ms","2025/04"],["80570423","한성컴퓨터 TFG27F30V FHD 300 게이밍 무결점","68.6cm(27인치)","FHD(1920x1080)","300Hz","VA","와이드(16:9)","커브드","1ms","2025/04"],["122727536","한성컴퓨터 TFG27Q12PBL QHD Nano IPS Black 120 게이밍","68.5cm(27인치)","QHD(2560x1440)","120Hz","Nano-IPS Black","와이드(16:9)","평면","1ms","2026/07"],["122727541","한성컴퓨터 TFG27Q12PBL QHD Nano IPS Black 120 게이밍 무결점","68.5cm(27인치)","QHD(2560x1440)","120Hz","Nano-IPS Black","와이드(16:9)","평면","1ms","2026/07"],["97903499","한성컴퓨터 TFG27Q14F QHD 평면 리얼 180 게이밍 (중고)","68cm(27인치)","QHD(2560x1440)","180Hz","VA","와이드(16:9)","평면","1ms","2020/10"],["95985887","한성컴퓨터 TFG27Q14P2 QHD IPS 144 게이밍","68.5cm(27인치)","QHD(2560x1440)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/08"],["95985902","한성컴퓨터 TFG27Q14P2 QHD IPS 144 게이밍 무결점","68.5cm(27인치)","QHD(2560x1440)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/08"],["103329209","한성컴퓨터 TFG27Q14PMW QHD IPS 144 게이밍 화이트","68.5cm(27인치)","QHD(2560x1440)","144Hz","IPS","와이드(16:9)","평면","1ms","2026/01"],["103329212","한성컴퓨터 TFG27Q14PMW QHD IPS 144 게이밍 화이트 무결점","68.5cm(27인치)","QHD(2560x1440)","144Hz","IPS","와이드(16:9)","평면","1ms","2026/01"],["20301824","한성컴퓨터 TFG27Q17PN QHD 나노IPS 170 게이밍 USB Type-c","68.47cm(27인치)","QHD(2560x1440)","170Hz","Nano-IPS","와이드(16:9)","평면","1ms","2023/05"],["20301923","한성컴퓨터 TFG27Q17PN QHD 나노IPS 170 게이밍 USB Type-c 무결점","68.47cm(27인치)","QHD(2560x1440)","170Hz","Nano-IPS","와이드(16:9)","평면","1ms","2023/05"],["78174539","한성컴퓨터 TFG27Q18P QHD Fast IPS 180 게이밍","68.6cm(27인치)","QHD(2560x1440)","180Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/03"],["78174548","한성컴퓨터 TFG27Q18P QHD Fast IPS 180 게이밍 무결점","68.6cm(27인치)","QHD(2560x1440)","180Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/03"],["54213164","한성컴퓨터 TFG27Q18PM QHD Fast IPS QD Mini LED 180 게이밍","68.4cm(27인치)","QHD(2560x1440)","180Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2024/05"],["54213191","한성컴퓨터 TFG27Q18PM QHD Fast IPS QD Mini LED 180 게이밍 무결점","68.4cm(27인치)","QHD(2560x1440)","180Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2024/05"],["78845663","한성컴퓨터 TFG27Q18PM576Z QHD Fast IPS QD Mini LED 180 게이밍","68.4cm(27인치)","QHD(2560x1440)","180Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/03"],["78845681","한성컴퓨터 TFG27Q18PM576Z QHD Fast IPS QD Mini LED 180 게이밍 무결점","68.4cm(27인치)","QHD(2560x1440)","180Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/03"],["78175112","한성컴퓨터 TFG27Q18V QHD 180 게이밍","68.6cm(27인치)","QHD(2560x1440)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/03"],["78306746","한성컴퓨터 TFG27Q18V QHD 180 게이밍 무결점","68.6cm(27인치)","QHD(2560x1440)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/03"],["28574624","한성컴퓨터 TFG27Q24F QHD 리얼 240 게이밍","68.46cm(27인치)","QHD(2560x1440)","240Hz","VA","와이드(16:9)","평면","1ms","2023/10"],["28574642","한성컴퓨터 TFG27Q24F QHD 리얼 240 게이밍 무결점","68.46cm(27인치)","QHD(2560x1440)","240Hz","VA","와이드(16:9)","평면","1ms","2023/10"],["72310301","한성컴퓨터 TFG27Q24FL QD-OLED QHD 리얼 240 게이밍","67.3cm(27인치)","QHD(2560x1440)","240Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2024/12"],["72310319","한성컴퓨터 TFG27Q24FL QD-OLED QHD 리얼 240 게이밍 무결점","67.3cm(27인치)","QHD(2560x1440)","240Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2024/12"],["106693865","한성컴퓨터 TFG27Q24FLMW QD-OLED QHD 240 게이밍 화이트","67.8cm(27인치)","QHD(2560x1440)","240Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2026/02"],["106693871","한성컴퓨터 TFG27Q24FLMW QD-OLED QHD 240 게이밍 화이트 무결점","67.8cm(27인치)","QHD(2560x1440)","240Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2026/02"],["30190991","한성컴퓨터 TFG27Q24FM QHD QD Mini LED 240 게이밍","68.46cm(27인치)","QHD(2560x1440)","240Hz","QD-VA","와이드(16:9)","평면","1ms","2023/11"],["122702301","한성컴퓨터 TFG27Q24FM QHD QD Mini LED 240 게이밍 (중고)","68.46cm(27인치)","QHD(2560x1440)","240Hz","QD-VA","와이드(16:9)","평면","1ms","2023/11"],["30191054","한성컴퓨터 TFG27Q24FM QHD QD Mini LED 240 게이밍 무결점","68.46cm(27인치)","QHD(2560x1440)","240Hz","QD-VA","와이드(16:9)","평면","1ms","2023/11"],["103451792","한성컴퓨터 TFG27Q24FM180ZMW QHD QD Mini LED 240 듀얼모드 게이밍 화이트","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast VA","와이드(16:9)","평면","1ms","2026/01"],["103451891","한성컴퓨터 TFG27Q24FM180ZMW QHD QD Mini LED 240 듀얼모드 게이밍 화이트 무결점","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast VA","와이드(16:9)","평면","1ms","2026/01"],["27731141","한성컴퓨터 TFG27Q24P QHD Fast IPS 리얼 240 게이밍","68.47cm(27인치)","QHD(2560x1440)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2023/08"],["27731177","한성컴퓨터 TFG27Q24P QHD Fast IPS 리얼 240 게이밍 무결점","68.47cm(27인치)","QHD(2560x1440)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2023/08"],["90702770","한성컴퓨터 TFG27Q24P2 QHD Fast IPS 240 게이밍","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["122702308","한성컴퓨터 TFG27Q24P2 QHD Fast IPS 240 게이밍 (중고)","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["90702830","한성컴퓨터 TFG27Q24P2 QHD Fast IPS 240 게이밍 무결점","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["32125334","한성컴퓨터 TFG27Q24PL OLED QHD 리얼 240 게이밍 USB Type-C","67.3cm(27인치)","QHD(2560x1440)","240Hz","OLED","와이드(16:9)","평면","0.03ms","2024/01"],["32125343","한성컴퓨터 TFG27Q24PL OLED QHD 리얼 240 게이밍 USB Type-C 무결점","67.3cm(27인치)","QHD(2560x1440)","240Hz","OLED","와이드(16:9)","평면","0.03ms","2024/01"],["122616472","한성컴퓨터 TFG27Q24V QHD 240 듀얼모드 게이밍","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast VA","와이드(16:9)","커브드","1ms","2026/04"],["122616473","한성컴퓨터 TFG27Q24V QHD 240 듀얼모드 게이밍 무결점","68.5cm(27인치)","QHD(2560x1440)","240Hz","Fast VA","와이드(16:9)","커브드","1ms","2026/04"],["106721855","한성컴퓨터 TFG27Q32PCMW QHD Fast IPS 320 게이밍 화이트","68.4cm(27인치)","QHD(2560x1440)","320Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/02"],["106721858","한성컴퓨터 TFG27Q32PCMW QHD Fast IPS 320 게이밍 화이트 무결점","68.4cm(27인치)","QHD(2560x1440)","320Hz","Fast IPS","와이드(16:9)","평면","1ms","2026/02"],["90502928","한성컴퓨터 TFG27Q32PM1152Z QHD Fast IPS QD Mini LED 320 게이밍","68.4cm(27인치)","QHD(2560x1440)","320Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["90502940","한성컴퓨터 TFG27Q32PM1152Z QHD Fast IPS QD Mini LED 320 게이밍 무결점","68.4cm(27인치)","QHD(2560x1440)","320Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["71501417","한성컴퓨터 TFG27Q36FL QD-OLED QHD 리얼 360 게이밍 USB Type-C","68cm(27인치)","QHD(2560x1440)","360Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2024/11"],["71501423","한성컴퓨터 TFG27Q36FL QD-OLED QHD 리얼 360 게이밍 USB Type-C 무결점","68cm(27인치)","QHD(2560x1440)","360Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2024/11"],["106693916","한성컴퓨터 TFG27Q50FLMW QD-OLED QHD 500 게이밍 화이트","67.8cm(27인치)","QHD(2560x1440)","500Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2026/02"],["106693919","한성컴퓨터 TFG27Q50FLMW QD-OLED QHD 500 게이밍 화이트 무결점","67.8cm(27인치)","QHD(2560x1440)","500Hz","QD-OLED","와이드(16:9)","평면","0.03ms","2026/02"],["100193792","한성컴퓨터 TFG27U06P2 UHD 4K IPS","68.5cm(27인치)","4K UHD(3840x2160)","60Hz","IPS","와이드(16:9)","평면","5ms","2025/11"],["100193807","한성컴퓨터 TFG27U06P2 UHD 4K IPS 무결점","68.5cm(27인치)","4K UHD(3840x2160)","60Hz","IPS","와이드(16:9)","평면","5ms","2025/11"],["102356756","한성컴퓨터 TFG27U1224PMW IPS Black UHD 120 FHD 240 듀얼모드 게이밍 화이트","68.5cm(27인치)","4K UHD(3840x2160)","120Hz","IPS Black","와이드(16:9)","평면","1ms","2025/12"],["102356762","한성컴퓨터 TFG27U1224PMW IPS Black UHD 120 FHD 240 듀얼모드 게이밍 화이트 무결점","68.5cm(27인치)","4K UHD(3840x2160)","120Hz","IPS Black","와이드(16:9)","평면","1ms","2025/12"],["86402246","한성컴퓨터 TFG27U1428P IPS 듀얼모드 게이밍","68.5cm(27인치)","4K UHD(3840x2160)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/04"],["86408204","한성컴퓨터 TFG27U1428P IPS 듀얼모드 게이밍 무결점","68.5cm(27인치)","4K UHD(3840x2160)","144Hz","IPS","와이드(16:9)","평면","1ms","2025/04"],["18269096","한성컴퓨터 TFG27U14P UHD IPS 리얼 144 게이밍 USB Type-C 400","68.4cm(27인치)","4K UHD(3840x2160)","144Hz","IPS","와이드(16:9)","평면","1ms","2022/11"],["18269147","한성컴퓨터 TFG27U14P UHD IPS 리얼 144 게이밍 USB Type-C 400 무결점","68.4cm(27인치)","4K UHD(3840x2160)","144Hz","IPS","와이드(16:9)","평면","1ms","2022/11"],["79427837","한성컴퓨터 TFG27U1632P Fast IPS 듀얼모드 게이밍","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/04"],["79429010","한성컴퓨터 TFG27U1632P Fast IPS 듀얼모드 게이밍 무결점","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/04"],["54213314","한성컴퓨터 TFG27U16P UHD Fast IPS QD Mini LED 160 게이밍","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2024/05"],["54213323","한성컴퓨터 TFG27U16P UHD Fast IPS QD Mini LED 160 게이밍 무결점","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2024/05"],["90272393","한성컴퓨터 TFG27U16PM1152Z Fast IPS QD Mini LED 듀얼모드 게이밍","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["90272405","한성컴퓨터 TFG27U16PM1152Z Fast IPS QD Mini LED 듀얼모드 게이밍 무결점","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/05"],["101724641","한성컴퓨터 TFG27U16PM180ZMW Fast IPS QD Mini LED UHD 160 FHD 320 듀얼모드 게이밍 화이트","68.4cm(27인치)","4K UHD(3840x2160)","320Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/12"],["101724164","한성컴퓨터 TFG27U16PM180ZMW Fast IPS QD Mini LED UHD 160 FHD 320 듀얼모드 게이밍 화이트 무결점","68.4cm(27인치)","4K UHD(3840x2160)","320Hz","Fast IPS","와이드(16:9)","평면","1ms","2025/12"],["94081799","한성컴퓨터 TFG27U16PM2304Z Fast IPS QD Mini LED 듀얼모드 게이밍","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/07"],["97841942","한성컴퓨터 TFG27U16PM2304Z Fast IPS QD Mini LED 듀얼모드 게이밍 (중고)","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/07"],["94081853","한성컴퓨터 TFG27U16PM2304Z Fast IPS QD Mini LED 듀얼모드 게이밍 무결점","68.4cm(27인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/07"],["15377177","한성컴퓨터 TFG29F07WP IPS 울트라와이드","73cm(29인치)","WFHD(2560x1080)","100Hz","IPS","울트라와이드(21:9)","평면","1ms","2021/10"],["15377228","한성컴퓨터 TFG29F07WP IPS 울트라와이드 무결점","73cm(29인치)","WFHD(2560x1080)","100Hz","IPS","울트라와이드(21:9)","평면","1ms","2021/10"],["14252126","한성컴퓨터 TFG30F20W 울트라와이드 리얼 200 게이밍","75cm(30인치)","WFHD(2560x1080)","200Hz","VA","울트라와이드(21:9)","커브드","1ms","2021/05"],["14252171","한성컴퓨터 TFG30F20W 울트라와이드 리얼 200 게이밍 무결점","75cm(30인치)","WFHD(2560x1080)","200Hz","VA","울트라와이드(21:9)","커브드","1ms","2021/05"],["36157259","한성컴퓨터 TFG32F07FS 스마트","80.1cm(32인치)","FHD(1920x1080)","60Hz","VA","와이드(16:9)","평면","5ms","2024/02"],["101722631","한성컴퓨터 TFG32F07FS 스마트 (중고)","80.1cm(32인치)","FHD(1920x1080)","60Hz","VA","와이드(16:9)","평면","5ms","2024/02"],["36157265","한성컴퓨터 TFG32F07FS 스마트 무결점","80.1cm(32인치)","FHD(1920x1080)","60Hz","VA","와이드(16:9)","평면","5ms","2024/02"],["9482619","한성컴퓨터 TFG32F07V 1500R 커브드 게이밍 리얼 75","80cm(32인치)","FHD(1920x1080)","75Hz","VA","와이드(16:9)","커브드","4ms","2019/09"],["9482634","한성컴퓨터 TFG32F07V 1500R 커브드 게이밍 리얼 75 무결점","80cm(32인치)","FHD(1920x1080)","75Hz","VA","와이드(16:9)","커브드","4ms","2019/09"],["97779824","한성컴퓨터 TFG32F24F FHD 240 게이밍","80.1cm(32인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","평면","1ms","2025/09"],["97779827","한성컴퓨터 TFG32F24F FHD 240 게이밍 무결점","80.1cm(32인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","평면","1ms","2025/09"],["81751145","한성컴퓨터 TFG32F24V2 FHD 240 게이밍","80.1cm(32인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/04"],["81751169","한성컴퓨터 TFG32F24V2 FHD 240 게이밍 무결점","80.1cm(32인치)","FHD(1920x1080)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/04"],["78614858","한성컴퓨터 TFG32Q10P QHD IPS 100","80cm(32인치)","QHD(2560x1440)","100Hz","IPS","와이드(16:9)","평면","1ms","2025/03"],["78614861","한성컴퓨터 TFG32Q10P QHD IPS 100 무결점","80cm(32인치)","QHD(2560x1440)","100Hz","IPS","와이드(16:9)","평면","1ms","2025/03"],["100003340","한성컴퓨터 TFG32Q10PB QHD IPS 100","80.1cm(32인치)","QHD(2560x1440)","100Hz","IPS","와이드(16:9)","평면","1ms","2025/11"],["100003352","한성컴퓨터 TFG32Q10PB QHD IPS 100 무결점","80.1cm(32인치)","QHD(2560x1440)","100Hz","IPS","와이드(16:9)","평면","1ms","2025/11"],["12425138","한성컴퓨터 TFG32Q14F QHD 평면 리얼 165 게이밍","80cm(32인치)","QHD(2560x1440)","165Hz","VA","와이드(16:9)","평면","1ms","2020/10"],["12425162","한성컴퓨터 TFG32Q14F QHD 평면 리얼 165 게이밍 무결점","80cm(32인치)","QHD(2560x1440)","165Hz","VA","와이드(16:9)","평면","1ms","2020/10"],["122701519","한성컴퓨터 TFG32Q14FMW QHD 144 게이밍 화이트","80cm(32인치)","QHD(2560x1440)","144Hz","VA","와이드(16:9)","평면","1ms","2026/06"],["122701544","한성컴퓨터 TFG32Q14FMW QHD 144 게이밍 화이트 무결점","80cm(32인치)","QHD(2560x1440)","144Hz","VA","와이드(16:9)","평면","1ms","2026/06"],["76508279","한성컴퓨터 TFG32Q18V QHD 커브드 리얼 180 게이밍","80cm(32인치)","QHD(2560x1440)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/02"],["100269617","한성컴퓨터 TFG32Q18V QHD 커브드 리얼 180 게이밍 (중고)","80cm(32인치)","QHD(2560x1440)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/02"],["76508282","한성컴퓨터 TFG32Q18V QHD 커브드 리얼 180 게이밍 무결점","80cm(32인치)","QHD(2560x1440)","180Hz","VA","와이드(16:9)","커브드","1ms","2025/02"],["76551224","한성컴퓨터 TFG32Q24V2 QHD 커브드 리얼 240 게이밍","80cm(32인치)","QHD(2560x1440)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/02"],["76551227","한성컴퓨터 TFG32Q24V2 QHD 커브드 리얼 240 게이밍 무결점","80cm(32인치)","QHD(2560x1440)","240Hz","VA","와이드(16:9)","커브드","1ms","2025/02"],["63479240","한성컴퓨터 TFG32U06FS Dongle 스마트 무결점","80cm(32인치)","4K UHD(3840x2160)","60Hz","VA","와이드(16:9)","평면","4ms","2024/08"],["17592986","한성컴퓨터 TFG32U14PQ UHD IPS 리얼 160 게이밍 USB Type-C 600","81.2cm(32인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2022/08"],["17593070","한성컴퓨터 TFG32U14PQ UHD IPS 리얼 160 게이밍 USB Type-C 600 무결점","81.2cm(32인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2022/08"],["101069885","한성컴퓨터 TFG32U14V UHD 4K 144 게이밍","80cm(32인치)","4K UHD(3840x2160)","144Hz","VA","와이드(16:9)","커브드","1ms","2025/11"],["101069894","한성컴퓨터 TFG32U14V UHD 4K 144 게이밍 무결점","80cm(32인치)","4K UHD(3840x2160)","144Hz","VA","와이드(16:9)","커브드","1ms","2025/11"],["102007568","한성컴퓨터 TFG32U14VM1152ZMW UHD 4K QD Mini LED 144 게이밍 화이트","80cm(32인치)","4K UHD(3840x2160)","144Hz","QD-VA","와이드(16:9)","","1ms","2025/12"],["102007613","한성컴퓨터 TFG32U14VM1152ZMW UHD 4K QD Mini LED 144 게이밍 화이트 무결점","80cm(32인치)","4K UHD(3840x2160)","144Hz","QD-VA","와이드(16:9)","","1ms","2025/12"],["71964830","한성컴퓨터 TFG32U16P UHD Fast IPS QD Mini LED 160 게이밍","81.3cm(32인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2024/11"],["71964845","한성컴퓨터 TFG32U16P UHD Fast IPS QD Mini LED 160 게이밍 무결점","81.3cm(32인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2024/11"],["101080295","한성컴퓨터 TFG32U16PM2304ZMW Fast IPS QD Mini LED UHD 160 FHD 320 듀얼모드 게이밍 화이트","80cm(32인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/11"],["101189444","한성컴퓨터 TFG32U16PM2304ZMW Fast IPS QD Mini LED UHD 160 FHD 320 듀얼모드 게이밍 화이트 무결점","80cm(32인치)","4K UHD(3840x2160)","160Hz","QD-Fast IPS","와이드(16:9)","평면","1ms","2025/11"],["72984281","한성컴퓨터 TFG32U24VL QD-OLED UHD 리얼 240 게이밍 USB Type-C","80cm(32인치)","4K UHD(3840x2160)","240Hz","QD-OLED","와이드(16:9)","커브드","0.03ms","2024/12"],["72984293","한성컴퓨터 TFG32U24VL QD-OLED UHD 리얼 240 게이밍 USB Type-C 무결점","80cm(32인치)","4K UHD(3840x2160)","240Hz","QD-OLED","와이드(16:9)","커브드","0.03ms","2024/12"],["9490218","한성컴퓨터 TFG34Q10W 커브드 게이밍 리얼 100","86.4cm(34인치)","Ultra WQHD(3440x1440)","120Hz","VA","울트라와이드(21:9)","커브드","1ms","2019/09"],["97841255","한성컴퓨터 TFG34Q10W 커브드 게이밍 리얼 100 (중고)","86.4cm(34인치)","Ultra WQHD(3440x1440)","120Hz","VA","울트라와이드(21:9)","커브드","1ms","2019/09"],["9490230","한성컴퓨터 TFG34Q10W 커브드 게이밍 리얼 100 무결점","86.4cm(34인치)","Ultra WQHD(3440x1440)","120Hz","VA","울트라와이드(21:9)","커브드","1ms","2019/09"],["30103667","한성컴퓨터 TFG34Q10WB 1500R 울트라와이드 WQHD 커브드 게이밍 리얼 100 시력보호","86.4cm(34인치)","Ultra WQHD(3440x1440)","120Hz","VA","울트라와이드(21:9)","커브드","1ms","2023/11"],["30103706","한성컴퓨터 TFG34Q10WB 1500R 울트라와이드 WQHD 커브드 게이밍 리얼 100 시력보호 무결점","86.4cm(34인치)","Ultra WQHD(3440x1440)","120Hz","VA","울트라와이드(21:9)","커브드","1ms","2023/11"],["15471815","한성컴퓨터 TFG34Q14W 1500R 커브드 리얼 180 울트라와이드 게이밍","86.4cm(34인치)","Ultra WQHD(3440x1440)","180Hz","VA","울트라와이드(21:9)","커브드","1ms","2021/10"],["15471848","한성컴퓨터 TFG34Q14W 커브드 리얼 180 울트라와이드 게이밍 무결점","86.4cm(34인치)","Ultra WQHD(3440x1440)","180Hz","VA","울트라와이드(21:9)","커브드","1ms","2021/10"],["122693629","한성컴퓨터 TFG34Q16WP WQHD IPS 165 울트라와이드 게이밍","86.7cm(34인치)","Ultra WQHD(3440x1440)","165Hz","IPS","울트라와이드(21:9)","평면","1ms","2026/06"],["122693660","한성컴퓨터 TFG34Q16WP WQHD IPS 165 울트라와이드 게이밍 무결점","86.7cm(34인치)","Ultra WQHD(3440x1440)","165Hz","IPS","울트라와이드(21:9)","평면","1ms","2026/06"],["56502008","한성컴퓨터 TFG34Q17WL QD-OLED WQHD 리얼 175 울트라와이드 게이밍","86.8cm(34인치)","Ultra WQHD(3440x1440)","175Hz","QD-OLED","울트라와이드(21:9)","커브드","0.1ms","2024/06"],["62319782","한성컴퓨터 TFG34Q17WL QD-OLED WQHD 리얼 175 울트라와이드 게이밍 무결점","86.8cm(34인치)","Ultra WQHD(3440x1440)","175Hz","QD-OLED","울트라와이드(21:9)","커브드","0.1ms","2024/06"],["70619549","한성컴퓨터 TFG34Q24W 커브드 리얼 240 울트라와이드 게이밍","86.4cm(34인치)","Ultra WQHD(3440x1440)","240Hz","VA","울트라와이드(21:9)","커브드","1ms","2024/11"],["70619627","한성컴퓨터 TFG34Q24W 커브드 리얼 240 울트라와이드 게이밍 무결점","86.4cm(34인치)","Ultra WQHD(3440x1440)","240Hz","VA","울트라와이드(21:9)","커브드","1ms","2024/11"],["73770905","한성컴퓨터 TFG34Q24WL QD-OLED WQHD 리얼 240 게이밍 USB Type-C","86.4cm(34인치)","Ultra WQHD(3440x1440)","240Hz","QD-OLED","울트라와이드(21:9)","커브드","0.03ms","2025/01"],["73770917","한성컴퓨터 TFG34Q24WL QD-OLED WQHD 리얼 240 게이밍 USB Type-C 무결점","86.4cm(34인치)","Ultra WQHD(3440x1440)","240Hz","QD-OLED","울트라와이드(21:9)","커브드","0.03ms","2025/01"],["13887527","한성컴퓨터 TFG39Q14V QHD 커브드 리얼 165 게이밍","97.8cm(38.5인치)","QHD(2560x1440)","165Hz","VA","와이드(16:9)","커브드","1ms","2021/04"],["13887533","한성컴퓨터 TFG39Q14V QHD 커브드 리얼 165 게이밍 무결점","97.8cm(38.5인치)","QHD(2560x1440)","165Hz","VA","와이드(16:9)","커브드","1ms","2021/04"],["15611117","한성컴퓨터 TFG40Q14WP IPS 게이밍 리얼 144 울트라와이드 USB Type-C","100.4cm(40인치)","Ultra WQHD(3440x1440)","144Hz","IPS","울트라와이드(21:9)","평면","3ms","2021/11"],["104548925","한성컴퓨터 TFG40Q14WP IPS 게이밍 리얼 144 울트라와이드 USB Type-C 무결점","100.4cm(40인치)","Ultra WQHD(3440x1440)","144Hz","IPS","울트라와이드(21:9)","평면","3ms","2026/01"],["101628641","한성컴퓨터 TFG40U10WP WUHD IPS 100 USB Type-C 허브 화이트","100.4cm(40인치)","WUHD(5120x2160)","100Hz","IPS","울트라와이드(21:9)","평면","1ms","2025/12"],["101628644","한성컴퓨터 TFG40U10WP WUHD IPS 100 USB Type-C 허브 화이트 무결점","100.4cm(40인치)","WUHD(5120x2160)","100Hz","IPS","울트라와이드(21:9)","평면","1ms","2025/12"],["122714595","한성컴퓨터 TFG40U12PW WUHD Nano IPS Black 120 게이밍","100.9cm(40인치)","WUHD(5120x2160)","120Hz","Nano-IPS Black","울트라와이드(21:9)","커브드","1ms","2026/06"],["122714636","한성컴퓨터 TFG40U12PW WUHD Nano IPS Black 120 게이밍 무결점","100.9cm(40인치)","WUHD(5120x2160)","120Hz","Nano-IPS Black","울트라와이드(21:9)","커브드","1ms","2026/06"],["11702585","한성컴퓨터 TFG49Q12UW 울트라와이드 듀얼QHD 리얼 120","124cm(49인치)","DQHD(5120x1440)","120Hz","VA","울트라와이드(32:9)","커브드","1ms","2020/07"],["60246902","한성컴퓨터 TFG49Q24UWL QD-OLED DQHD 리얼 240 울트라와이드 게이밍","124.3cm(49인치)","DQHD(5120x1440)","240Hz","QD-OLED","울트라와이드(32:9)","커브드","0.03ms","2024/07"],["60246917","한성컴퓨터 TFG49Q24UWL QD-OLED DQHD 리얼 240 울트라와이드 게이밍 무결점","124.3cm(49인치)","DQHD(5120x1440)","240Hz","QD-OLED","울트라와이드(32:9)","커브드","0.03ms","2024/07"],["16965428","한성컴퓨터 ULTRON 2460G PLUS 리얼 180 게이밍","60.4cm(24인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","평면","1ms","2022/05"],["16965527","한성컴퓨터 ULTRON 2460G PLUS 리얼 180 게이밍 무결점","60.4cm(24인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","평면","1ms","2022/05"],["17099612","한성컴퓨터 ULTRON 2760G PLUS 게이밍","68.6cm(27인치)","FHD(1920x1080)","180Hz","VA","와이드(16:9)","평면","1ms","2022/05"],["6927928","한성컴퓨터 ULTRON 3278 QHD New","80.1cm(32인치)","QHD(2560x1440)","75Hz","IPS","와이드(16:9)","평면","3ms","2018/12"],["6493721","한성컴퓨터 ULTRON 4977SUC 퀀텀닷 리얼 144 울트라와이드 게이밍","124cm(49인치)","DFHD(3840x1080)","144Hz","QD-VA","울트라와이드(32:9)","커브드","3ms","2018/10"]];
+let DB=[], results=[], selIx=-1, picked=null;
+
+/* ---------- CSV ---------- */
+// 따옴표 안의 쉼표·줄바꿈까지 처리하는 최소 파서 (full_spec 칸이 쉼표를 담고 있다)
+function parseCSV(text){
+  if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=''; }
+    else if(c==='\n'){ row.push(f); f=''; rows.push(row); row=[]; }
+    else if(c!=='\r') f+=c;
+  }
+  if(f.length||row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+function rowsToDB(rows){
+  if(!rows.length) return [];
+  const head=rows[0].map(s=>s.trim());
+  const ix=['product_code','product_name','inch','resolution','refresh_rate','panel','aspect_ratio','shape','full_spec','registration_month'].map(n=>head.indexOf(n));
+  if(ix[0]<0||ix[1]<0) return [];
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; if(!r||r.length<head.length-2) continue;
+    const nm=r[ix[1]]||''; if(nm.indexOf('한성')!==0) continue;
+    const m=/(\d+(?:\.\d+)?)\s*ms/.exec(r[ix[8]]||'');
+    out.push([r[ix[0]],nm,r[ix[2]],r[ix[3]],r[ix[4]],r[ix[5]],r[ix[6]],r[ix[7]],m?m[1]+'ms':'',r[ix[9]]]);
+  }
+  return out;
+}
+const toRec=a=>({code:a[0],name:a[1],inch:a[2],res:a[3],hz:a[4],panel:a[5],ratio:a[6],shape:a[7],ms:a[8],ym:a[9]});
+const dbHint=(t,busy)=>{ $('#dbHint').innerHTML=(busy?'<span class="spin"></span>':'')+esc(t); };
+function useDB(arr,note){ DB=arr.map(toRec); dbHint(note+' · 한성 모니터 '+DB.length+'종'); }
+
+function loadDB(){
+  let cached=null;
+  try{ const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+       if(c&&c.rows&&c.rows.length&&Date.now()-c.t<CACHE_TTL) cached=c; }catch(e){}
+  if(cached) useDB(cached.rows,'스펙 DB(캐시)');
+  else { useDB(SNAPSHOT,'내장 스냅샷'); dbHint('내장 스냅샷으로 시작 — 최신 스펙 DB 받는 중…',true); }
+  fetch(CSV_URL,{cache:'no-cache'})
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+    .then(t=>{ const arr=rowsToDB(parseCSV(t)); if(!arr.length) throw new Error('빈 결과');
+      try{ localStorage.setItem(CACHE_KEY,JSON.stringify({t:Date.now(),rows:arr})); }catch(e){}
+      useDB(arr,'다나와 최신 스펙 DB'); })
+    .catch(()=>{ if(!cached) useDB(SNAPSHOT,'GitHub 연결 실패 — 내장 스냅샷'); });
+}
+
+/* ---------- 칸 변환 ---------- */
+// "62.2cm(24인치)" → {cm:'62.2cm', inch:'24"'}  ※ 원본에 "62.2m(24인치)" 오타가 있어 c를 선택 처리
+function pInch(s){ s=String(s||'');
+  const cm=/([\d.]+)\s*c?m\s*\(/.exec(s), inch=/\(\s*([\d.]+)\s*인치/.exec(s);
+  return { cm: cm?cm[1]+'cm':'', inch: inch?inch[1]+'"':'' }; }
+// "FHD(1920x1080)" → {grade:'FHD', res:'1920X1080'}
+function pRes(s){ s=String(s||'');
+  const m=/^\s*([^()]+?)\s*\(\s*(\d+)\s*[xX×]\s*(\d+)\s*\)/.exec(s);
+  return m?{grade:m[1].trim(),res:m[2]+'X'+m[3]}:{grade:s.trim(),res:''}; }
+// "와이드(16:9)" → "16:9"
+function pRatio(s){ const m=/\(([^)]+)\)/.exec(String(s||'')); return m?m[1]:String(s||''); }
+// OLED 계열은 v1 디자인대로 "LED" + 무지개 O 링, 그 외는 패널명 그대로
+function pTech(panel){ panel=String(panel||'').trim();
+  return /OLED/i.test(panel) ? {tech:'LED',ring:true} : {tech:panel,ring:false}; }
+
+function summary(r){
+  const I=pInch(r.inch), R=pRes(r.res);
+  return [I.inch, R.grade&&(R.grade+(R.res?' '+R.res:'')), r.hz, r.panel, r.shape, r.ms, r.ym]
+    .filter(Boolean).join(' · ');
+}
+const modelToken=n=>String(n||'').replace(/^한성컴퓨터\s*/,'').split(/\s+/)[0].replace(/[^A-Za-z0-9._-]/g,'');
+
+/* ---------- 검색 ---------- */
+const norm=s=>String(s||'').toUpperCase().replace(/[\s\-_/()]/g,'');
+function runSearch(q){
+  const nq=norm(q);
+  if(nq.length<2) return [];
+  const hit=DB.filter(r=>norm(r.name).indexOf(nq)>=0);
+  const exact=r=>norm(modelToken(r.name))===nq?0:1;   // 입력한 모델명과 정확히 같은 제품을 맨 위로
+  hit.sort((a,b)=>{
+    const x=exact(a)-exact(b);
+    if(x) return x;
+    const d=norm(a.name).indexOf(nq)-norm(b.name).indexOf(nq);
+    if(d) return d;
+    const y=String(b.ym||'').localeCompare(String(a.ym||''));
+    if(y) return y;
+    return a.name.length-b.name.length;
+  });
+  return hit.slice(0,25);
+}
+function drawResults(){
+  const box=$('#sres');
+  if(!results.length){ box.classList.remove('on'); box.innerHTML=''; return; }
+  box.innerHTML=results.map((r,i)=>
+    '<div class="sitem'+(i===selIx?' sel':'')+'" data-i="'+i+'"><b>'+esc(r.name)+'</b><i>'+esc(summary(r))+'</i></div>').join('');
+  box.classList.add('on');
+}
+function closeResults(){ results=[]; selIx=-1; drawResults(); }
+
+/* ---------- 선택 → 칸 채우기 ---------- */
+// input 이벤트를 직접 쏴서 v1의 bind() 핸들러가 state를 갱신하게 한다
+function setField(sel,v){ const el=$(sel); el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); }
+function applyRec(r){
+  picked=r;
+  const I=pInch(r.inch), R=pRes(r.res), T=pTech(r.panel);
+  setField('#f_inch',I.inch); setField('#f_cm',I.cm);
+  setField('#f_grade',R.grade); setField('#f_res',R.res);
+  setField('#f_hz',r.hz||''); setField('#f_ms',r.ms||'');
+  setField('#f_ratio',pRatio(r.ratio)); setField('#f_panel',r.shape||'');
+  setField('#f_tech',T.tech); setField('#f_tech2','');
+  $('#techRing').checked=T.ring; state.techRing=T.ring;
+  render();
+  $('#pkName').textContent=r.name;
+  $('#pkSpec').textContent=summary(r);
+  $('#pkLink').href='https://prod.danawa.com/info/?pcode='+encodeURIComponent(r.code)+'&cate=112757';
+  $('#picked').classList.add('on');
+  $('#q').value=r.name;
+  closeResults();
+  pullImage(r);
+}
+
+/* ---------- 이미지 ---------- */
+function setImage(d,w,h){
+  state.img=d; state.imgW=w; state.imgH=h;
+  const b=$('#imgBox'); b.classList.add('has'); b.style.backgroundImage='url("'+d+'")';
+  $('#imgHint').style.display='none';
+  render(); autoDetectScreen();
+}
+// 상품페이지 HTML을 읽어올 CORS 프록시 (브라우저에서 실측한 순서대로)
+const PAGE_PROXIES=[
+  u=>'https://cors.eu.org/'+u,
+  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+  u=>'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)
+];
+// 이미지에 CORS 헤더를 붙여줄 프록시 (캔버스 오염 방지)
+const IMG_PROXIES=[
+  u=>'https://images.weserv.nl/?url='+encodeURIComponent(u)+'&w=1200',
+  u=>'https://cors.eu.org/'+u
+];
+// pcode로 유추하는 다나와 레거시 이미지 경로 — 구형 상품에만 존재하지만 프록시 없이 바로 맞는다
+function legacyImgURL(code){
+  const p=String(code||'').replace(/\D/g,'');
+  if(p.length<4) return '';
+  return 'https://img.danawa.com/prod_img/500000/'+p.slice(-3)+'/'+(p.slice(-6,-3)||'0')+'/img/'+p+'_1.jpg?shrink=1000:1000';
+}
+function fetchText(url,ms){
+  const ac=new AbortController(), t=setTimeout(()=>ac.abort(),ms||15000);
+  return fetch(url,{signal:ac.signal})
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+    .finally(()=>clearTimeout(t));
+}
+function loadImageCORS(url,asPng){
+  return new Promise((res,rej)=>{
+    const im=new Image(); im.crossOrigin='anonymous';
+    const tm=setTimeout(()=>{ im.src=''; rej(new Error('timeout')); },20000);
+    im.onload=()=>{ clearTimeout(tm);
+      try{
+        const cv=document.createElement('canvas'); cv.width=im.naturalWidth; cv.height=im.naturalHeight;
+        cv.getContext('2d').drawImage(im,0,0);
+        res({ data: asPng?cv.toDataURL('image/png'):cv.toDataURL('image/jpeg',0.92), w:cv.width, h:cv.height });
+      }catch(e){ rej(e); }   // 프록시가 CORS 헤더를 안 주면 캔버스가 오염돼 여기서 걸린다
+    };
+    im.onerror=()=>{ clearTimeout(tm); rej(new Error('load fail')); };
+    im.src=url;
+  });
+}
+// 상품페이지 HTML에서 og:image 주소를 뽑는다
+async function ogImageVia(proxy,page){
+  const html=await fetchText(proxy(page),12000);
+  const m=/og:image"?\s*content="([^"]+)"/.exec(html)
+        ||/https?:\/\/[^"']*catalog-image\/[^"']+\.(?:jpe?g|png)/i.exec(html);
+  if(!m) throw new Error('og:image 없음');
+  return (m[1]||m[0]).replace(/&amp;/g,'&').replace(/shrink=\d+:\d+/,'shrink=1000:1000');
+}
+async function pullImage(r){
+  setStatus('다나와에서 제품 이미지를 가져오는 중…');
+  const page='https://prod.danawa.com/info/?pcode='+encodeURIComponent(r.code)+'&cate=112757';
+  // ① 제일 잘 붙는 프록시로 정확한 대표이미지 → ② pcode 유추 경로(빠름) → ③ 나머지 프록시
+  const sources=[ ()=>ogImageVia(PAGE_PROXIES[0],page),
+                  ()=>Promise.resolve(legacyImgURL(r.code)) ]
+    .concat(PAGE_PROXIES.slice(1).map(P=>()=>ogImageVia(P,page)));
+  for(const src of sources){
+    let url=''; try{ url=await src(); }catch(e){}
+    if(!url) continue;
+    const asPng=/\.png(\?|$)/i.test(url);
+    for(const P of IMG_PROXIES){
+      try{
+        const g=await loadImageCORS(P(url),asPng);
+        setImage(g.data,g.w,g.h);
+        setStatus('다나와 대표이미지를 넣고 화면 영역을 자동으로 잡았어요. (어긋나면 03에서 범위 지정)');
+        return;
+      }catch(e){}
+    }
+  }
+  setStatus('제품 이미지를 자동으로 못 가져왔어요. 아래 01 IMAGE에 직접 넣어주세요. (스펙은 채워졌습니다)');
+}
+
+/* ---------- 바인딩 ---------- */
+$('#q').addEventListener('input',e=>{ results=runSearch(e.target.value); selIx=results.length?0:-1; drawResults();
+  if(e.target.value.trim().length>=2 && !results.length) dbHint('일치하는 모델이 없어요 — 모델명 일부만 입력해 보세요 (예: TFG24)');
+  else if(DB.length) dbHint((picked?'다나와 스펙 적용됨':'스펙 DB 준비됨')+' · 한성 모니터 '+DB.length+'종'); });
+$('#q').addEventListener('keydown',e=>{
+  if(!results.length) return;
+  if(e.key==='ArrowDown'){ e.preventDefault(); selIx=(selIx+1)%results.length; drawResults(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); selIx=(selIx-1+results.length)%results.length; drawResults(); }
+  else if(e.key==='Enter'){ e.preventDefault(); if(results[selIx]) applyRec(results[selIx]); }
+  else if(e.key==='Escape'){ closeResults(); }
+});
+$('#q').addEventListener('focus',()=>{ if(!results.length&&$('#q').value.trim().length>=2){ results=runSearch($('#q').value); selIx=results.length?0:-1; drawResults(); } });
+$('#sres').addEventListener('mousedown',e=>{ const it=e.target.closest('.sitem'); if(!it) return; e.preventDefault(); applyRec(results[+it.dataset.i]); });
+document.addEventListener('mousedown',e=>{ if(!e.target.closest('.searchwrap')) closeResults(); });
+$('#pkRetry').addEventListener('click',()=>{ if(picked) pullImage(picked); });
+
+$('#saveBtn').onclick=()=>{
+  const mdl=picked?modelToken(picked.name):'';
+  outputSVG('monitor-spec-'+(mdl?mdl+'-':'')+'1000.svg', buildSVG(false));
+  setStatus(inFrame?'에디터로 보냈어요.':'SVG를 저장했어요.');
+};
+
+loadDB();
+</script>
+</body>
+</html>
