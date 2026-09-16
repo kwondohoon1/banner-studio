@@ -512,7 +512,7 @@ function pTech(panel){ panel=String(panel||'').trim();
 function normGrade(g){ g=String(g||'').trim();
   if(/^\d+K\s+UHD$/i.test(g)) return 'UHD';         // 4K UHD · 8K UHD
   if(/^4K$/i.test(g)) return 'UHD';                 // 듀얼 문구가 쓰는 "4K"
-  if(/^ultra\s*WQHD$/i.test(g)) return 'UWQHD';     // 울트라와이드 통용 표기
+  if(/^ultra\s+/i.test(g)) return g.replace(/^ultra\s+/i,'');   // Ultra WQHD → WQHD
   return g; }
 
 function summary(r){
