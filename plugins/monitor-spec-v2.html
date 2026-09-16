@@ -132,6 +132,9 @@ function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='statu
 const FONT = "Pretendard, 'Noto Sans KR', Arial, sans-serif";
 const FONT_HZ = "'HY견고딕','HYGothic-Medium','HY Gothic','Pretendard','Noto Sans KR',sans-serif";
 const MINT='#75c289', BLACK='#111214';
+/* 등급(FHD·QHD) 글자의 박스(높이 103) 안 세로 중앙 베이스라인.
+   Pretendard 900의 캡하이트는 글자크기의 0.71 → (103 + 76*0.71)/2 */
+const GRADE_BASE = (103 + 76*0.71)/2;
 const RS = { x:52, y:176, w:896, h:566 };  // 기본 화면(디스플레이) 사각형
 
 const state = {
@@ -176,7 +179,7 @@ function modeUnit(grade,hz,ex,bottomY,qk){
   const hzBig=104*qk, hzSm=hzBig*0.6;
   const boxTop = bottomY - hzBig - 26*qk - 103*qk;
   o+=rrect(ex+2*qk,boxTop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
-  o+=T(grade,cx,boxTop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
+  o+=T(grade,cx,boxTop+GRADE_BASE*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
   o+=standIcon(cx,boxTop+104*qk,qk);
   if(hz){
     const sp=splitNum(hz), wN=measure(sp.n,hzBig,900), wU=sp.u?measure(sp.u,hzSm,900):0;
@@ -241,7 +244,7 @@ function badges(){
   else if(state.grade){
     const qk=k*0.82, ew=241*qk, ex=S.x+m, etop=bottomY-178*qk;
     out+=rrect(ex+2*qk,etop,236*qk,103*qk,10*qk,{fill:'none',stroke:'#fff',sw:4*qk});
-    out+=T(state.grade,ex+ew/2,etop+84*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
+    out+=T(state.grade,ex+ew/2,etop+GRADE_BASE*qk,{size:76*qk,weight:900,fill:'#fff',anchor:'middle'});
     out+=standIcon(ex+ew/2,etop+104*qk,qk);
     if(state.res) out+=T(state.res,ex+ew/2,bottomY,{size:42*qk,weight:800,fill:'#fff',anchor:'middle'});
     leftEnd = ex+ew;
