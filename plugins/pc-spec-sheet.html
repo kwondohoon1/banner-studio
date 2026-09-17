@@ -1,0 +1,383 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>핵심 사양 시트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+/* 카드 라벨(CPU·GPU…) — 참고 디자인의 기하학적 산세리프에 가장 가까운 Montserrat Bold. 레포 fonts/ 에 동봉, fonts.json 에도 등록 */
+@font-face{font-family:'Montserrat';font-weight:700;font-display:block;src:url('../fonts/Montserrat-Bold.woff2') format('woff2')}
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+.top b{font-size:14px}.top small{font-size:9px;color:var(--muted);display:block;letter-spacing:.4px}
+main{padding:16px;max-width:560px}
+.step{margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.drop{display:block;border:1px dashed #bfc1b8;border-radius:14px;background:#fbfbf8;padding:22px 14px;text-align:center;color:#a9aba2;cursor:pointer;line-height:1.6}   /* label 은 기본이 inline 이라 block 으로 — 안 그러면 글자가 테두리 밖으로 밀려 겹친다 */
+.drop.over{outline:2px dashed var(--dark);outline-offset:3px;background:#f0f1e6;color:var(--ink)}
+.drop b{color:#5b5d54}
+.drop input{display:none}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.lbl{display:block;color:var(--muted);font-size:10.5px;margin:8px 2px 4px}
+input[type=text],input[type=number],textarea,select{width:100%;border:1px solid #cfd1c9;border-radius:10px;background:#fff;padding:9px 11px;font:inherit;outline:none}
+textarea{resize:vertical;line-height:1.5;min-height:58px}
+input:focus,textarea:focus{border-color:#6f7268}
+.hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.55}
+.list{margin-top:8px;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:220px;overflow:auto}
+.item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #f0f1ea;cursor:pointer;font-size:11px}
+.item:last-child{border-bottom:0}
+.item:hover{background:#f6f7f1}.item.on{background:#eef3d6}
+.item .nm{flex:1;font-weight:700;color:#20221d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .pr{color:#85877e;font-variant-numeric:tabular-nums}
+.item .ed{font-size:9px;color:#5b7f1e;background:#e7f5c4;border-radius:99px;padding:2px 6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.fld label{font-size:10px;color:#85877e;font-weight:700;padding-left:2px;display:block;margin-bottom:3px}
+.rowbtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.sbtn{border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:9px 13px;font:inherit;font-weight:700;cursor:pointer;color:#5b5d54}
+.sbtn:disabled{opacity:.45;cursor:default}
+.primary{width:100%;margin-top:14px;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:14px;font-weight:850;cursor:pointer}
+.primary:disabled{opacity:.4;cursor:default}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px;line-height:1.45}.status.show{display:block}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:12px}
+.preview-shell svg{width:100%;height:auto;display:block;background:#fff;border-radius:8px}
+.bar{height:6px;border-radius:99px;background:#e7e8e2;overflow:hidden;margin-top:8px;display:none}.bar i{display:block;height:100%;width:0;background:var(--dark);transition:width .15s}
+</style></head>
+<body>
+<header class="top"><div class="logo">PS</div><div><b>핵심 사양 시트</b><small>조립PC 관리시트(엑셀) → 상품별 핵심 사양 이미지(860)</small></div></header>
+<main>
+  <div class="step"><b>엑셀 파일</b><span class="num">01 EXCEL</span></div>
+  <label class="drop" id="drop"><input type="file" id="file" accept=".xlsx,.xls,.csv"><b>조립PC관리시트 엑셀을 끌어놓거나 클릭</b><br>'조립PC시트' 탭에서 상품명·부품명·노출가를 읽습니다</label>
+  <div class="row" style="margin-top:8px">
+    <div class="fld"><label>시작 행</label><input type="number" id="rowFrom" value="242" min="1"></div>
+    <div class="fld"><label>끝 행</label><input type="number" id="rowTo" value="275" min="1"></div>
+    <div class="fld"><label>&nbsp;</label><button class="sbtn" id="reparse" style="width:100%" disabled>다시 읽기</button></div>
+  </div>
+  <div class="hint">지정 범위에서 <b>상품명과 노출가가 모두 있는 행</b>만 만듭니다(베이직5·프로5 같은 구분 행은 건너뜀). 부품명은 <b>수량</b> 헤더 왼쪽 블록(CPU·VGA·쿨러·M/B·RAM·SSD·CASE·POWER)에서 읽습니다.</div>
+
+  <div class="step"><b>상품 목록 <small style="color:var(--muted);font-weight:500" id="cnt"></small></b><span class="num">02 LIST</span></div>
+  <div class="list" id="list"><div class="item" style="cursor:default;color:#a9aba2">아직 엑셀을 안 올렸습니다</div></div>
+
+  <div class="step"><b>선택 상품 편집 <small style="color:var(--muted);font-weight:500">줄바꿈 = 줄, **굵게**</small></b><span class="num">03 EDIT</span></div>
+  <div class="row"><div class="fld"><label>배지</label><input type="text" id="f_badge"></div><div class="fld"><label>부제</label><input type="text" id="f_sub"></div></div>
+  <div class="row" style="margin-top:8px"><div class="fld"><label>가격(숫자)</label><input type="text" id="f_price"></div><div class="fld"><label>파일명</label><input type="text" id="f_file"></div></div>
+  <div class="grid3" id="cells"></div>
+  <div class="rowbtns"><button class="sbtn" id="resetOne" disabled>이 상품 자동값으로 되돌리기</button></div>
+
+  <button class="primary" id="sendBtn" disabled>선택 상품 → SVG</button>
+  <div class="rowbtns"><button class="sbtn" id="zipPng" disabled>전체 JPG ZIP 저장</button><button class="sbtn" id="zipSvg" disabled>전체 SVG ZIP 저장</button></div>
+  <div class="bar" id="bar"><i></i></div>
+  <div id="status" class="status"></div>
+  <div class="preview-shell"><div id="preview"></div></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+"use strict";
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const r2 = n => Math.round(n*100)/100;
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+
+/* ───────── 디자인 상수 (참고 이미지 860폭 실측) ───────── */
+const W=860, H=1460;
+const FONT="Pretendard, 'Noto Sans KR', sans-serif";
+const FONT_LABEL="'Montserrat', Pretendard, sans-serif";
+const C={ ink:'#111111', gray:'#b8bbc3', card:'#f4f5f7', label:'#1f3b9e', line:'#dfe2e8', body:'#1b1c1f',
+  blue1:'#1a3ad4', blue2:'#2f6bff', blue3:'#0b1f8f', pill:'rgba(255,255,255,.22)', sub:'#c9d6ff' };
+const CARD={ w:228, h:262, rx:60, cols:[60,318,576], rows:[186,482,778] };
+const LABELS=['CPU','GPU','RAM','SSD','M/B','POWER','COOLER','CASE','OS'];
+const KEYS=['cpu','gpu','ram','ssd','mb','power','cooler','case','os'];
+const PRICE={ x:60, y:1120, w:744, h:270, rx:28 };
+
+/* ───────── 텍스트 계측(캔버스 실측) ───────── */
+const mctx=document.createElement('canvas').getContext('2d');
+function measure(t,size,weight,font){ mctx.font=`${weight} ${size}px ${font||FONT}`; return mctx.measureText(String(t)).width; }
+/* "앞 **굵게** 뒤" → [{t,bold}] */
+function segs(str){ return String(str).split('**').map((t,i)=>({t,bold:i%2===1})).filter(s=>s.t!==''); }
+
+/* ───────── 그리기 명령(ops) — SVG·캔버스가 같은 배열을 그린다 ───────── */
+function T(x,y,text,o){ return Object.assign({t:'text',x,y,text,size:14,weight:400,fill:C.ink,anchor:'start',font:FONT,ls:0},o); }
+function layout(p){
+  const ops=[];
+  ops.push({t:'rect',x:0,y:0,w:W,h:H,fill:'#ffffff'});
+  ops.push(T(60,52,'SYSTEM SPEC',{size:20,weight:500,fill:C.gray,ls:0.5}));
+  ops.push(T(60,108,'핵심 사양',{size:46,weight:800,fill:C.ink,ls:-1}));
+  KEYS.forEach((k,i)=>{
+    const cx=CARD.cols[i%3], cy=CARD.rows[Math.floor(i/3)];
+    ops.push({t:'rect',x:cx,y:cy,w:CARD.w,h:CARD.h,rx:CARD.rx,fill:C.card});
+    ops.push(T(cx+CARD.w/2,cy+58,LABELS[i],{size:28,weight:700,fill:C.label,anchor:'middle',font:FONT_LABEL}));
+    ops.push({t:'line',x1:cx+30,y1:cy+92,x2:cx+CARD.w-30,y2:cy+92,stroke:C.line,sw:1.5});
+    const lines=String(p.cells[k]||'').split('\n').map(s=>s.trim()).filter(Boolean);
+    const lh=38, top=cy+92, bottom=cy+CARD.h-10;
+    const y0=(top+bottom)/2-(lines.length-1)*lh/2;
+    lines.forEach((ln,j)=>ops.push({t:'rich',x:cx+CARD.w/2,y:y0+j*lh,segs:segs(ln),size:25}));
+  });
+  /* 하단 가격 카드 */
+  const P=PRICE;
+  ops.push({t:'rect',x:P.x,y:P.y,w:P.w,h:P.h,rx:P.rx,fill:'url(#gPrice)'});
+  ops.push({t:'sweep',x:P.x,y:P.y,w:P.w,h:P.h,rx:P.rx});   // 우상단으로 밝아지는 사선 광택
+  if(p.badge){
+    const bw=measure(p.badge,16,600)+36;
+    ops.push({t:'rect',x:P.x+40,y:P.y+36,w:bw,h:32,rx:16,fill:C.pill});
+    ops.push(T(P.x+40+bw/2,P.y+52,p.badge,{size:16,weight:600,fill:'#ffffff',anchor:'middle'}));
+  }
+  if(p.sub) ops.push(T(P.x+40,P.y+100,p.sub,{size:22,weight:500,fill:C.sub,ls:0.5}));
+  const price=fmtPrice(p.price);
+  if(price){
+    const wonW=measure('원',40,700), numW=measure(price,74,800);
+    const right=P.x+P.w-54;
+    ops.push(T(right-wonW,P.y+208,price,{size:74,weight:800,fill:'#ffffff',anchor:'end',ls:-2}));
+    ops.push(T(right,P.y+208,'원',{size:40,weight:700,fill:'#ffffff',anchor:'end'}));
+    void numW;
+  }
+  return ops;
+}
+function fmtPrice(v){ const n=String(v==null?'':v).replace(/[^\d]/g,''); return n?Number(n).toLocaleString('ko-KR'):''; }
+
+function richSVG(o){
+  const parts=o.segs.map(s=>({...s,w:measure(s.t,o.size,s.bold?700:500)}));
+  const total=parts.reduce((a,p)=>a+p.w,0); let x=o.x-total/2, out='';
+  for(const p of parts){ out+=`<text x="${r2(x)}" y="${r2(o.y)}" dominant-baseline="central" font-family="${FONT}" font-size="${o.size}" font-weight="${p.bold?700:500}" fill="${C.body}">${esc(p.t)}</text>`; x+=p.w; }
+  return out;
+}
+function renderSVG(ops){
+  const defs=`<defs><linearGradient id="gPrice" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.blue1}"/><stop offset="1" stop-color="${C.blue2}"/></linearGradient>`
+    +`<linearGradient id="gSweep" x1="0" y1="1" x2="1" y2="0"><stop offset=".45" stop-color="#ffffff" stop-opacity="0"/><stop offset=".62" stop-color="#ffffff" stop-opacity=".16"/><stop offset=".8" stop-color="#ffffff" stop-opacity="0"/></linearGradient>`
+    +`<clipPath id="cPrice"><rect x="${PRICE.x}" y="${PRICE.y}" width="${PRICE.w}" height="${PRICE.h}" rx="${PRICE.rx}"/></clipPath></defs>`;
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`+defs;
+  for(const o of ops){
+    if(o.t==='rect') s+=`<rect x="${r2(o.x)}" y="${r2(o.y)}" width="${r2(o.w)}" height="${r2(o.h)}"${o.rx?` rx="${o.rx}"`:''} fill="${o.fill}"/>`;
+    else if(o.t==='line') s+=`<line x1="${r2(o.x1)}" y1="${r2(o.y1)}" x2="${r2(o.x2)}" y2="${r2(o.y2)}" stroke="${o.stroke}" stroke-width="${o.sw}"/>`;
+    else if(o.t==='sweep') s+=`<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="url(#gSweep)" clip-path="url(#cPrice)"/>`;
+    else if(o.t==='rich') s+=richSVG(o);
+    else if(o.t==='text') s+=`<text x="${r2(o.x)}" y="${r2(o.y)}" text-anchor="${o.anchor}" dominant-baseline="central" font-family="${o.font}" font-size="${o.size}" font-weight="${o.weight}" fill="${o.fill}"${o.ls?` letter-spacing="${o.ls}"`:''}>${esc(o.text)}</text>`;
+  }
+  return s+`</svg>`;
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function renderCanvas(ops,ctx){
+  for(const o of ops){
+    if(o.t==='rect'){
+      let fill=o.fill;
+      if(fill==='url(#gPrice)'){ const g=ctx.createLinearGradient(o.x,o.y,o.x+o.w,o.y+o.h); g.addColorStop(0,C.blue1); g.addColorStop(1,C.blue2); fill=g; }
+      if(o.rx){ roundRect(ctx,o.x,o.y,o.w,o.h,o.rx); ctx.fillStyle=fill; ctx.fill(); } else { ctx.fillStyle=fill; ctx.fillRect(o.x,o.y,o.w,o.h); }
+    } else if(o.t==='sweep'){
+      ctx.save(); roundRect(ctx,o.x,o.y,o.w,o.h,o.rx); ctx.clip();
+      const g=ctx.createLinearGradient(o.x,o.y+o.h,o.x+o.w,o.y); g.addColorStop(.45,'rgba(255,255,255,0)'); g.addColorStop(.62,'rgba(255,255,255,.16)'); g.addColorStop(.8,'rgba(255,255,255,0)');
+      ctx.fillStyle=g; ctx.fillRect(o.x,o.y,o.w,o.h); ctx.restore();
+    } else if(o.t==='line'){ ctx.beginPath(); ctx.moveTo(o.x1,o.y1); ctx.lineTo(o.x2,o.y2); ctx.strokeStyle=o.stroke; ctx.lineWidth=o.sw; ctx.stroke(); }
+    else if(o.t==='rich'){
+      const parts=o.segs.map(s=>({...s,w:measure(s.t,o.size,s.bold?700:500)}));
+      let x=o.x-parts.reduce((a,p)=>a+p.w,0)/2;
+      ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillStyle=C.body; ctx.letterSpacing='0px';
+      for(const p of parts){ ctx.font=`${p.bold?700:500} ${o.size}px ${FONT}`; ctx.fillText(p.t,x,o.y); x+=p.w; }
+    } else if(o.t==='text'){
+      ctx.font=`${o.weight} ${o.size}px ${o.font}`; ctx.fillStyle=o.fill; ctx.textBaseline='middle';
+      ctx.textAlign=o.anchor==='middle'?'center':o.anchor==='end'?'right':'left';
+      ctx.letterSpacing=(o.ls||0)+'px'; ctx.fillText(o.text,o.x,o.y);
+    }
+  }
+}
+
+/* ───────── 부품명 간결화 규칙 — 참고 이미지(5600+5060 행)에서 역산 ─────────
+   결과는 카드에 들어갈 줄 배열. 규칙이 못 잡는 표기는 원문을 그대로 두므로 편집칸에서 고칠 수 있다. */
+const up=s=>String(s||'').trim();
+function shortCPU(s){
+  s=up(s); if(!s) return '';
+  let m;
+  if((m=/^AMD\s+R(\d)\s+(\S+)/i.exec(s))) return `AMD\nRYZEN ${m[1]}\n${m[2].toUpperCase()}`;
+  if((m=/^intel\s+U(\d)\s+(\S+)/i.exec(s))) return `INTEL\nCORE ULTRA ${m[1]}\n${m[2].toUpperCase()}`;
+  if((m=/^intel\s+i(\d)\s+(\S+)/i.exec(s))) return `INTEL\nCORE i${m[1]}\n${m[2].toUpperCase()}`;
+  return s;
+}
+function shortGPU(s){
+  s=up(s); if(!s) return 'CPU 내장\n그래픽';
+  const vram=(/(\d{1,2})\s*GB/i.exec(s)||[])[1];
+  let m;
+  if((m=/RTX\s*(\d{4})\s*(TI|Ti|SUPER)?/i.exec(s))) return `엔비디아\nRTX ${m[1]}${m[2]?' '+m[2].toUpperCase():''}${vram?'\n'+vram+'GB':''}`;
+  if((m=/RX\s*(\d{4})\s*(XT|GRE)?/i.exec(s))) return `AMD 라데온\nRX ${m[1]}${m[2]?' '+m[2].toUpperCase():''}${vram?'\n'+vram+'GB':''}`;
+  return s;
+}
+function shortRAM(s,qty){
+  s=up(s); if(!s) return '';
+  const type=(/DDR(\d)\s*[- ]?\s*(\d{4})/i.exec(s)||[]);
+  let gb=(/(\d{1,3})\s*GB/i.exec(s)||[])[1];
+  const q=Math.max(1,parseInt(qty,10)||1);
+  if(gb&&q>1) gb=String(Number(gb)*q);
+  if(type[1]) return `DDR${type[1]} - ${type[2]}${gb?'\n**'+gb+'GB**':''}`;
+  return s;
+}
+function shortSSD(s){
+  s=up(s); if(!s) return '';
+  const cap=(/(\d+)\s*(TB|GB)/i.exec(s)||[]);
+  const nvme=/NVMe/i.test(s), m2=/M\.?2/i.test(s);
+  const iface=(m2?'M.2 ':'')+(nvme?'NVMe':'SATA');
+  return cap[1]?`${iface}\n**${cap[1]}${cap[2].toUpperCase()}**`:s;
+}
+function shortMB(s){
+  s=up(s); if(!s) return '';
+  const m=/\b([ABHXZ]\d{3}[A-Z]?M?)\b/i.exec(s);
+  return m?m[1].toUpperCase().replace(/^([ABHXZ]\d{3})([A-Z])?M$/,'$1M').replace(/^([ABHXZ]\d{3}A)M$/,'$1M'):s;
+}
+function shortPower(s){
+  s=up(s); if(!s) return '';
+  let w=(/(\d{3,4})\s*W\b/i.exec(s)||[])[1];
+  if(!w){ const m=/[A-Z](\d{3,4})[A-Z]{0,3}\b/.exec(s); if(m) w=m[1]; }            // A600DN → 600
+  if(!w){ const m=/\b(\d{3,4})\b/.exec(s.replace(/ATX\s*\d(\.\d)?/i,'')); if(m&&+m[1]>=300&&+m[1]<=2000) w=m[1]; }   // "GOLD 850 V3" → 850
+  return w?`정격\n${w}W`:s;
+}
+function shortCooler(s){
+  s=up(s); if(!s) return '';
+  if(/AMD\s*정품|기본\s*쿨러|번들/i.test(s)) return '라이젠\n기본 쿨러';
+  if(/intel\s*정품/i.test(s)) return '인텔\n기본 쿨러';
+  let m;
+  if((m=/^잘만.*?(MF-[A-Z0-9-]+|CNPS\S+)/i.exec(s))) return `잘만\n${m[1].toUpperCase()}`;
+  if((m=/^(DEEPCOOL|딥쿨)\s+(\S+(?:\s+G\d)?)/i.exec(s))) return `DEEPCOOL\n${m[2].toUpperCase().replace(/\s*#$/,'')}`;
+  return s.replace(/\s*#$/,'').replace(/\s+/,'\n');
+}
+function shortCase(s){
+  s=up(s).replace(/\s*(블랙|화이트|핑크|그레이)\s*$/,''); if(!s) return '';
+  const m=/^(\S+)\s+(.+)$/.exec(s);
+  return m?`${m[1].toUpperCase()}\n${m[2].toUpperCase()}`:s.toUpperCase();
+}
+function shortOS(win,winName){
+  const s=up(winName)||up(win);
+  if(!s||/free|dos|미포함/i.test(s)) return 'FREE-DOS';
+  if(/11/.test(s)) return /pro/i.test(s)?'윈도우 11\nPRO':'윈도우 11\nHOME';
+  if(/10/.test(s)) return '윈도우 10';
+  return s;
+}
+/* 상품명 → 배지 / 부제 */
+function badgeOf(name){
+  const m=/^(\S+)\s+([A-Z])\((\w+)\)\s*(\d+)\s+No\.?\s*(\d+)/i.exec(up(name));
+  return m?`${m[1]} ${m[3]} ${m[4]} No.${m[5]}`:up(name);
+}
+function subOf(cpuLines,gpuLines){
+  const c=cpuLines.split('\n'), g=gpuLines.split('\n');
+  const cpu=c.length>=3?`${c[1]} ${c[2]}`:c.join(' ');
+  const gpu=/RTX/.test(gpuLines)?`GEFORCE ${g[1]}`:/RX /.test(gpuLines)?`RADEON ${g[1]}`:'';
+  return [cpu,gpu].filter(Boolean).join(' ');
+}
+/* "슈컴 B(Basic)4 No.1 5500GT" → "슈컴_Basic4_No.1_5500GT" */
+function fileOf(name){ return up(name).replace(/\b[A-Z]\((\w+)\)/g,'$1').replace(/[\\/:*?"<>|()]/g,'').replace(/\s+/g,'_'); }
+
+/* ───────── 엑셀 → 상품 ───────── */
+const state={ rows:[], products:[], sel:-1, edits:{} };
+function findHeader(grid){
+  for(let i=0;i<Math.min(grid.length,30);i++){ const r=grid[i].map(v=>String(v).trim()); if(r.includes('상품명')&&r.includes('노출가')&&r.includes('수량')) return i; }
+  return -1;
+}
+function parseGrid(grid){
+  const hi=findHeader(grid); if(hi<0) throw new Error("'상품명·노출가·수량' 헤더가 있는 행을 못 찾았습니다 ('조립PC시트' 탭인지 확인)");
+  const h=grid[hi].map(v=>String(v).trim());
+  const iName=h.indexOf('상품명'), iWin=h.indexOf('윈도우'), iQty=h.indexOf('수량');
+  const iNid=h.indexOf('N-ID'); let iPrice=h.indexOf('노출가',iNid>=0?iNid:0); if(iPrice<0) iPrice=h.indexOf('노출가');
+  if(iName<0||iQty<0||iPrice<0) throw new Error('필요한 헤더(상품명·수량·노출가)를 못 찾았습니다');
+  const col={cpu:iQty-6,vga:iQty-5,cooler:iQty-3,mb:iQty-2,ram:iQty-1,qty:iQty,ssd:iQty+1,case:iQty+2,power:iQty+3,tuning:iQty+4,winName:iQty+6};
+  const from=Math.max(1,parseInt($('#rowFrom').value,10)||1), to=parseInt($('#rowTo').value,10)||grid.length;
+  const out=[];
+  for(let r=from-1;r<Math.min(grid.length,to);r++){
+    const row=grid[r]||[]; const g=i=>i>=0&&i<row.length?row[i]:'';
+    const name=up(g(iName)), price=g(iPrice);
+    if(!name||price===''||price==null||isNaN(Number(String(price).replace(/[^\d.]/g,'')))) continue;
+    const raw={cpu:g(col.cpu),vga:g(col.vga),cooler:g(col.cooler),mb:g(col.mb),ram:g(col.ram),qty:g(col.qty),ssd:g(col.ssd),case:g(col.case),power:g(col.power),win:g(iWin),winName:g(col.winName)};
+    const cells={cpu:shortCPU(raw.cpu),gpu:shortGPU(raw.vga),ram:shortRAM(raw.ram,raw.qty),ssd:shortSSD(raw.ssd),mb:shortMB(raw.mb),power:shortPower(raw.power),cooler:shortCooler(raw.cooler),case:shortCase(raw.case),os:shortOS(raw.win,raw.winName)};
+    out.push({row:r+1,name,raw,auto:{badge:badgeOf(name),sub:subOf(cells.cpu,cells.gpu),price:String(price).replace(/[^\d]/g,''),file:fileOf(name),cells}});
+  }
+  return out;
+}
+function current(p){ const e=state.edits[p.row]||{}; return {badge:e.badge??p.auto.badge, sub:e.sub??p.auto.sub, price:e.price??p.auto.price, file:e.file??p.auto.file, cells:Object.assign({},p.auto.cells,e.cells||{})}; }
+
+/* ───────── UI ───────── */
+function renderList(){
+  const L=$('#list'); L.innerHTML='';
+  $('#cnt').textContent=state.products.length?`${state.products.length}개 (행 ${state.products[0].row}~${state.products[state.products.length-1].row})`:'';
+  if(!state.products.length){ L.innerHTML='<div class="item" style="cursor:default;color:#a9aba2">해당 범위에 상품이 없습니다</div>'; return; }
+  state.products.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='item'+(i===state.sel?' on':'');
+    d.innerHTML=`<span class="nm">${esc(p.row)}행 · ${esc(p.name)}</span>${state.edits[p.row]?'<span class="ed">수정</span>':''}<span class="pr">${esc(fmtPrice(current(p).price))}원</span>`;
+    d.onclick=()=>{ state.sel=i; renderList(); fillEditor(); renderPreview(); };
+    L.appendChild(d);
+  });
+}
+function fillEditor(){
+  const p=state.products[state.sel]; const box=$('#cells');
+  if(!p){ box.innerHTML=''; ['#f_badge','#f_sub','#f_price','#f_file'].forEach(s=>$(s).value=''); return; }
+  const c=current(p);
+  $('#f_badge').value=c.badge; $('#f_sub').value=c.sub; $('#f_price').value=fmtPrice(c.price); $('#f_file').value=c.file;
+  box.innerHTML=KEYS.map((k,i)=>`<div class="fld"><label>${LABELS[i]}</label><textarea data-k="${k}">${esc(c.cells[k])}</textarea></div>`).join('');
+  box.querySelectorAll('textarea').forEach(ta=>ta.addEventListener('input',()=>{ edit(p,'cells',ta.dataset.k,ta.value); }));
+}
+function edit(p,field,key,val){
+  const e=state.edits[p.row]=state.edits[p.row]||{};
+  if(field==='cells'){ e.cells=e.cells||{}; e.cells[key]=val; } else e[field]=val;
+  renderPreview(); renderList();
+}
+['badge','sub','price','file'].forEach(f=>$('#f_'+f).addEventListener('input',e=>{ const p=state.products[state.sel]; if(p) edit(p,f,null,e.target.value); }));
+$('#resetOne').onclick=()=>{ const p=state.products[state.sel]; if(!p) return; delete state.edits[p.row]; fillEditor(); renderPreview(); renderList(); };
+
+function svgOf(p){ return renderSVG(layout(current(p))); }
+function renderPreview(){
+  const p=state.products[state.sel];
+  $('#preview').innerHTML = p ? svgOf(p) : `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#fff"/><text x="${W/2}" y="${H/2}" text-anchor="middle" font-family="${FONT}" font-size="30" fill="#9aa2b4">엑셀을 올리면 미리보기가 나옵니다</text></svg>`;
+  const on=state.products.length>0;
+  ['#sendBtn','#zipPng','#zipSvg','#resetOne','#reparse'].forEach(s=>$(s).disabled=!on);
+}
+
+/* ───────── 파일 읽기 ───────── */
+function readFile(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(rd.result),{type:'array'});
+      const ws=wb.Sheets['조립PC시트']||wb.Sheets[wb.SheetNames[0]];
+      state.grid=XLSX.utils.sheet_to_json(ws,{header:1,blankrows:true,defval:''});
+      reparse();
+      setStatus(`'${wb.Sheets['조립PC시트']?'조립PC시트':wb.SheetNames[0]}' 탭에서 ${state.products.length}개 상품을 읽었습니다.`);
+    }catch(e){ setStatus('읽기 실패: '+e.message); }
+  };
+  rd.readAsArrayBuffer(file);
+}
+function reparse(){
+  if(!state.grid) return;
+  try{ state.products=parseGrid(state.grid); state.sel=state.products.length?0:-1; state.edits={}; renderList(); fillEditor(); renderPreview(); }
+  catch(e){ setStatus(e.message); }
+}
+$('#file').addEventListener('change',e=>{ const f=e.target.files[0]; if(f) readFile(f); e.target.value=''; });
+$('#reparse').onclick=()=>{ reparse(); setStatus(`${state.products.length}개 상품 (수정값은 초기화됨)`); };
+const drop=$('#drop');
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>{ const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) readFile(f); });
+
+/* ───────── 저장 ───────── */
+function outputSVG(filename,svg){ if(inFrame) parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*'); else download(new Blob([svg],{type:'image/svg+xml'}),filename); }
+function download(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
+$('#sendBtn').textContent = inFrame ? '선택 상품 → 에디터로 보내기' : '선택 상품 → SVG 다운로드';
+$('#sendBtn').onclick=()=>{ const p=state.products[state.sel]; if(!p) return; outputSVG(current(p).file+'.svg',svgOf(p)); setStatus(inFrame?'에디터로 보냈습니다.':'SVG를 저장했습니다.'); };
+async function fontsReady(){ try{ await document.fonts.load(`700 28px 'Montserrat'`); await document.fonts.load(`800 46px Pretendard`); await document.fonts.load(`500 22px Pretendard`); }catch(e){} await document.fonts.ready; }
+function progress(i,n){ const b=$('#bar'); b.style.display=n?'block':'none'; b.firstElementChild.style.width=(n?Math.round(i/n*100):0)+'%'; }
+$('#zipSvg').onclick=async()=>{
+  const zip=new JSZip(); state.products.forEach(p=>zip.file(current(p).file+'.svg',svgOf(p)));
+  download(await zip.generateAsync({type:'blob'}),'pc-spec-sheets-svg.zip'); setStatus(`SVG ${state.products.length}장을 ZIP으로 저장했습니다.`);
+};
+$('#zipPng').onclick=async()=>{
+  await fontsReady();
+  const zip=new JSZip(), n=state.products.length; let i=0;
+  for(const p of state.products){
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H; renderCanvas(layout(current(p)),cv.getContext('2d'));
+    /* JPG — 배경을 흰색으로 먼저 깔아 그리므로 알파 없이도 그대로. 에디터의 JPG 내보내기와 같은 품질 0.92 */
+    const blob=await new Promise(res=>cv.toBlob(res,'image/jpeg',0.92)); zip.file(current(p).file+'.jpg',blob);
+    progress(++i,n); await new Promise(r=>setTimeout(r,0));
+  }
+  download(await zip.generateAsync({type:'blob'}),'pc-spec-sheets-jpg.zip'); progress(0,0);
+  setStatus(`JPG ${n}장(860×${H})을 ZIP으로 저장했습니다.`);
+};
+window.addEventListener('message',e=>{ const m=e.data&&e.data.pluginMessage; if(m&&(m.type==='toast'||m.type==='error')) setStatus(m.message); });
+renderPreview();
+fontsReady().then(renderPreview);
+</script>
+</body></html>

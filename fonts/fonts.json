@@ -29,6 +29,7 @@
     { "family": "HSGaeulsenggak", "note": "카드사프로모션 10월 가을 · HS가을생각체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/HSGaeulsenggak.woff" } ] },
     { "family": "Paperlogy-9Black", "note": "카드사프로모션 11월 블랙프라이데이 · 페이퍼로지 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2" } ] },
     { "family": "BMJUA", "note": "카드사프로모션 12월 크리스마스 · 배민 주아체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMJUA.woff" } ] },
+    { "family": "Montserrat", "note": "핵심사양시트 카드 라벨(CPU·GPU…) · Google Fonts, OFL", "source": "https://fonts.google.com/specimen/Montserrat", "faces": [ { "weight": 700, "file": "Montserrat-Bold.woff2" } ] },
     {
       "family": "Oswald",
       "note": "데스크탑썸네일 하단 띠 PREMIUM / BUILD QUALITY 용 · 컨덴스드 굵은 영문 (Google Fonts, OFL)",
