@@ -16,5 +16,17 @@
       }
     ]
   },
-  "fonts": []
+  "fonts": [
+    {
+      "family": "Oswald",
+      "note": "데스크탑썸네일 하단 띠 PREMIUM / BUILD QUALITY 용 · 컨덴스드 굵은 영문 (Google Fonts, OFL)",
+      "source": "https://fonts.google.com/specimen/Oswald",
+      "faces": [
+        {
+          "weight": 700,
+          "file": "Oswald-Bold.woff2"
+        }
+      ]
+    }
+  ]
 }
