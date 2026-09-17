@@ -1,0 +1,604 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카드사 프로모션 (월별 컨셉)</title>
+<style>
+/* ───────── 월별 제목 폰트 (눈누 · jsDelivr, 상업용 무료) ─────────
+   weight 를 100~900 범위로 선언해 굵기를 요청해도 브라우저가 가짜 볼드를 씌우지 않게 한다.
+   같은 목록이 fonts/fonts.json 에도 등록돼 있어 에디터·PNG 내보내기에서도 같은 글꼴로 보인다. */
+@font-face{font-family:'ChosunCentennial';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/ChosunCentennial.woff2) format('woff2')}
+@font-face{font-family:'KakaoBigSans-ExtraBold';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-ExtraBold.woff2) format('woff2')}
+@font-face{font-family:'HancomMalangMalang-Bold';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2406-1@1.0/HancomMalangMalang-Bold.woff2) format('woff2')}
+@font-face{font-family:'MangoDdobak-B';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2405-3@1.1/MangoDdobak-B.woff2) format('woff2')}
+@font-face{font-family:'Cafe24Ssurround';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.1/Cafe24Ssurround.woff) format('woff')}
+@font-face{font-family:'WavvePADO';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/WavvePADO-Regular.woff2) format('woff2')}
+@font-face{font-family:'yg-jalnan';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff) format('woff')}
+@font-face{font-family:'ONE-Mobile-POP';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.1/ONE-Mobile-POP.woff) format('woff')}
+@font-face{font-family:'BookkMyungjo-Bd';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.1/BookkMyungjo-Bd.woff2) format('woff2')}
+@font-face{font-family:'HSGaeulsenggak';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/HSGaeulsenggak.woff) format('woff')}
+@font-face{font-family:'Paperlogy-9Black';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2) format('woff2')}
+@font-face{font-family:'BMJUA';font-weight:100 900;font-display:block;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMJUA.woff) format('woff')}
+
+:root{--bg:#f5f5f1;--panel:#fff;--ink:#171814;--muted:#777970;--line:#dedfd8;--lime:#dfff43;--dark:#20221d;--shadow:0 16px 42px rgba(25,27,22,.11)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:12px Pretendard,"Noto Sans KR",Arial,sans-serif;letter-spacing:-.2px}
+.top{height:58px;padding:0 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:rgba(245,245,241,.96);border-bottom:1px solid var(--line)}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--dark);color:var(--lime);display:grid;place-items:center;font-weight:950}
+main{padding:16px;max-width:520px}
+.step{margin:17px 0 8px;display:flex;justify-content:space-between;align-items:center}.step b{font-size:12px}
+.num{font-size:9px;border-radius:99px;background:#e7e8e2;color:#85877e;padding:3px 7px;letter-spacing:.6px}
+.title-input,textarea,input[type=text],select{width:100%;border:1px solid #cfd1c9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;outline:none}
+textarea{resize:vertical;line-height:1.55}
+.primary{width:100%;border:0;border-radius:12px;background:var(--dark);color:#fff;padding:13px;font-weight:850;cursor:pointer;margin-top:14px}
+.primary:active{transform:translateY(1px)}
+.preview-shell{background:#d9dbd4;border-radius:14px;padding:8px;margin-top:14px}
+.preview-shell svg{width:100%;height:auto;max-width:100%;display:block;background:#fff;border-radius:8px}
+.status{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#efffb7;color:#39430f;font-size:11px}.status.show{display:block}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.hint{color:var(--muted);font-size:10.5px;margin:6px 2px 0;line-height:1.5}
+.lbl{display:block;color:var(--muted);font-size:10.5px;margin:8px 2px 4px;letter-spacing:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:8px}
+.drop{border:1px dashed #c3c6bc;border-radius:12px;background:#fbfbf8;padding:14px 12px;text-align:center;color:var(--muted);cursor:pointer;line-height:1.5}
+.drop.over{border-color:var(--dark);background:#eef3d6;color:var(--ink)}
+.drop img{max-width:100%;max-height:96px;border-radius:8px;display:block;margin:8px auto 0}
+.drop input{display:none}
+.mini{border:1px solid #cfd1c9;background:#fff;border-radius:9px;padding:6px 9px;font:inherit;color:var(--muted);cursor:pointer}
+.sw{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.sw input{width:16px;height:16px;accent-color:var(--dark)}
+.months{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.mbtn{border:1px solid #cfd1c9;background:#fff;border-radius:10px;padding:8px 0;font:inherit;font-weight:700;cursor:pointer;color:var(--muted)}
+.mbtn.on{background:var(--dark);color:var(--lime);border-color:var(--dark)}
+.mname{margin-top:6px;color:var(--muted);font-size:10.5px;text-align:center}
+.mname b{color:var(--ink)}
+</style></head>
+<body>
+<header class="top"><div class="logo">B</div><b>카드사 프로모션 배너</b><span class="num" style="margin-left:auto" id="sizeTag">860 × 0</span></header>
+<main>
+
+  <div class="step"><b>월별 컨셉</b><span class="num">01</span></div>
+  <div class="months" id="months"></div>
+  <div class="mname" id="mname"></div>
+
+  <div class="step"><b>상단 히어로</b><span class="num">02</span></div>
+  <label class="lbl">브랜드</label><input type="text" id="brand" value="HANSUNG">
+  <label class="lbl">배지 문구</label><input type="text" id="badge" value="한성컴퓨터 X 네이버쇼핑">
+  <div class="row"><div><label class="lbl">타이틀</label><input type="text" id="t1" value="카드사"></div>
+  <div><label class="lbl">서브 타이틀(영문)</label><input type="text" id="t2" value="PROMOTION"></div></div>
+  <label class="lbl">헤드 카피 (**강조** = 12% 자리)</label><input type="text" id="head" value="최대 **12%** 카드사 프로모션">
+  <label class="lbl">행사 기간</label><input type="text" id="period" value="2026. 08. 01 (토) - 08. 31 (월)">
+  <div class="card"><div class="drop" id="dropHero"><b>히어로 카드 이미지</b><br>클릭 · 파일 드롭 · 웹 이미지 드래그(다나와 등)<input type="file" id="imgHero" accept="image/*"><img id="pvHero" hidden></div>
+  <button class="mini" style="margin-top:8px" data-clear="Hero">이미지 지우기</button></div>
+
+  <div class="step"><b>EVENT 01</b><span class="num">03</span></div>
+  <label class="lbl">조건 문구</label><input type="text" id="e1label" value="네이버현대카드로 결제 시">
+  <label class="lbl">즉시할인 (**강조**)</label><input type="text" id="e1big" value="**12%** 즉시할인">
+  <label class="lbl">카드에 새길 문구 (예: NAVER · 국민 — 비우면 표시 안 함)</label><input type="text" id="e1card" value="" placeholder="비워두면 카드에 글자 없음">
+  <div class="row">
+    <div><label class="lbl">최소 결제금액</label><input type="text" id="e1min" value="10만원"></div>
+    <div><label class="lbl">최대 할인한도</label><input type="text" id="e1max" value="20만원"></div>
+    <div><label class="lbl">1일 한도</label><input type="text" id="e1day" value="1회한"></div>
+  </div>
+  <div class="card"><div class="drop" id="dropE1"><b>EVENT 01 이미지</b><br>클릭 · 파일 드롭 · 웹 이미지 드래그<input type="file" id="imgE1" accept="image/*"><img id="pvE1" hidden></div>
+  <button class="mini" style="margin-top:8px" data-clear="E1">이미지 지우기</button></div>
+
+  <div class="step"><b>EVENT 02</b><span class="num">04</span></div>
+  <label class="lbl">카드사 목록</label><input type="text" id="e2cards" value="신한, 국민, 삼성, 롯데, 하나, 농협, BC">
+  <label class="lbl">뒤에 붙는 문구</label><input type="text" id="e2tail" value="카드 결제 시에도">
+  <label class="lbl">즉시할인 (**강조**)</label><input type="text" id="e2big" value="**7%** 즉시할인">
+  <div class="row">
+    <div><label class="lbl">최소 결제금액</label><input type="text" id="e2min" value="10만원"></div>
+    <div><label class="lbl">최대 할인한도</label><input type="text" id="e2max" value="20만원"></div>
+    <div><label class="lbl">1일 한도</label><input type="text" id="e2day" value="1회한"></div>
+  </div>
+  <div class="card"><div class="drop" id="dropE2"><b>EVENT 02 이미지</b><br>클릭 · 파일 드롭 · 웹 이미지 드래그<input type="file" id="imgE2" accept="image/*"><img id="pvE2" hidden></div>
+  <button class="mini" style="margin-top:8px" data-clear="E2">이미지 지우기</button></div>
+
+  <div class="step"><b>안내 바</b><span class="num">05</span></div>
+  <input type="text" id="bar" value="※ 자세한 사항은 한성컴퓨터 **브랜드스토어 쇼핑스토리**를 참고 부탁드립니다.">
+
+  <div class="step"><b>간편결제 안내</b><span class="num">06</span></div>
+  <label class="sw"><input type="checkbox" id="payOn" checked> 섹션 넣기</label>
+  <div class="row" style="margin-top:8px"><div><label class="lbl">강조 제목</label><input type="text" id="payTitle" value="네이버 간편 결제"></div>
+  <div><label class="lbl">부제</label><input type="text" id="paySub" value="이렇게 따라해 주세요!"></div></div>
+  <label class="lbl">목업 – 할인 항목</label><input type="text" id="payRow" value="대상카드  7% 할인">
+  <label class="lbl">하단 설명 (줄바꿈 = 줄, **강조**)</label>
+  <textarea id="payCap" rows="2">카드사 포인트 추가 지급 혜택은
+결제수단에서 **카드 간편결제**를 체크한 후 카드를 선택해 주세요</textarea>
+
+  <div class="step"><b>유의사항</b><span class="num">07</span></div>
+  <textarea id="notes" rows="10"></textarea>
+  <div class="hint">한 줄 = 한 항목(번호 자동). 줄 맨 앞에 <b>!</b> 를 붙이면 빨간 강조가 됩니다.</div>
+
+  <button class="primary" id="saveBtn">SVG 다운로드</button>
+  <div id="status" class="status"></div>
+  <div class="preview-shell" id="preview"></div>
+  <div class="hint" style="margin-bottom:24px">미리보기는 폭에 맞춰 축소되며, 실제 저장 폭은 860px입니다.</div>
+</main>
+
+<script>
+/* ───────── 이미지 드롭 헬퍼 (image-drop.js 인라인) ───────── */
+var ImageDrop=(function(){
+  function clean(u){
+    try{ var url=new URL(u,location.href);
+      if(/danawa|dcimg|coupangcdn|pstatic/.test(url.hostname)) url.search='';
+      return url.href;
+    }catch(e){ return u; }
+  }
+  function proxy(u){ return 'https://images.weserv.nl/?url='+encodeURIComponent(u.replace(/^https?:\/\//,'')); }
+  function toFile(blob,name){ return new File([blob],name||('drop-'+Date.now()+'.png'),{type:blob.type||'image/png'}); }
+  async function fromURL(u){
+    u=clean(u);
+    if(/^data:/.test(u)){ var b=await (await fetch(u)).blob(); return toFile(b); }
+    try{ var r=await fetch(u,{mode:'cors'}); if(!r.ok) throw 0; var b1=await r.blob(); if(b1.size<64) throw 0; return toFile(b1); }
+    catch(e){ var r2=await fetch(proxy(u)); if(!r2.ok) throw new Error('이미지를 가져오지 못했습니다'); return toFile(await r2.blob()); }
+  }
+  function pickURL(dt){
+    var html=dt.getData('text/html');
+    if(html){ var m=html.match(/<img[^>]+src=["']([^"']+)["']/i); if(m) return m[1]; }
+    var uri=dt.getData('text/uri-list')||dt.getData('text/plain');
+    if(uri&&/^https?:|^data:/.test(uri.trim())) return uri.trim().split(/\s+/)[0];
+    return null;
+  }
+  function inject(input,file){
+    var dt=new DataTransfer(); dt.items.add(file); input.files=dt.files;
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  function attachToInput(el,input,onStatus){
+    if(!el||!input) return;
+    ['dragenter','dragover'].forEach(function(t){ el.addEventListener(t,function(e){ e.preventDefault(); e.stopPropagation(); el.classList.add('over'); }); });
+    ['dragleave','dragend'].forEach(function(t){ el.addEventListener(t,function(){ el.classList.remove('over'); }); });
+    el.addEventListener('drop',async function(e){
+      e.preventDefault(); e.stopPropagation(); el.classList.remove('over');
+      var dt=e.dataTransfer;
+      if(dt.files&&dt.files.length&&dt.files[0].type.indexOf('image')===0){ inject(input,dt.files[0]); return; }
+      var u=pickURL(dt); if(!u){ onStatus&&onStatus('이미지를 찾지 못했습니다. 파일이나 이미지를 직접 끌어 놓아 주세요.'); return; }
+      onStatus&&onStatus('이미지 불러오는 중…');
+      try{ inject(input,await fromURL(u)); onStatus&&onStatus('이미지를 넣었습니다.'); }
+      catch(err){ onStatus&&onStatus('이미지를 불러오지 못했습니다. 파일로 저장한 뒤 올려 주세요.'); }
+    });
+    el.addEventListener('paste',async function(e){
+      var it=(e.clipboardData||{}).items||[];
+      for(var i=0;i<it.length;i++) if(it[i].type.indexOf('image')===0){ inject(input,it[i].getAsFile()); return; }
+    });
+  }
+  function wire(inputId,extraSel,onStatus){
+    var input=document.getElementById(inputId); if(!input) return;
+    var zones=[input.closest('label'),input.parentElement].filter(Boolean);
+    (extraSel||[]).forEach(function(s){ document.querySelectorAll(s).forEach(function(n){ zones.push(n); }); });
+    var seen=[];
+    zones.forEach(function(n){ if(seen.indexOf(n)>=0) return; seen.push(n); attachToInput(n,input,onStatus); });
+  }
+  return {wire:wire,attachToInput:attachToInput,fromURL:fromURL};
+})();
+
+/* ───────── 공통 ───────── */
+const inFrame = window.parent !== window;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const r2 = n => Math.round(n*10)/10;
+function setStatus(t){ const x=$('#status'); x.textContent=t; x.className='status show'; }
+const FONT = "Pretendard, 'Noto Sans KR', sans-serif";
+const state = { month:7, hero:'', e1:'', e2:'' };
+
+const DEFAULT_NOTES = [
+"카드사 결제 할인은 네이버페이 간편결제시 적용 됩니다.",
+"기획전 내 노출되는 상품은 카드사 결제 할인이 가능하며, 일부 품목은 카드사 할인 적용 불가할 수 있습니다.",
+"할인이 가능한 품목은 구매하기 클릭 후 주문 결제 페이지에서 카드사 결제 할인을 선택하면 적용 가능합니다.",
+"일부 품목 및 법인 개인사업자 카드 포함 기프트 선불(일부) 카드는 결제 시 할인이 불가합니다.",
+"!카드사 결제 할인은 1개의 카드사만 선택 가능합니다.",
+"할인을 위해 페이 포인트가 할인 금액만큼 자동 적립 및 사용 됩니다.",
+"할인 적용 가능 조건 할인 가능 횟수, 최소 주문금액, 최대 할인 금액 등은 상품 주문번호 기준입니다.",
+"최소 주문금액은 상품 할인이 모두 적용된 금액으로 충족되어야 할인 적용 가능합니다. (단, 스토어 할인은 제외)",
+"상품 주문번호별 동일 카드사 내 상세 이벤트 선택 및 변경 기능은 제공하지 않습니다. 결제 할인을 받을 카드사만 선택 가능하며, 최대 할인 가능한 이벤트로 자동 적용됩니다.",
+"상품 할인이 적용된 상품 금액을 기준으로, 선택한 카드사의 최대 할인 금액을 자동 계산하여 결제 할인을 적용합니다. 상품금액 외 다른 금액 배송비 등에는 할인이 적용되지 않습니다. 또한, 주문하시는 본상품에만 할인 적용되며 추가상품에는 할인 적용되지 않습니다.",
+"이벤트 기간 내 할인 적용된 상품을 취소한 경우, 할인 가능 횟수가 복원되어 다시 적용 가능합니다. 이벤트 종료 후 취소되는 경우 할인 가능 횟수는 복원되지 않습니다.",
+"!카드사 결제 할인 이벤트는 당사 또는 카드사의 사정에 따라 사전 예고 없이 변경 또는 조기 종료될 수 있습니다."
+].join("\n");
+
+/* ───────── 텍스트 계측 / 조립 ───────── */
+function chw(ch,size){
+  const c=ch.charCodeAt(0);
+  if((c>=0x1100&&c<=0x11FF)||(c>=0x3000&&c<=0x30FF)||(c>=0x3130&&c<=0x318F)||(c>=0x4E00&&c<=0x9FFF)||(c>=0xAC00&&c<=0xD7AF)||(c>=0xFF00&&c<=0xFF60)) return size*1.0;
+  if(/[ .,'`iIl!|:;()\[\]\-]/.test(ch)) return size*0.33;
+  if(/[MWmw%]/.test(ch)) return size*0.85;
+  if(/[A-Z0-9]/.test(ch)) return size*0.63;
+  return size*0.53;
+}
+function measure(s,size,weight){ let w=0; for(const ch of String(s)) w+=chw(ch,size); return w; }
+function wrap(text,size,maxW,weight){
+  const words=String(text).split(/(\s+)/); const lines=[]; let cur='';
+  for(const w of words){
+    if(w==='') continue;
+    if(measure(cur+w,size,weight)<=maxW){ cur+=w; continue; }
+    if(/^\s+$/.test(w)){ lines.push(cur.trim()); cur=''; continue; }
+    if(measure(w,size,weight)>maxW){
+      let piece=cur;
+      for(const ch of w){ if(measure(piece+ch,size,weight)>maxW){ lines.push(piece.trim()); piece=ch; } else piece+=ch; }
+      cur=piece; continue;
+    }
+    lines.push(cur.trim()); cur=w;
+  }
+  if(cur.trim()) lines.push(cur.trim());
+  return lines.length?lines:[''];
+}
+/* o.font 가 있으면 그 글꼴(월별 제목 폰트), 없으면 본문 폰트 */
+function T(x,y,txt,o){
+  o=Object.assign({size:14,weight:400,fill:'#171814',anchor:'start',baseline:'central'},o||{});
+  const keep=/^\s|\s$/.test(String(txt))?' xml:space="preserve"':'';
+  return `<text${keep} x="${r2(x)}" y="${r2(y)}" text-anchor="${o.anchor}" dominant-baseline="${o.baseline}" font-family="${o.font||FONT}" font-size="${o.size}" font-weight="${o.weight}" fill="${o.fill}"`
+   +(o.ls?` letter-spacing="${o.ls}"`:'')+(o.op?` opacity="${o.op}"`:'')+(o.stroke?` stroke="${o.stroke}" stroke-width="${o.sw}" paint-order="stroke" stroke-linejoin="round"`:'')+`>${esc(txt)}</text>`;
+}
+/* "앞 **강조** 뒤" → 세그먼트 */
+function segs(str,base,accent,size,weight,aSize,aWeight,font){
+  return String(str).split('**').map((p,i)=>({text:p,size:i%2?(aSize||size):size,weight:i%2?(aWeight||weight):weight,fill:i%2?accent:base,font}))
+    .filter(s=>s.text!=='');
+}
+function segLine(list,cx,y,opt){
+  opt=opt||{};
+  const parts=list.map(s=>{
+    const m=/^(\s*)([\s\S]*?)(\s*)$/.exec(String(s.text));
+    return {size:s.size,weight:s.weight,fill:s.fill,font:s.font,text:m[2],
+      lead:m[1].length*s.size*0.32, trail:m[3].length*s.size*0.32, w:measure(m[2],s.size,s.weight)};
+  }).filter(p=>p.text!=='');
+  const total=parts.reduce((a,p)=>a+p.lead+p.w+p.trail,0);
+  let x=cx-total/2, out='';
+  for(const p of parts){
+    x+=p.lead;
+    out+=T(x,y,p.text,{size:p.size,weight:p.weight,fill:p.fill,font:p.font,anchor:'start',stroke:opt.stroke,sw:opt.sw});
+    x+=p.w+p.trail;
+  }
+  return out;
+}
+function pill(cx,cy,txt,o){
+  const w=measure(txt,o.size,o.weight)+o.padX*2;
+  return `<rect x="${r2(cx-w/2)}" y="${r2(cy-o.h/2)}" width="${r2(w)}" height="${o.h}" rx="${o.h/2}" fill="${o.fill}"`
+    +(o.stroke?` stroke="${o.stroke}" stroke-width="${o.sw||2}"`:'')+`/>`
+    +T(cx,cy,txt,{size:o.size,weight:o.weight,fill:o.ink,anchor:'middle'});
+}
+
+/* ───────── 장식 도형 ───────── */
+const star=(x,y,s,f,op)=>`<path d="M ${r2(x)} ${r2(y-s)} L ${r2(x+s*.26)} ${r2(y-s*.26)} L ${r2(x+s)} ${r2(y)} L ${r2(x+s*.26)} ${r2(y+s*.26)} L ${r2(x)} ${r2(y+s)} L ${r2(x-s*.26)} ${r2(y+s*.26)} L ${r2(x-s)} ${r2(y)} L ${r2(x-s*.26)} ${r2(y-s*.26)} Z" fill="${f}" opacity="${op||1}"/>`;
+const dot=(x,y,rr,f,op)=>`<circle cx="${r2(x)}" cy="${r2(y)}" r="${r2(rr)}" fill="${f}" opacity="${op||1}"/>`;
+const ring=(x,y,rr,f,w,op)=>`<circle cx="${r2(x)}" cy="${r2(y)}" r="${r2(rr)}" fill="none" stroke="${f}" stroke-width="${w||2}" opacity="${op||1}"/>`;
+const cloud=(x,y,s,f,op)=>`<g opacity="${op||1}"><ellipse cx="${r2(x)}" cy="${r2(y)}" rx="${r2(s)}" ry="${r2(s*.62)}" fill="${f}"/><ellipse cx="${r2(x-s*.75)}" cy="${r2(y+s*.16)}" rx="${r2(s*.62)}" ry="${r2(s*.45)}" fill="${f}"/><ellipse cx="${r2(x+s*.8)}" cy="${r2(y+s*.2)}" rx="${r2(s*.55)}" ry="${r2(s*.4)}" fill="${f}"/><rect x="${r2(x-s*1.3)}" y="${r2(y+s*.18)}" width="${r2(s*2.6)}" height="${r2(s*.45)}" rx="${r2(s*.22)}" fill="${f}"/></g>`;
+const heart=(x,y,s,f,op)=>`<path d="M ${r2(x)} ${r2(y+s*.72)} C ${r2(x-s*1.25)} ${r2(y-s*.1)} ${r2(x-s*.55)} ${r2(y-s*.95)} ${r2(x)} ${r2(y-s*.3)} C ${r2(x+s*.55)} ${r2(y-s*.95)} ${r2(x+s*1.25)} ${r2(y-s*.1)} ${r2(x)} ${r2(y+s*.72)} Z" fill="${f}" opacity="${op||1}"/>`;
+const flower=(x,y,s,f,c,op)=>{let g=`<g opacity="${op||1}">`;for(let i=0;i<5;i++){const a=i*72;g+=`<ellipse cx="${r2(x)}" cy="${r2(y-s*.62)}" rx="${r2(s*.36)}" ry="${r2(s*.6)}" fill="${f}" transform="rotate(${a} ${r2(x)} ${r2(y)})"/>`;}return g+dot(x,y,s*.24,c)+`</g>`;};
+const leaf=(x,y,s,f,a,op)=>`<ellipse cx="${r2(x)}" cy="${r2(y)}" rx="${r2(s)}" ry="${r2(s*.42)}" fill="${f}" opacity="${op||1}" transform="rotate(${a} ${r2(x)} ${r2(y)})"/>`;
+const maple=(x,y,s,f,a,op)=>`<polygon points="0,-1 .28,-.34 .95,-.5 .55,.03 1,.5 .32,.42 .18,1 0,.62 -.18,1 -.32,.42 -1,.5 -.55,.03 -.95,-.5 -.28,-.34" fill="${f}" opacity="${op||1}" transform="translate(${r2(x)} ${r2(y)}) rotate(${a}) scale(${r2(s)})"/>`;
+const snow=(x,y,s,f,op)=>{let g=`<g opacity="${op||1}" stroke="${f}" stroke-width="${r2(s*.13)}" stroke-linecap="round">`;for(let i=0;i<3;i++){const a=i*60;g+=`<line x1="${r2(x-s)}" y1="${r2(y)}" x2="${r2(x+s)}" y2="${r2(y)}" transform="rotate(${a} ${r2(x)} ${r2(y)})"/>`;}return g+`</g>`;};
+const tri=(x,y,s,f,op)=>`<polygon points="${r2(x)},${r2(y-s)} ${r2(x+s*.8)},${r2(y+s*.7)} ${r2(x-s*.8)},${r2(y+s*.7)}" fill="${f}" opacity="${op||1}"/>`;
+const wave=(y,W,amp,f,op)=>`<path d="M 0 ${r2(y)} C ${r2(W*.2)} ${r2(y-amp)} ${r2(W*.3)} ${r2(y+amp)} ${r2(W*.5)} ${r2(y)} C ${r2(W*.7)} ${r2(y-amp)} ${r2(W*.8)} ${r2(y+amp)} ${W} ${r2(y)}" fill="none" stroke="${f}" stroke-width="6" stroke-linecap="round" opacity="${op||1}"/>`;
+/* 이벤트 패널 양옆을 감싸는 리본 — 참고 디자인의 하늘색 리본 느낌 */
+const ribbon=(x,y,dir,f,op)=>`<path d="M ${r2(x)} ${r2(y)} c ${r2(40*dir)} -18 ${r2(70*dir)} 10 ${r2(110*dir)} -6 s ${r2(60*dir)} -30 ${r2(96*dir)} -8" fill="none" stroke="${f}" stroke-width="12" stroke-linecap="round" opacity="${op||1}"/>`;
+
+/* ───────── 월별 테마 ─────────
+   font  : 제목(카드사·PROMOTION·헤드카피) 전용 글꼴 — 눈누 웹폰트
+   fk    : 글꼴마다 눈크기가 달라서 제목 크기에 곱하는 보정치 (가는·손글씨 계열은 키운다) */
+const THEMES=[
+{m:1,deep:'#243363',name:'새해',font:'ChosunCentennial',fk:1.0,hero:['#16255e','#5b7ec4'],ink:'#ffffff',sub:'#cfe0ff',accent:'#ffd76a',promo:'#ffe9a8',pill:'#ffd76a',pillInk:'#243363',
+ ev1:['#1d2f6d','#33499a'],ev2:['#233a80','#3d56ad'],evInk:'#ffffff',evSub:'#c9d8ff',evAccent:'#ffd76a',
+ deco:(W,y)=>star(120,y+90,16,'#ffd76a',.9)+star(760,y+150,12,'#ffe9a8',.8)+star(700,y+70,8,'#fff',.7)+star(200,y+220,7,'#fff',.6)
+  +ring(742,y+330,58,'#ffd76a',3,.5)+ring(742,y+330,86,'#ffd76a',2,.28)+dot(90,y+330,7,'#ffd76a',.5)+dot(806,y+120,5,'#fff',.6)},
+{m:2,name:'신학기 준비',font:'KakaoBigSans-ExtraBold',fk:1.0,hero:['#3fb0a3','#e6f7f3'],ink:'#ffffff',sub:'#eafff9',accent:'#0f6f65',promo:'#d8fff6',pill:'#0f6f65',pillInk:'#eafff9',
+ ev1:['#d6f2ec','#eefaf7'],ev2:['#e7f6f2','#f6fcfa'],evInk:'#14413c',evSub:'#4c716b',evAccent:'#0f8f7f',
+ deco:(W,y)=>`<rect x="86" y="${y+70}" width="18" height="120" rx="6" fill="#ffffff" opacity=".45" transform="rotate(-18 95 ${y+130})"/>`
+  +`<rect x="742" y="${y+110}" width="16" height="104" rx="6" fill="#ffffff" opacity=".38" transform="rotate(14 750 ${y+162})"/>`
+  +`<rect x="700" y="${y+300}" width="96" height="66" rx="8" fill="#ffffff" opacity=".33"/>`+dot(140,y+330,10,'#fff',.45)+dot(790,y+70,7,'#fff',.5)},
+{m:3,name:'개학 (봄)',font:'HancomMalangMalang-Bold',fk:1.02,hero:['#5db84a','#eefbe4'],ink:'#ffffff',sub:'#f0ffe4',accent:'#256b1c',promo:'#e6ffcf',pill:'#256b1c',pillInk:'#eaffdc',
+ ev1:['#dff5cf','#f4fdec'],ev2:['#eaf9dd','#f9fef4'],evInk:'#1f3d18',evSub:'#5a7350',evAccent:'#2f8a24',
+ deco:(W,y)=>leaf(110,y+110,44,'#ffffff',-25,.45)+leaf(150,y+160,30,'#ffffff',30,.35)+leaf(752,y+130,48,'#ffffff',20,.4)
+  +leaf(716,y+190,26,'#ffffff',-35,.3)+dot(806,y+310,12,'#fff',.4)+dot(78,y+300,8,'#fff',.45)},
+{m:4,name:'봄 (벚꽃)',font:'MangoDdobak-B',fk:1.06,hero:['#ff8fb8','#fff1f6'],ink:'#ffffff',sub:'#fff0f5',accent:'#c62a63',promo:'#ffdfeb',pill:'#c62a63',pillInk:'#fff0f5',
+ ev1:['#ffe1ec','#fff6fa'],ev2:['#ffe9f1','#fffafc'],evInk:'#4a1a2e',evSub:'#8b6172',evAccent:'#e0417d',
+ deco:(W,y)=>flower(112,y+96,30,'#ffffff','#ffd0e0',.7)+flower(768,y+140,24,'#ffffff','#ffd0e0',.6)+flower(716,y+66,16,'#ffffff','#ffd0e0',.5)
+  +flower(160,y+300,18,'#ffffff','#ffd0e0',.45)+flower(806,y+330,14,'#ffffff','#ffd0e0',.4)+dot(70,y+200,6,'#fff',.5)},
+{m:5,name:'가정의 달',font:'Cafe24Ssurround',fk:1.0,hero:['#ff7a5c','#fff2ec'],ink:'#ffffff',sub:'#fff0e9',accent:'#c53a1c',promo:'#ffe1d4',pill:'#c53a1c',pillInk:'#fff0e9',
+ ev1:['#ffe4d8','#fff7f3'],ev2:['#ffece4','#fffbf9'],evInk:'#4d2113',evSub:'#8d6558',evAccent:'#e04a24',
+ deco:(W,y)=>heart(116,y+108,34,'#ffffff',.55)+heart(768,y+150,26,'#ffffff',.45)+heart(722,y+70,16,'#ffffff',.4)
+  +flower(160,y+320,20,'#ffffff','#ffd9c9',.5)+dot(802,y+300,10,'#fff',.4)},
+{m:6,name:'여름 맞이',font:'WavvePADO',fk:1.04,hero:['#19b4dd','#e9fbff'],ink:'#ffffff',sub:'#e6fbff',accent:'#04627e',promo:'#ccf3ff',pill:'#04627e',pillInk:'#e6fbff',
+ ev1:['#d3f2fb','#f0fcff'],ev2:['#e0f6fc','#f7fdff'],evInk:'#0d3a47',evSub:'#4f7581',evAccent:'#0a8cb4',
+ deco:(W,y)=>wave(y+430,W,16,'#ffffff',.5)+wave(y+470,W,12,'#ffffff',.32)+ring(760,y+96,44,'#ffffff',4,.4)
+  +dot(112,y+120,20,'#fff',.35)+dot(148,y+170,10,'#fff',.3)+dot(806,y+250,8,'#fff',.4)},
+{m:7,name:'여름 방학',font:'yg-jalnan',fk:0.98,hero:['#0fa2ec','#e7f7ff'],ink:'#ffffff',sub:'#e6f6ff',accent:'#ff8a00',promo:'#ffe3bd',pill:'#ff8a00',pillInk:'#ffffff',
+ ev1:['#d5eefc','#f1faff'],ev2:['#e2f4fd','#f8fdff'],evInk:'#0d3550',evSub:'#4f7288',evAccent:'#f07a00',
+ deco:(W,y)=>{let g=dot(752,y+92,40,'#ffe08a',.85);for(let i=0;i<8;i++){const a=i*45*Math.PI/180;g+=`<line x1="${r2(752+Math.cos(a)*52)}" y1="${r2(y+92+Math.sin(a)*52)}" x2="${r2(752+Math.cos(a)*68)}" y2="${r2(y+92+Math.sin(a)*68)}" stroke="#ffe08a" stroke-width="5" stroke-linecap="round" opacity=".7"/>`;}
+  return g+wave(y+440,W,14,'#ffffff',.45)+dot(110,y+130,16,'#fff',.35)+dot(150,y+186,9,'#fff',.3);}},
+{m:8,name:'개학 (여름 끝)',font:'ONE-Mobile-POP',fk:1.0,hero:['#63c2f5','#eaf7ff'],ink:'#ffffff',sub:'#e9f6ff',accent:'#0b6bb5',promo:'#cfeaff',pill:'#1f7fd6',pillInk:'#ffffff',
+ ev1:['#aadaf9','#e2f3ff'],ev2:['#cfeaff','#f2faff'],evInk:'#0f3a5e',evSub:'#3f6c8d',evAccent:'#0b6bb5',
+ deco:(W,y)=>cloud(126,y+110,34,'#ffffff',.5)+cloud(756,y+150,26,'#ffffff',.42)+cloud(690,y+70,18,'#ffffff',.32)
+  +dot(806,y+320,12,'#fff',.4)+dot(72,y+300,9,'#fff',.42)+wave(y+470,W,10,'#ffffff',.35)},
+{m:9,deep:'#2a3560',name:'추석',font:'BookkMyungjo-Bd',fk:1.04,hero:['#1d2a57','#6a7db4'],ink:'#ffffff',sub:'#dbe4ff',accent:'#f5c451',promo:'#ffe6a8',pill:'#f5c451',pillInk:'#2a3560',
+ ev1:['#233166','#3b4d92'],ev2:['#2b3a72','#4a5da3'],evInk:'#ffffff',evSub:'#cdd8ff',evAccent:'#f5c451',
+ deco:(W,y)=>dot(756,y+104,52,'#ffe9a8',.9)+dot(742,y+92,10,'#f3d886',.7)+dot(772,y+124,7,'#f3d886',.6)
+  +cloud(660,y+150,26,'#ffffff',.22)+cloud(150,y+120,30,'#ffffff',.18)+star(110,y+250,9,'#ffe9a8',.7)+star(812,y+240,7,'#ffe9a8',.6)},
+{m:10,name:'가을',font:'HSGaeulsenggak',fk:1.08,hero:['#f0871f','#fff2e0'],ink:'#ffffff',sub:'#fff0dc',accent:'#8a3b06',promo:'#ffdcb0',pill:'#8a3b06',pillInk:'#ffeeda',
+ ev1:['#ffe3c2','#fff6ea'],ev2:['#ffecd6','#fffaf4'],evInk:'#4a2408',evSub:'#8a6647',evAccent:'#c9500e',
+ deco:(W,y)=>maple(118,y+108,26,'#ffffff',-18,.5)+maple(766,y+146,22,'#ffffff',22,.42)+maple(714,y+72,14,'#ffffff',40,.35)
+  +maple(160,y+312,16,'#ffffff',10,.35)+leaf(806,y+300,20,'#ffffff',-30,.3)},
+{m:11,deep:'#17171c',name:'블랙 프라이데이',font:'Paperlogy-9Black',fk:0.98,hero:['#101014','#33333d'],ink:'#ffffff',sub:'#c9c9d2',accent:'#ffd400',promo:'#ffe86b',pill:'#ffd400',pillInk:'#17171c',
+ ev1:['#17171d','#26262f'],ev2:['#1d1d24','#2e2e39'],evInk:'#ffffff',evSub:'#b7b7c2',evAccent:'#ffd400',
+ deco:(W,y)=>`<rect x="-40" y="${y+60}" width="26" height="220" fill="#ffd400" opacity=".16" transform="rotate(24 0 ${y+170})"/>`
+  +`<rect x="30" y="${y+50}" width="12" height="220" fill="#ffd400" opacity=".12" transform="rotate(24 40 ${y+160})"/>`
+  +`<rect x="828" y="${y+120}" width="26" height="220" fill="#ffd400" opacity=".16" transform="rotate(24 840 ${y+230})"/>`
+  +star(760,y+92,14,'#ffd400',.7)+star(120,y+320,9,'#ffd400',.5)},
+{m:12,deep:'#8c1226',name:'크리스마스',font:'BMJUA',fk:1.04,hero:['#8c1226','#e8f2ee'],ink:'#ffffff',sub:'#ffe2e6',accent:'#1f7a4d',promo:'#ffd9a8',pill:'#1f7a4d',pillInk:'#ffffff',
+ ev1:['#f6dede','#fbf2f2'],ev2:['#eef6f1','#fbfdfc'],evInk:'#2a1113',evSub:'#7c5c5f',evAccent:'#c2213a',
+ deco:(W,y)=>snow(116,y+104,20,'#ffffff',.6)+snow(776,y+142,16,'#ffffff',.5)+snow(700,y+68,11,'#ffffff',.4)+snow(160,y+300,12,'#ffffff',.35)
+  +tri(806,y+320,26,'#ffffff',.28)+dot(70,y+220,6,'#fff',.5)+dot(830,y+90,5,'#fff',.5)}
+];
+
+/* ───────── 카드 일러스트(이미지 없을 때) — 섹션마다 다른 구성 ───────── */
+const NAVER_LIME='#b8ff3c';
+function cardShell(x,y,w,h,rot,fill,inner){
+  return `<g transform="rotate(${rot} ${r2(x)} ${r2(y)})">`
+    +`<rect x="${r2(x-w/2+3)}" y="${r2(y-h/2+8)}" width="${r2(w)}" height="${r2(h)}" rx="${r2(h*.12)}" fill="#000" opacity=".14"/>`
+    +`<rect x="${r2(x-w/2)}" y="${r2(y-h/2)}" width="${r2(w)}" height="${r2(h)}" rx="${r2(h*.12)}" fill="${fill}"/>`
+    +inner+`</g>`;
+}
+const chip=(x,y,s,f)=>`<rect x="${r2(x)}" y="${r2(y)}" width="${r2(26*s)}" height="${r2(19*s)}" rx="${r2(4*s)}" fill="${f}" opacity=".9"/>`
+  +`<path d="M ${r2(x+9*s)} ${r2(y)} v ${r2(19*s)} M ${r2(x+17*s)} ${r2(y)} v ${r2(19*s)} M ${r2(x)} ${r2(y+9.5*s)} h ${r2(26*s)}" stroke="#000" stroke-opacity=".18" stroke-width="${r2(1.2*s)}"/>`;
+/* 은색 카드 표면의 금속 줄무늬 */
+function silverStripes(x,y,w,h,s,vertical){
+  let g=`<g opacity=".5">`;
+  const n=vertical?9:6;
+  for(let i=1;i<n;i++){
+    const t=i/n;
+    if(vertical) g+=`<rect x="${r2(x-w/2+w*t-1.5*s)}" y="${r2(y-h/2)}" width="${r2(3*s)}" height="${r2(h)}" fill="#ffffff" opacity="${i%2?.55:.25}"/>`;
+    else g+=`<rect x="${r2(x-w/2)}" y="${r2(y-h/2+h*t-1.5*s)}" width="${r2(w)}" height="${r2(3*s)}" fill="#ffffff" opacity="${i%2?.55:.25}"/>`;
+  }
+  return g+`</g>`;
+}
+/* 히어로: 은색 카드 뒤 + NAVER 검정 카드 앞, 부채꼴 */
+function cardsHero(cx,cy,s,accent){
+  const w=176*s,h=112*s;
+  const silver=cardShell(cx-58*s,cy-6*s,w,h,-11,'url(#gSilver)',
+    silverStripes(cx-58*s,cy-6*s,w,h,s,false)+chip(cx-58*s-w/2+14*s,cy-6*s-h/2+16*s,s,'#e9d18a'));
+  const black=cardShell(cx+58*s,cy+6*s,w,h,8,'url(#gBlack)',
+    chip(cx+58*s-w/2+14*s,cy+6*s-h/2+16*s,s,'#d9c27a')
+    +T(cx+58*s-w/2+16*s,cy+6*s+h/2-24*s,'NAVER',{size:r2(19*s),weight:900,fill:NAVER_LIME,ls:2})
+    +dot(cx+58*s+w/2-18*s,cy+6*s+h/2-20*s,7*s,NAVER_LIME));
+  return silver+black;
+}
+/* EVENT 01: 은색 세로줄 카드(왼쪽, 거의 세움) + NAVER 카드(오른쪽 살짝 기울여 겹침) — 참고 디자인 배치 */
+/* label: 검정 카드에 새길 문구(카드사명). 제휴 카드사가 달라질 수 있어 고정하지 않고 입력값을 받는다. 비우면 글자 없이 띠만. */
+function cardsEv1(cx,cy,s,accent,label){
+  const w=170*s,h=108*s;
+  const silver=cardShell(cx-46*s,cy+4*s,w,h,-4,'url(#gSilver)',
+    silverStripes(cx-46*s,cy+4*s,w,h,s,true)+chip(cx-46*s-w/2+14*s,cy+4*s-h/2+16*s,s,'#e9d18a'));
+  const txt=String(label||'').trim();
+  const black=cardShell(cx+52*s,cy-4*s,w,h,7,'url(#gBlack)',
+    chip(cx+52*s-w/2+14*s,cy-4*s-h/2+16*s,s,'#d9c27a')
+    +(txt?T(cx+52*s,cy-4*s+8*s,txt,{size:r2(24*s),weight:900,fill:NAVER_LIME,anchor:'middle',ls:txt.length>6?1:3}):'')
+    +`<rect x="${r2(cx+52*s-w/2)}" y="${r2(cy-4*s+h/2-14*s)}" width="${r2(w)}" height="${r2(14*s)}" fill="${NAVER_LIME}" opacity=".9"/>`);
+  return silver+black;
+}
+/* EVENT 02: 여러 카드사 — 살구·핑크·흰 카드 겹침 + 초록 체크 배지 */
+function cardsEv2(cx,cy,s,accent){
+  const w=168*s,h=106*s;
+  const back=cardShell(cx-22*s,cy-14*s,w,h,-12,'#ffb59c',`<rect x="${r2(cx-22*s-w/2)}" y="${r2(cy-14*s-h/2+22*s)}" width="${r2(w)}" height="${r2(12*s)}" fill="#e8907a" opacity=".55"/>`);
+  const mid=cardShell(cx+4*s,cy-2*s,w,h,-3,'#ffd4c8',chip(cx+4*s-w/2+14*s,cy-2*s-h/2+16*s,s,'#f0b28f'));
+  const front=cardShell(cx+30*s,cy+12*s,w,h,7,'#ffffff',
+    chip(cx+30*s-w/2+14*s,cy+12*s-h/2+16*s,s,'#e7c46a')
+    +`<rect x="${r2(cx+30*s-w/2+14*s)}" y="${r2(cy+12*s+h/2-30*s)}" width="${r2(70*s)}" height="${r2(8*s)}" rx="${r2(4*s)}" fill="#e6e8ee"/>`
+    +`<rect x="${r2(cx+30*s-w/2+14*s)}" y="${r2(cy+12*s+h/2-17*s)}" width="${r2(44*s)}" height="${r2(8*s)}" rx="${r2(4*s)}" fill="#e6e8ee"/>`);
+  const bx=cx+92*s, by=cy+34*s, br=26*s;
+  const badge=dot(bx+2*s,by+4*s,br,'#000',.14)+dot(bx,by,br,'#2fbf5a')+ring(bx,by,br-4*s,'#ffffff',2.5*s,.6)
+    +`<path d="M ${r2(bx-11*s)} ${r2(by+1*s)} l ${r2(8*s)} ${r2(8*s)} l ${r2(15*s)} ${r2(-17*s)}" fill="none" stroke="#ffffff" stroke-width="${r2(5*s)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return back+mid+front+badge;
+}
+function imageBlock(href,x,y,w,h){
+  return `<image href="${href}" x="${r2(x)}" y="${r2(y)}" width="${r2(w)}" height="${r2(h)}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+
+/* ───────── 입체 유리 느낌의 영문 타이틀 (PROMOTION) ─────────
+   그림자 층 → 그라데이션 채움+테두리 → 살짝 위로 어긋난 흰 하이라이트 선. 어떤 글꼴이든 같은 효과. */
+function promo3D(cx,y,txt,size,th){
+  const o={size,weight:900,anchor:'middle',ls:3,font:th.font};
+  const deep=th.deep||th.accent;
+  return T(cx+3,y+8,txt,Object.assign({},o,{fill:deep,op:.32}))
+    +T(cx,y,txt,Object.assign({},o,{fill:'url(#gPromo)',stroke:th.accent,sw:2.6}))
+    +T(cx-1,y-2,txt,Object.assign({},o,{fill:'none',stroke:'#ffffff',sw:1.3,op:.75}));
+}
+
+/* ───────── 섹션 사이 경계를 부드럽게 ─────────
+   아래 섹션의 색이 물결처럼 위 섹션으로 올라오고, 그 위를 옅은 페이드가 덮어 경계선이 사라진다. */
+function softEdge(W,y,colorBelow,gid){
+  const p=`M 0 ${r2(y+3)} C ${r2(W*.18)} ${r2(y-30)} ${r2(W*.36)} ${r2(y+20)} ${r2(W*.55)} ${r2(y-6)} S ${r2(W*.86)} ${r2(y-34)} ${W} ${r2(y-10)} L ${W} ${r2(y+46)} L 0 ${r2(y+46)} Z`;
+  return `<path d="${p}" fill="${colorBelow}"/>`
+    +`<rect x="0" y="${r2(y-46)}" width="${W}" height="52" fill="url(#${gid})"/>`;
+}
+function edgeGrad(id,color){
+  return `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0"/><stop offset="1" stop-color="${color}" stop-opacity=".85"/></linearGradient>`;
+}
+
+/* ───────── 섹션 빌더 ───────── */
+function heroSection(W,y0,th,v){
+  const H=650, cx=W/2, k=th.fk||1; let s='';   /* 카드 그림자가 아래 경계 페이드(마지막 46px)에 닿지 않게 여유를 둔다 */
+  s+=`<rect x="0" y="${y0}" width="${W}" height="${H}" fill="url(#gHero)"/>`;
+  s+=th.deco(W,y0,H);
+  s+=T(44,y0+44,v.brand,{size:19,weight:800,fill:th.ink,ls:5});
+  s+=pill(cx,y0+112,v.badge,{size:14,weight:700,padX:16,h:28,fill:th.pill,ink:th.pillInk});
+  s+=T(cx,y0+180,v.t1,{size:r2(76*k),weight:900,fill:th.ink,anchor:'middle',ls:-1,font:th.font});
+  s+=promo3D(cx,y0+266,v.t2,r2(68*k),th);
+  s+=segLine(segs(v.head,th.ink,th.accent,r2(30*k),800,r2(38*k),900,th.font),cx,y0+344);
+  const deep=th.deep||th.accent;
+  s+=pill(cx,y0+398,v.period,{size:17,weight:700,padX:22,h:38,fill:'#ffffff',ink:deep,stroke:deep,sw:2});
+  s+= v.hero ? imageBlock(v.hero,cx-260,y0+436,520,176) : cardsHero(cx,y0+522,1.06,th.accent);
+  return {svg:s,h:H};
+}
+/* 배경(bg)과 내용(fg)을 따로 돌려준다 — 섹션 경계의 물결·페이드를 배경 위·글자 아래에 끼우기 위해 */
+function eventSection(W,y0,th,o){
+  const cx=W/2, hasImg=!!o.img, imgH=hasImg?170:156;
+  const H=70+imgH+34+56+44+44;
+  const bg=`<rect x="0" y="${y0}" width="${W}" height="${H}" fill="url(#${o.grad})"/>`;
+  /* 양옆 리본 장식 */
+  let s=ribbon(-20,y0+H*.55,1,o.accent,.22)+ribbon(W+20,y0+H*.35,-1,o.accent,.22);
+  const ew=measure(o.eyebrow,21,800)+8;
+  s+=T(cx,y0+44,o.eyebrow,{size:21,weight:800,fill:o.ink,anchor:'middle',ls:1});
+  s+=star(cx-ew/2-16,y0+42,7,o.accent,.95)+star(cx+ew/2+16,y0+42,7,o.accent,.95);
+  let y=y0+70;
+  if(hasImg) s+=imageBlock(o.img,cx-235,y,470,imgH);
+  else s+= o.kind==='e2' ? cardsEv2(cx,y+imgH/2,.92,o.accent) : cardsEv1(cx,y+imgH/2,.92,o.accent,o.cardText);
+  y+=imgH+40;
+  const labelLines=wrap(o.label,21,W-140,600);
+  labelLines.forEach((ln,i)=>{ s+=T(cx,y+i*28,ln,{size:21,weight:600,fill:o.sub,anchor:'middle'}); });
+  y+=(labelLines.length-1)*28+56;
+  s+=segLine(segs(o.big,o.ink,o.accent,40,800,46,900,th.font),cx,y);
+  y+=46;
+  s+=T(cx,y,o.note,{size:14.5,weight:500,fill:o.sub,anchor:'middle'});
+  return {bg,fg:s,h:H};
+}
+function barSection(W,y0,th,text){
+  const H=66;
+  let s=`<rect x="0" y="${y0}" width="${W}" height="${H}" fill="#20221d"/>`;
+  s+=segLine(segs(text,'#ffffff',th.promo,16,600,16,800),W/2,y0+H/2);
+  return {svg:s,h:H};
+}
+function paySection(W,y0,th,v){
+  const cx=W/2, H=560;
+  let s=`<rect x="0" y="${y0}" width="${W}" height="${H}" fill="#f0f1ec"/>`;
+  const tw=measure(v.payTitle,32,900)+28;
+  s+=`<rect x="${r2(cx-tw/2)}" y="${r2(y0+50)}" width="${r2(tw)}" height="44" rx="6" fill="${th.deep||th.accent}"/>`;
+  s+=T(cx,y0+72,v.payTitle,{size:32,weight:900,fill:'#ffffff',anchor:'middle'});
+  s+=T(cx,y0+128,v.paySub,{size:32,weight:800,fill:'#171814',anchor:'middle'});
+  /* 목업 */
+  const bx=cx-175, by=y0+168, bw=350, bh=290;
+  s+=`<rect x="${r2(bx)}" y="${r2(by)}" width="${bw}" height="${bh}" rx="14" fill="#ffffff"/>`;
+  s+=`<rect x="${r2(bx+18)}" y="${r2(by+22)}" width="30" height="20" rx="6" fill="#03c75a"/>`;
+  s+=T(bx+33,by+32,'N',{size:13,weight:900,fill:'#ffffff',anchor:'middle'});
+  s+=T(bx+54,by+32,'pay',{size:13,weight:700,fill:'#171814'});
+  s+=T(bx+bw/2,by+32,'주문/결제하기',{size:16,weight:700,fill:'#171814',anchor:'middle'});
+  s+=`<line x1="${r2(bx+bw-38)}" y1="${r2(by+26)}" x2="${r2(bx+bw-26)}" y2="${r2(by+38)}" stroke="#9a9c95" stroke-width="1.6"/><line x1="${r2(bx+bw-26)}" y1="${r2(by+26)}" x2="${r2(bx+bw-38)}" y2="${r2(by+38)}" stroke="#9a9c95" stroke-width="1.6"/>`;
+  s+=`<line x1="${r2(bx)}" y1="${r2(by+56)}" x2="${r2(bx+bw)}" y2="${r2(by+56)}" stroke="#ececec" stroke-width="1"/>`;
+  s+=T(bx+20,by+86,'카드사 결제 할인',{size:15,weight:800,fill:'#171814'});
+  s+=dot(bx+bw-84,by+86,7,'#03c75a')+T(bx+bw-72,by+86,'할인 안내',{size:12,weight:600,fill:'#03c75a'});
+  s+=`<rect x="${r2(bx+20)}" y="${r2(by+106)}" width="${r2(bw-40)}" height="40" rx="8" fill="#ffffff" stroke="#e2e2e2"/>`;
+  s+=T(bx+34,by+126,v.payRow,{size:14,weight:600,fill:'#171814'});
+  s+=`<path d="M ${r2(bx+bw-46)} ${r2(by+121)} l 8 8 l 8 -8" fill="none" stroke="#9a9c95" stroke-width="1.8" stroke-linecap="round"/>`;
+  s+=`<line x1="${r2(bx)}" y1="${r2(by+166)}" x2="${r2(bx+bw)}" y2="${r2(by+166)}" stroke="#ececec" stroke-width="1"/>`;
+  s+=T(bx+20,by+194,'결제 수단',{size:15,weight:800,fill:'#171814'});
+  s+=`<path d="M ${r2(bx+bw-46)} ${r2(by+198)} l 8 -8 l 8 8" fill="none" stroke="#9a9c95" stroke-width="1.8" stroke-linecap="round"/>`;
+  s+=ring(bx+34,by+230,8,'#d5d5d5',1.6)+T(bx+54,by+230,'계좌 간편결제',{size:14,weight:500,fill:'#b5b6b0'});
+  s+=`<path d="M ${r2(bx+26)} ${r2(by+268)} l 7 8 l 13 -16" fill="none" stroke="#03c75a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s+=T(bx+54,by+268,'카드 간편결제',{size:14,weight:800,fill:'#171814'});
+  /* 캡션 */
+  const caps=String(v.payCap).split('\n').filter(x=>x.trim()!=='');
+  caps.forEach((ln,i)=>{ s+=segLine(segs(ln,'#171814',th.accent,17,600,17,800),cx,by+bh+40+i*28); });
+  return {svg:s,h:H};
+}
+function noteSection(W,y0,lines){
+  const pad=34, size=12.5, lh=19.5, maxW=W-pad*2-20;
+  const rows=[];
+  lines.forEach((raw,i)=>{
+    const hot=raw.trim().charAt(0)==='!';
+    const body=(hot?raw.trim().slice(1):raw).trim();
+    const num=(i+1)+'. ';
+    const indent=measure(num,size,500);
+    const ws=wrap(body,size,maxW-indent,500);
+    ws.forEach((ln,j)=>rows.push({text:(j===0?num:'')+ln,x:pad+(j===0?0:indent),hot:hot}));
+  });
+  const H=pad+26+16+rows.length*lh+pad;
+  let s=`<rect x="0" y="${y0}" width="${W}" height="${r2(H)}" fill="#20221d"/>`;
+  s+=ring(pad+9,y0+pad+2,9,'#ffffff',1.6)+T(pad+9,y0+pad+2,'!',{size:12,weight:900,fill:'#ffffff',anchor:'middle'});
+  s+=T(pad+26,y0+pad+2,'유의사항',{size:15,weight:800,fill:'#ffffff'});
+  rows.forEach((row,i)=>{ s+=T(row.x,y0+pad+40+i*lh,row.text,{size:size,weight:row.hot?800:500,fill:row.hot?'#ff5f5f':'#e7e8e2'}); });
+  return {svg:s,h:H};
+}
+
+/* ───────── 조립 ───────── */
+function val(id){ return $('#'+id).value; }
+function note(min,max,day){ return `※ 최소 ${min} 이상 결제시 (최대 할인한도 ${max}, 1일 ${day})`; }
+function buildSVG(){
+  const W=860, th=THEMES[state.month];
+  const v={brand:val('brand'),badge:val('badge'),t1:val('t1'),t2:val('t2'),head:val('head'),period:val('period'),
+    payTitle:val('payTitle'),paySub:val('paySub'),payRow:val('payRow'),payCap:val('payCap'),hero:state.hero};
+  const defs=`<defs>`
+   +`<linearGradient id="gHero" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${th.hero[0]}"/><stop offset="1" stop-color="${th.hero[1]}"/></linearGradient>`
+   +`<linearGradient id="gPromo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#ffffff"/><stop offset="1" stop-color="${th.promo}"/></linearGradient>`
+   +`<linearGradient id="gEv1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${th.ev1[0]}"/><stop offset="1" stop-color="${th.ev1[1]}"/></linearGradient>`
+   +`<linearGradient id="gEv2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${th.ev2[0]}"/><stop offset="1" stop-color="${th.ev2[1]}"/></linearGradient>`
+   +`<linearGradient id="gSilver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef0f4"/><stop offset=".5" stop-color="#c3c8d2"/><stop offset="1" stop-color="#e6e9ee"/></linearGradient>`
+   +`<linearGradient id="gBlack" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b2d33"/><stop offset="1" stop-color="#0f1013"/></linearGradient>`
+   +edgeGrad('gEdge1',th.ev1[0])+edgeGrad('gEdge2',th.ev2[0])
+   +`</defs>`;
+  let y=0, body='';
+  let sec=heroSection(W,y,th,v); body+=sec.svg; y+=sec.h;
+  /* 히어로 → EVENT 01: 아래 색이 물결로 올라오며 섞인다 (히어로 글자·카드는 그 위쪽에서 끝난다) */
+  body+=softEdge(W,y,th.ev1[0],'gEdge1');
+  const e1=eventSection(W,y,th,{grad:'gEv1',kind:'e1',eyebrow:'EVENT 01',ink:th.evInk,sub:th.evSub,accent:th.evAccent,
+    img:state.e1,cardText:val('e1card'),label:val('e1label'),big:val('e1big'),note:note(val('e1min'),val('e1max'),val('e1day'))});
+  const y1=y+e1.h;
+  const e2=eventSection(W,y1,th,{grad:'gEv2',kind:'e2',eyebrow:'EVENT 02',ink:th.evInk,sub:th.evSub,accent:th.evAccent,
+    img:state.e2,label:val('e2cards')+' '+val('e2tail'),big:val('e2big'),note:note(val('e2min'),val('e2max'),val('e2day'))});
+  /* 경계는 배경 위·글자 아래에 끼운다: ev1 배경 → (ev1→ev2 경계) → ev1 글자 → ev2 배경 → ev2 글자 */
+  body+=e1.bg+softEdge(W,y1,th.ev2[0],'gEdge2')+e1.fg+e2.bg+e2.fg;
+  y=y1+e2.h;
+  sec=barSection(W,y,th,val('bar')); body+=sec.svg; y+=sec.h;
+  if($('#payOn').checked){ sec=paySection(W,y,th,v); body+=sec.svg; y+=sec.h; }
+  const lines=val('notes').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(lines.length){ sec=noteSection(W,y,lines); body+=sec.svg; y+=sec.h; }
+  const H=Math.round(y);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
+    +defs+`<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`+body+`</svg>`;
+}
+
+/* ───────── 렌더 / 저장 ───────── */
+function render(){
+  const svg=buildSVG();
+  $('#preview').innerHTML=svg;
+  const m=svg.match(/height="(\d+)"/);
+  $('#sizeTag').textContent='860 × '+(m?m[1]:0);
+}
+/* 월 글꼴이 아직 안 내려왔으면 받은 뒤 한 번 더 그린다 (미리보기가 대체 글꼴로 굳지 않게) */
+function ensureFont(){
+  const th=THEMES[state.month];
+  if(!th.font||!document.fonts) return;
+  document.fonts.load(`900 40px '${th.font}'`).then(()=>render()).catch(()=>{});
+}
+function outputSVG(filename, svg){
+  if (inFrame) parent.postMessage({ pluginMessage:{ type:'save-svg', filename, svg } }, '*');
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+}
+window.addEventListener('message', e => { const m=e.data&&e.data.pluginMessage; if(m&&(m.type==='toast'||m.type==='error')) setStatus(m.message); });
+
+/* ───────── 월 선택 ───────── */
+const mwrap=$('#months');
+THEMES.forEach((t,i)=>{ const b=document.createElement('button'); b.className='mbtn'; b.textContent=t.m+'월'; b.dataset.i=i;
+  b.onclick=()=>{ state.month=i; syncMonth(); render(); ensureFont(); }; mwrap.appendChild(b); });
+function syncMonth(){
+  [...mwrap.children].forEach((b,i)=>b.classList.toggle('on',i===state.month));
+  const th=THEMES[state.month];
+  $('#mname').innerHTML=th.m+'월 · '+esc(th.name)+' · 제목 글꼴 <b>'+esc(th.font)+'</b>';
+}
+
+/* ───────── 이미지 입력 ───────── */
+function bindImage(key){
+  const input=$('#img'+key), pv=$('#pv'+key);
+  input.addEventListener('change',()=>{
+    const f=input.files&&input.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=()=>{ state[key==='Hero'?'hero':key.toLowerCase()]=rd.result; pv.src=rd.result; pv.hidden=false; setStatus('이미지를 넣었습니다. (data URI로 임베드)'); render(); };
+    rd.readAsDataURL(f);
+  });
+  $('#drop'+key).addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON') input.click(); });
+}
+['Hero','E1','E2'].forEach(bindImage);
+document.querySelectorAll('[data-clear]').forEach(btn=>{
+  btn.onclick=()=>{ const k=btn.dataset.clear; state[k==='Hero'?'hero':k.toLowerCase()]=''; $('#img'+k).value=''; const pv=$('#pv'+k); pv.hidden=true; pv.removeAttribute('src'); render(); };
+});
+
+/* ───────── 초기화 ───────── */
+$('#notes').value=DEFAULT_NOTES;
+document.querySelectorAll('input[type=text], textarea, input[type=checkbox]').forEach(el=>{
+  el.addEventListener('input',render); el.addEventListener('change',render);
+});
+$('#saveBtn').textContent = inFrame ? '에디터로 보내기' : 'SVG 다운로드';
+$('#saveBtn').onclick = () => { outputSVG('card-promotion-'+THEMES[state.month].m+'.svg', buildSVG()); setStatus(inFrame?'에디터로 보냈습니다.':'SVG를 내려받았습니다.'); };
+window.addEventListener('load',function(){
+  ImageDrop.wire('imgHero',['#dropHero'],setStatus);
+  ImageDrop.wire('imgE1',['#dropE1'],setStatus);
+  ImageDrop.wire('imgE2',['#dropE2'],setStatus);
+});
+syncMonth(); render(); ensureFont();
+</script>
+</body></html>

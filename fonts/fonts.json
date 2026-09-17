@@ -17,6 +17,18 @@
     ]
   },
   "fonts": [
+    { "family": "ChosunCentennial", "note": "카드사프로모션 1월 새해 · 조선100년체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/ChosunCentennial.woff2" } ] },
+    { "family": "KakaoBigSans-ExtraBold", "note": "카드사프로모션 2월 신학기 · 카카오 빅산스 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-ExtraBold.woff2" } ] },
+    { "family": "HancomMalangMalang-Bold", "note": "카드사프로모션 3월 개학·봄 · 한컴 말랑말랑 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2406-1@1.0/HancomMalangMalang-Bold.woff2" } ] },
+    { "family": "MangoDdobak-B", "note": "카드사프로모션 4월 벚꽃 · 망고또박 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2405-3@1.1/MangoDdobak-B.woff2" } ] },
+    { "family": "Cafe24Ssurround", "note": "카드사프로모션 5월 가정의 달 · 카페24 써라운드 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.1/Cafe24Ssurround.woff" } ] },
+    { "family": "WavvePADO", "note": "카드사프로모션 6월 여름맞이 · 웨이브 파도체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/WavvePADO-Regular.woff2" } ] },
+    { "family": "yg-jalnan", "note": "카드사프로모션 7월 여름방학 · 여기어때 잘난체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff" } ] },
+    { "family": "ONE-Mobile-POP", "note": "카드사프로모션 8월 개학 · 원스토어 모바일 POP (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.1/ONE-Mobile-POP.woff" } ] },
+    { "family": "BookkMyungjo-Bd", "note": "카드사프로모션 9월 추석 · 부크크 명조 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.1/BookkMyungjo-Bd.woff2" } ] },
+    { "family": "HSGaeulsenggak", "note": "카드사프로모션 10월 가을 · HS가을생각체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/HSGaeulsenggak.woff" } ] },
+    { "family": "Paperlogy-9Black", "note": "카드사프로모션 11월 블랙프라이데이 · 페이퍼로지 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2" } ] },
+    { "family": "BMJUA", "note": "카드사프로모션 12월 크리스마스 · 배민 주아체 (눈누)", "source": "https://noonnu.cc/", "faces": [ { "weight": "100 900", "url": "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMJUA.woff" } ] },
     {
       "family": "Oswald",
       "note": "데스크탑썸네일 하단 띠 PREMIUM / BUILD QUALITY 용 · 컨덴스드 굵은 영문 (Google Fonts, OFL)",
