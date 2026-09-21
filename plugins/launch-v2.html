@@ -83,7 +83,7 @@ input[type=range]{width:100%;accent-color:var(--dark)}
 </style>
 </head>
 <body>
-<header class="top"><div class="logo">L2</div><div><b>출시기념 배너 <em style="font-style:normal;font-size:10px;color:#fff;background:var(--dark);padding:2px 7px;border-radius:7px;vertical-align:middle">v2</em></b><span>4 DESIGNS · LIVE PREVIEW · 860W</span></div></header>
+<header class="top"><div class="logo">L2</div><div><b>출시기념 배너 <em style="font-style:normal;font-size:10px;color:#fff;background:var(--dark);padding:2px 7px;border-radius:7px;vertical-align:middle">v2</em></b><span>12 DESIGNS · LIVE PREVIEW · 860W + 284×400 + 1300×327</span></div></header>
 <main>
 
 <div class="step"><b>디자인 선택</b><span class="num">01 DESIGN</span></div>
@@ -190,7 +190,11 @@ input[type=range]{width:100%;accent-color:var(--dark)}
 <div class="step"><b>미니 배너 <small>자사몰 소배너 · 같은 디자인 자동 생성</small></b><span class="num">284×400</span></div>
 <div class="preview-shell" style="margin-top:6px"><div class="viewport" id="miniViewport" style="max-height:440px"></div></div>
 <button class="secondary" id="saveBoth" style="margin-top:9px">메인 배너만 보내기</button>
-<p class="theme-note" style="margin-top:5px">위의 기본 저장 버튼은 항상 메인 + 미니배너 2종을 함께 보냅니다. (에디터에서 각각 페이지로 열립니다)</p>
+
+<div class="step"><b>와이드 배너 <small>자사몰 메인 롤링 · 제목·상품명·스펙·제품만 깔끔하게</small></b><span class="num">1300×327</span></div>
+<div class="preview-shell" style="margin-top:6px"><div class="viewport" id="wideViewport"></div></div>
+<button class="secondary" id="saveWide" style="margin-top:9px">와이드 배너만 보내기</button>
+<p class="theme-note" style="margin-top:5px">위의 기본 저장 버튼은 항상 메인 + 미니 + 와이드 3종을 함께 보냅니다. (에디터에서 각각 페이지로 열립니다)</p>
 </main>
 <script>
 'use strict';
@@ -198,7 +202,7 @@ input[type=range]{width:100%;accent-color:var(--dark)}
    출시기념 배너 v2 — 독립 HTML (배너 스튜디오 플러그인 계약 준수)
    - 고정 디자인 N종(블루스카이/클린시안/퍼플얼리버드/크림스파클/…), 가로 860 고정
    - 입력 즉시 라이브 프리뷰, 편집 가능한 SVG 출력(save-svg postMessage)
-   - 저장 시 메인(860)과 미니배너(284×400)가 항상 함께 나간다
+   - 저장 시 메인(860)·미니배너(284×400)·와이드배너(1300×327)가 항상 함께 나간다
    ============================================================ */
 /* ============================================================
    🤖 AI 디자인 추가 가이드 (숨김 프롬프트 — UI에는 노출되지 않음)
@@ -222,6 +226,9 @@ input[type=range]{width:100%;accent-color:var(--dark)}
    ② const DEFAULT_TITLE={...}에 N:'기본 타이틀' 추가
    ③ function buildDN(d){ ... return{svg:P.join(''),H:y} } 작성 → BUILDERS에 N:buildDN 추가
    ④ function buildMN(d){ ... return P.join('') } 작성 → MINI에 N:buildMN 추가
+   ⑤ function buildWN(d){ ... return P.join('') } 작성 → WIDE에 N:buildWN 추가
+      (와이드 1300×327 · 제목·상품명·스펙·제품만, 날짜·가격 없음 · 없으면 buildW1로 폴백.
+       공용: wPill(알약) wFit(자동 축소 크기) wScr(화면 그라데이션 defs) wideProduct(제품/플레이스홀더))
 
    [2. buildDN(d) 작성 규칙 — 메인 860]
    - const P=[]; let y=0; 커서로 섹션을 위→아래로 쌓고 마지막에 {svg,H:y} 반환.
@@ -1913,6 +1920,212 @@ function buildM12(d){const P=[];
 const MINI={1:buildM1,2:buildM2,3:buildM3,4:buildM4,5:buildM5,6:buildM6,7:buildM7,8:buildM8,9:buildM9,10:buildM10,11:buildM11,12:buildM12};
 function buildMiniSVG(d){applyFonts();return retint(`<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}">${fontStyleTag()}${MINI[state.design](d)}</svg>`)}
 
+/* ============================================================
+   와이드 배너 1300×327 — 자사몰 메인 롤링 배너
+   제목·상품명·스펙·제품 이미지만(날짜·가격·리워드 없음). 디자인마다 배치·장식이 다르다:
+   제품 좌/우, 카드 안, 타이틀 버블·아웃라인·픽셀, 체크 띠·마퀴·선물상자·리본·풍선 등
+   메인/미니와 같은 시그니처 요소를 가로형에 맞게 재배치했다.
+   새 디자인 N 추가 시 buildWN(d) 작성 → WIDE에 N:buildWN 등록(없으면 buildW1로 폴백).
+   ============================================================ */
+const WW=1300,WH=327;
+/* 와이드 공용: 제품(1장 그대로 · 2장 나란히 · 없으면 모니터 플레이스홀더) */
+function wideProduct(cx,cy,maxW,maxH,gradId){
+ if(state.files.length>=2){
+  return imgTag(state.files[0],cx-maxW*.25,cy+maxH*.05,maxW*.5,maxH*.82).tag
+   +imgTag(state.files[1],cx+maxW*.24,cy-maxH*.05,maxW*.54,maxH*.9).tag}
+ if(state.files.length===1)return imgTag(state.files[0],cx,cy,maxW,maxH).tag;
+ return monitorPh(cx,cy-maxH*.12,Math.min(maxW*.66,310),gradId)}
+/* 와이드 공용: 알약(상품명 등) — {svg,w} */
+function wPill(x,y,text,bg,fg,o){o=o||{};const size=o.size||20,h=o.h||40,w=tw(text,size,800)+size*2;
+ return{w,svg:R(x,y,w,h,h/2,bg,o.stroke?` stroke="${o.stroke}" stroke-width="${o.sw||2.5}"`:'')+T(x+w/2,y+h/2+.5,text,{size,weight:800,fill:fg,anchor:'middle',ls:'.5'})}}
+/* 와이드 공용: 가용폭에 맞춰 자동 축소된 글자 크기 */
+function wFit(text,size,maxW,weight,family){return Math.min(size,Math.floor(size*maxW/Math.max(1,tw(text,size,weight||700,family||F_GM))))}
+function wScr(id,c){return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>`}
+
+/* W1 블루 스카이 — 파란 하늘, 흰 타이틀 + 얼터네이트 EVENT 글자, 바닥 체크 띠, 제품 우측 */
+function buildW1(d){const P=[],NAVY='#1E3A6E';
+ P.push(`<defs><linearGradient id="w1sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6C9BE4"/><stop offset=".6" stop-color="#A9C7F0"/><stop offset="1" stop-color="#EAF2FC"/></linearGradient>${wScr('w1scr',['#3b82f6','#8b5cf6','#f59e0b'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w1sky)'));
+ [[60,50,8],[700,36,6],[1250,60,9],[1272,230,5],[40,240,5]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#fff',.9)));
+ for(let i=0;i<2;i++)for(let x=0;x<WW;x+=24){if((x/24+i)%2===0)P.push(R(x,WH-24*(2-i),24,24,0,'#fff',' opacity=".22"'))}
+ const pl=wPill(96,58,d.model,NAVY,'#fff');P.push(pl.svg);
+ {const ev='EVENT',s=30,ws=[...ev].map(ch=>tw(ch,s,700,F_GM)+2);let ex=96+pl.w+22;
+  [...ev].forEach((ch,i)=>{const o=i%2?{fill:'none',stroke:'#fff',sw:1.5}:{fill:'#fff'};P.push(T(ex+ws[i]/2-1,78,ch,{size:s,weight:700,family:F_GM,anchor:'middle',...o}));ex+=ws[i]})}
+ const ts=wFit(d.title,80,640);P.push(T(96,168,d.title,{size:ts,weight:700,family:F_GM,fill:'#fff',ls:'-1.5',stroke:'rgba(30,58,110,.28)',sw:2}));
+ if(d.spec)P.push(T(96,244,d.spec,{size:wFit(d.spec,27,640,600,FONT),weight:600,fill:NAVY}));
+ P.push(`<ellipse cx="1000" cy="${WH-40}" rx="200" ry="12" fill="#274b86" opacity=".14"/>`);
+ P.push(wideProduct(1000,160,470,262,'w1scr'));
+ return P.join('')}
+
+/* W2 클린 시안 — 제품 좌측, 우측에 그라데이션 모델명 크게 + 타이틀, 오브 장식 */
+function buildW2(d){const P=[],NAVY='#274B63',CYAN='#35B6D9';
+ P.push(`<defs><linearGradient id="w2sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCF3F9"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+ <linearGradient id="w2model" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FC7E4"/><stop offset=".55" stop-color="#3E9BD6"/><stop offset="1" stop-color="#7FD3E8"/></linearGradient>
+ <radialGradient id="w2orb"><stop offset="0" stop-color="#BFEAF5" stop-opacity=".9"/><stop offset="1" stop-color="#BFEAF5" stop-opacity="0"/></radialGradient>${wScr('w2scr',['#22d3ee','#3b82f6','#f97316'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w2sky)'));
+ P.push(C(120,60,120,'url(#w2orb)'),C(1200,290,150,'url(#w2orb)'),C(640,40,80,'url(#w2orb)'));
+ P.push(`<ellipse cx="330" cy="${WH-36}" rx="210" ry="12" fill="${NAVY}" opacity=".10"/>`);
+ P.push(wideProduct(330,160,480,262,'w2scr'));
+ const x0=660,mw=580;
+ if(d.spec){const sw2=tw(d.spec,17,700)+30;P.push(R(x0,52,sw2,32,16,'#fff',` stroke="${CYAN}" stroke-width="1.6"`),T(x0+sw2/2,68.5,d.spec,{size:17,weight:700,fill:NAVY,anchor:'middle'}))}
+ const ms=wFit(d.model,66,mw);P.push(T(x0,136,d.model,{size:ms,weight:700,family:F_GM,fill:'url(#w2model)',ls:'-1'}));
+ const ts=wFit(d.title,64,mw);P.push(T(x0,222,d.title,{size:ts,weight:700,family:F_GM,fill:NAVY,ls:'-1.5'}));
+ P.push(`<line x1="${x0}" y1="270" x2="${x0+120}" y2="270" stroke="${CYAN}" stroke-width="4" stroke-linecap="round"/>`);
+ return P.join('')}
+
+/* W3 퍼플 얼리버드 — 라벤더, 흰 버블 안 타이틀, 선물상자, 제품 우측 */
+function buildW3(d){const P=[],PUR='#8A7BE8',NAVY='#2B3166';
+ P.push(`<defs><linearGradient id="w3sky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E3D9FB"/><stop offset=".5" stop-color="#C4CDF6"/><stop offset="1" stop-color="#9A8BF0"/></linearGradient>${wScr('w3scr',['#6366f1','#a855f7','#f59e0b'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w3sky)'));
+ [[700,40,7],[1262,60,8],[60,260,6],[740,270,5]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#fff',.9)));
+ P.push(gift(1215,262,76,PUR,-10,'#fff'),gift(760,86,44,'#B9AEF5',12,'#fff'));
+ const pl=wPill(96,54,d.model,PUR,'#fff');P.push(pl.svg);
+ const ts=wFit(d.title,66,580),bw=tw(d.title,ts,700,F_GM)+64;
+ P.push(R(96,112,bw,100,50,'#fff'),`<path d="M ${96+bw*.18} 210 L ${96+bw*.18+14} 236 L ${96+bw*.18+34} 210 Z" fill="#fff"/>`);
+ P.push(T(96+bw/2,163,d.title,{size:ts,weight:700,family:F_GM,fill:PUR,anchor:'middle',ls:'-1'}));
+ if(d.spec)P.push(T(96,270,d.spec,{size:wFit(d.spec,25,640,600,FONT),weight:600,fill:NAVY}));
+ P.push(`<ellipse cx="990" cy="${WH-34}" rx="190" ry="11" fill="${NAVY}" opacity=".12"/>`);
+ P.push(wideProduct(990,158,440,250,'w3scr'));
+ return P.join('')}
+
+/* W4 크림 스파클 — 파스텔 크림, 제품 주위 피처 칩 플로팅, 금색 반짝이 */
+function buildW4(d){const P=[],INK='#2B2A25',GOLD='#E8C96A';
+ P.push(`<defs><linearGradient id="w4sky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#CFE4F8"/><stop offset=".55" stop-color="#EFEEDC"/><stop offset="1" stop-color="#FDF3D8"/></linearGradient>${wScr('w4scr',['#facc15','#3b82f6','#111827'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w4sky)'));
+ [[720,44,9],[1266,48,7],[1250,280,10],[700,286,6]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,GOLD,.95)));
+ const pl=wPill(96,58,d.model,GOLD,'#3A2C00');P.push(pl.svg);
+ const ts=wFit(d.title,78,640);P.push(T(96,166,d.title,{size:ts,weight:700,family:F_GM,fill:INK,ls:'-1.5'}));
+ if(d.spec)P.push(T(96,242,d.spec,{size:wFit(d.spec,27,640,600,FONT),weight:600,fill:'#6A634D'}));
+ P.push(`<ellipse cx="1000" cy="${WH-36}" rx="190" ry="11" fill="${INK}" opacity=".10"/>`);
+ P.push(wideProduct(1000,166,420,240,'w4scr'));
+ const chips=[[790,46,'#fff','#222'],[1210,222,'#1c1c1c','#fff'],[1160,40,'#fff','#222']];
+ d.feats.slice(0,3).forEach((f,i)=>{const [cx,cy,bg,fg]=chips[i],t=(i===0?'🖥 ':i===1?'🎮 ':'✦ ')+f,cw=tw(t,16,800)+30;
+  P.push(R(cx-cw/2,cy-17,cw,34,10,bg,' opacity=".96"'),T(cx,cy+.5,t,{size:16,weight:800,fill:fg,anchor:'middle'}))});
+ return P.join('')}
+
+/* W5 Y2K 픽셀 — 구름·하트, 픽셀 타이틀(그린+검정 외곽), 스펙은 검정 알약, 바닥 마퀴 */
+function buildW5(d){const P=[],GRN='#9BE939',BLK='#17181C';
+ P.push(`<defs><linearGradient id="w5sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FB2EC"/><stop offset="1" stop-color="#C4E6F9"/></linearGradient>${wScr('w5scr',['#f43f5e','#f97316','#3b82f6'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w5sky)'));
+ P.push(cloud5(120,48,22),cloud5(720,60,18),cloud5(1240,70,20),cloud5(760,240,16));
+ P.push(heart5(1262,200,16,'#F27FD3'),sparkle(1200,140,7,'#fff',.9),sparkle(60,220,6,'#fff',.9));
+ const pl=wPill(96,50,d.model,GRN,BLK,{stroke:BLK});P.push(pl.svg);
+ const ts=wFit(d.title,84,640,400,F_PX);
+ P.push(T(96+5,158+5,d.title,{size:ts,weight:400,family:F_PX,fill:'#fff',ls:'3'}));
+ P.push(T(96,158,d.title,{size:ts,weight:400,family:F_PX,fill:GRN,ls:'3',stroke:BLK,sw:4}));
+ if(d.spec){const ss=wFit(d.spec,22,600,400,F_PX),sw2=tw(d.spec,ss,400,F_PX)+52;P.push(R(96,222,sw2,46,23,BLK),T(96+sw2/2,245.5,d.spec,{size:ss,weight:400,family:F_PX,fill:GRN,anchor:'middle',ls:'1'}))}
+ P.push(wideProduct(1000,150,440,240,'w5scr'));
+ P.push(R(0,WH-30,WW,30,0,BLK));
+ {const seg=` ${d.model}  *  EVENT  * `;const segW=tw(seg,15,400,F_PX)+18;let x=-10;while(x<WW){P.push(T(x,WH-15,seg,{size:15,weight:400,family:F_PX,fill:GRN,ls:'1'}));x+=segW}}
+ return P.join('')}
+
+/* W6 피치 코랄 — 제품 좌측 단상 위, 우측 코랄 모델명·타이틀, 꽃 오브 */
+function buildW6(d){const P=[],COR='#F2704E',SUB='#8A7360';
+ P.push(`<defs><linearGradient id="w6sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6EA"/><stop offset="1" stop-color="#FFE3CC"/></linearGradient>
+ <radialGradient id="w6orb"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>${wScr('w6scr',['#fda4af','#fb923c','#a3e635'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w6sky)'));
+ [[1230,60,40],[60,280,34],[660,300,30]].forEach(([x,y,s])=>{for(let i=0;i<5;i++){const a=i*72*Math.PI/180;P.push(C(x+Math.cos(a)*s*.9,y+Math.sin(a)*s*.9,s,'url(#w6orb)'))}});
+ P.push(`<path d="M 170 ${WH-56} L 490 ${WH-56} L 470 ${WH-14} L 190 ${WH-14} Z" fill="#fff"/>`,R(170,WH-62,320,12,4,'#F1E2D2'));
+ P.push(wideProduct(330,150,430,230,'w6scr'));
+ const x0=640,mw=590;
+ if(d.spec)P.push(T(x0,66,`「 ${d.spec} 」`,{size:wFit(`「 ${d.spec} 」`,22,mw,600,FONT),weight:600,fill:SUB}));
+ P.push(T(x0,132,d.model,{size:wFit(d.model,58,mw),weight:700,family:F_GM,fill:COR,ls:'-1'}));
+ P.push(T(x0,222,d.title,{size:wFit(d.title,66,mw),weight:700,family:F_GM,fill:COR,ls:'-1.5'}));
+ P.push(R(x0,268,56,6,3,COR));
+ return P.join('')}
+
+/* W7 빈티지 베이지 — 체크 배경, 폭죽 두들, 제품은 종이 카드 위, 브라운 외곽 타이포 */
+function buildW7(d){const P=[],BG='#F5E9D5',BRN='#5F4226',ORG='#E8833A';
+ P.push(`<defs>${wScr('w7scr',['#d4c5a9','#a78b62','#4a3c2e'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,BG));
+ for(let x=20;x<=WW;x+=72)P.push(R(x,0,16,WH,0,'#EBDCC0',' opacity=".55"'));
+ for(let y=20;y<=WH;y+=72)P.push(R(0,y,WW,16,0,'#EBDCC0',' opacity=".55"'));
+ P.push(fire7(680,60,18,ORG),fire7(1250,70,14,'#D9A45B'),fire7(1262,262,16,ORG),fire7(60,270,13,'#D9A45B'));
+ if(d.spec)P.push(T(96,60,`✦ ${d.spec} ✦`,{size:wFit(`✦ ${d.spec} ✦`,21,620,700,FONT),weight:700,fill:BRN}));
+ P.push(T(96,128,d.model,{size:wFit(d.model,60,620),weight:700,family:F_GM,fill:'#fff',stroke:BRN,sw:4,ls:'-1'}));
+ P.push(T(96,214,d.title,{size:wFit(d.title,64,620),weight:700,family:F_GM,fill:'#FFF4DC',stroke:BRN,sw:4,ls:'-1.5'}));
+ P.push(R(760,40,470,264,14,'#E4D3B4',' opacity=".7" transform="translate(8,8)"'),R(760,40,470,264,14,'#FFFDF6'));
+ P.push(wideProduct(995,172,410,220,'w7scr'));
+ return P.join('')}
+
+/* W8 라벤더 리본 — 중앙 정렬 텍스트(스펙 알약 → 모델 → 타이틀), 리본·반짝이, 제품 우측 */
+function buildW8(d){const P=[],PUR='#7C4DD4',DEEP='#5B2FB8';
+ P.push(`<defs><linearGradient id="w8sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9DDFA"/><stop offset="1" stop-color="#CDB4EF"/></linearGradient>${wScr('w8scr',['#c084fc','#818cf8','#f0abfc'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w8sky)'));
+ [[60,60,10],[740,44,8],[1260,50,9],[720,280,6]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#fff',.9)));
+ P.push(ribbon8(1250,270,22,'#B79BEA'),ribbon8(70,270,16,'#B79BEA'));
+ const cx=420,mw=620;
+ if(d.spec){const ss=wFit(d.spec,17,mw,700,FONT),sw2=tw(d.spec,ss,700)+34;P.push(R(cx-sw2/2,46,sw2,34,17,PUR),T(cx,63.5,d.spec,{size:ss,weight:700,fill:'#fff',anchor:'middle'}))}
+ P.push(T(cx,132,d.model,{size:wFit(d.model,56,mw),weight:700,family:F_GM,fill:'#fff',anchor:'middle',stroke:'rgba(91,47,184,.35)',sw:2.5,ls:'-1'}));
+ P.push(T(cx,222,d.title,{size:wFit(d.title,70,mw),weight:700,family:F_GM,fill:'#fff',anchor:'middle',stroke:'rgba(91,47,184,.35)',sw:2.5,ls:'-1.5'}));
+ P.push(`<line x1="${cx-80}" y1="272" x2="${cx+80}" y2="272" stroke="${DEEP}" stroke-width="2" stroke-dasharray="6 6" opacity=".6"/>`);
+ P.push(`<ellipse cx="1010" cy="${WH-36}" rx="190" ry="11" fill="${DEEP}" opacity=".15"/>`);
+ P.push(wideProduct(1010,160,430,250,'w8scr'));
+ return P.join('')}
+
+/* W9 아쿠아 블루 — 버블 배경, 제품은 다크 네이비 카드 안, 블루 모델명 */
+function buildW9(d){const P=[],BLUE='#1F7AE0',INK='#12233D';
+ P.push(`<defs><linearGradient id="w9sky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E4F4FE"/><stop offset=".55" stop-color="#BFE4FA"/><stop offset="1" stop-color="#8FCFF2"/></linearGradient>
+ <linearGradient id="w9card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16305E"/><stop offset="1" stop-color="#0B1E3D"/></linearGradient>${wScr('w9scr',['#22d3ee','#3b82f6','#1e3a8a'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w9sky)'));
+ P.push(bubbles([[80,70,44,.5],[700,50,30,.45],[660,270,26,.35],[1270,300,40,.3],[1240,30,22,.4]],'#ffffff'));
+ if(d.spec){const ss=wFit(d.spec,17,600,700,FONT),sw2=tw(d.spec,ss,700)+34;P.push(R(96,46,sw2,34,17,INK),T(96+sw2/2,63.5,d.spec,{size:ss,weight:700,fill:'#fff',anchor:'middle'}))}
+ P.push(T(96,132,d.model,{size:wFit(d.model,58,620),weight:700,family:F_GM,fill:BLUE,ls:'-1'}));
+ P.push(T(96,220,d.title,{size:wFit(d.title,70,620),weight:700,family:F_GM,fill:INK,ls:'-1.5'}));
+ P.push(R(770,34,470,260,26,'url(#w9card)'));
+ P.push(bubbles([[800,60,18,.12],[1210,270,26,.12]],'#ffffff'));
+ P.push(wideProduct(1005,166,400,214,'w9scr'));
+ return P.join('')}
+
+/* W10 민트 그라데 — 블루→라임 대각선, 회전 사각 패턴, 선물상자 2개, 라임 피처 칩 */
+function buildW10(d){const P=[],INK='#16305E',LIME='#B7E86A';
+ P.push(`<defs><linearGradient id="w10sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7BA9F2"/><stop offset=".6" stop-color="#A7C6F7"/><stop offset="1" stop-color="#EAF9D8"/></linearGradient>
+ <linearGradient id="w10ttl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DFF7A8"/><stop offset=".5" stop-color="#EAF9D8"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>${wScr('w10scr',['#0ea5e9','#8b5cf6','#ec4899'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w10sky)'));
+ for(let i=0;i<9;i++)P.push(R(40+i*150,-30+((i%2)*60),80,80,14,'#ffffff',` opacity=".12" transform="rotate(20 ${80+i*150} 10)"`));
+ P.push(gift(700,262,64,'#8FD0F5',-10,'#fff'),gift(1246,66,50,'#CDEA92',9,'#fff'));
+ P.push(sparkle(760,50,9,'#fff',.9),sparkle(1236,250,7,'#fff',.9));
+ P.push(T(96,92,d.model,{size:wFit(d.model,56,620),weight:700,family:F_GM,fill:'url(#w10ttl)',stroke:'rgba(27,63,148,.3)',sw:2,ls:'-1'}));
+ P.push(T(96,176,d.title,{size:wFit(d.title,66,620),weight:700,family:F_GM,fill:'#fff',stroke:'rgba(27,63,148,.3)',sw:2,ls:'-1.5'}));
+ {let x=96;if(d.feats[0]){const t=d.feats[0],cw=tw(t,17,800)+30;P.push(R(x,232,cw,36,18,LIME),T(x+cw/2,250.5,t,{size:17,weight:800,fill:INK,anchor:'middle'}));x+=cw+14}
+  if(d.spec)P.push(T(x,250,d.spec,{size:wFit(d.spec,22,716-x,600,FONT),weight:600,fill:'#fff'}))}
+ P.push(wideProduct(1000,160,430,250,'w10scr'));
+ return P.join('')}
+
+/* W11 딥퍼플 이벤트 — 다크, 시안 EVENT 탭 헤더, 그라데이션 타이틀 + 아웃라인 EVENT 타이포 */
+function buildW11(d){const P=[],CYAN='#7FE3FF';
+ P.push(`<defs><linearGradient id="w11sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B2AA0"/><stop offset=".55" stop-color="#5B3FD6"/><stop offset="1" stop-color="#7B5BEE"/></linearGradient>
+ <linearGradient id="w11ttl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#CFE9FF"/></linearGradient>${wScr('w11scr',['#a855f7','#6366f1','#22d3ee'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w11sky)'));
+ P.push(bubbles([[90,250,70,.08],[700,80,60,.08],[1240,280,90,.08]],'#ffffff'));
+ [[720,46,9],[1262,54,8],[700,282,6],[1276,250,5]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,CYAN,.9)));
+ P.push(`<path d="M 96 0 L 236 0 L 236 26 Q 236 44 218 44 L 114 44 Q 96 44 96 26 Z" fill="${CYAN}"/>`,T(166,22,'EVENT',{size:17,weight:800,fill:'#1B1440',anchor:'middle',ls:'2'}));
+ P.push(T(96,88,d.model,{size:wFit(d.model,30,620),weight:700,family:F_GM,fill:'#fff',ls:'1'}));
+ const ts=wFit(d.title,74,620);P.push(T(96,168,d.title,{size:ts,weight:700,family:F_GM,fill:'url(#w11ttl)',stroke:'rgba(20,10,70,.35)',sw:2,ls:'-1.5'}));
+ P.push(T(96+tw(d.title,ts,700,F_GM)+44,172,'EVENT',{size:Math.min(60,ts*.8),weight:700,family:F_GM,fill:'none',stroke:CYAN,sw:2,ls:'3'}));
+ if(d.spec)P.push(T(96,246,d.spec,{size:wFit(d.spec,25,620,600,FONT),weight:600,fill:'#D8CCFF'}));
+ P.push(wideProduct(1000,160,440,250,'w11scr'));
+ return P.join('')}
+
+/* W12 로즈 가을 — 단풍·오브·반짝이, 로즈 알약 모델명, 브라운 타이틀 + 원형 EVENT 배지 */
+function buildW12(d){const P=[],ROSE='#E8628F',BRN='#6B4A3A';
+ P.push(`<defs><linearGradient id="w12sky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FDE7EE"/><stop offset=".5" stop-color="#F9C9DA"/><stop offset="1" stop-color="#F4AEC7"/></linearGradient>
+ <radialGradient id="w12orb"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>${wScr('w12scr',['#fb7185','#c084fc','#38bdf8'])}</defs>`);
+ P.push(R(0,0,WW,WH,0,'url(#w12sky)'));
+ P.push(C(1220,60,110,'url(#w12orb)'),C(700,280,90,'url(#w12orb)'));
+ P.push(leaf12(60,60,26,'#E8734F',-24),leaf12(1262,120,22,'#F0A05C',26),leaf12(720,270,20,'#E8734F',12),leaf12(1250,290,18,'#F0A05C',-40));
+ [[700,50,9],[1160,40,7],[60,250,7]].forEach(([x,y,s])=>P.push(sparkle(x,y,s,'#fff',.95)));
+ if(d.spec)P.push(T(96,60,d.spec,{size:wFit(d.spec,21,620,600,FONT),weight:600,fill:BRN}));
+ const pl=wPill(96,92,d.model,ROSE,'#fff',{size:17,h:34});P.push(pl.svg);
+ const ts=wFit(d.title,66,520);P.push(T(96,208,d.title,{size:ts,weight:700,family:F_GM,fill:BRN,ls:'-1.5'}));
+ {const bx=96+tw(d.title,ts,700,F_GM)+70;P.push(C(bx,200,44,ROSE),C(bx,200,38,'none',' stroke="#fff" stroke-width="1.5" stroke-dasharray="3 4"'),T(bx,200,'EVENT',{size:14,weight:900,fill:'#fff',anchor:'middle',ls:'1'}))}
+ P.push(`<ellipse cx="1000" cy="${WH-36}" rx="190" ry="11" fill="${BRN}" opacity=".12"/>`);
+ P.push(wideProduct(1000,160,430,250,'w12scr'));
+ return P.join('')}
+
+const WIDE={1:buildW1,2:buildW2,3:buildW3,4:buildW4,5:buildW5,6:buildW6,7:buildW7,8:buildW8,9:buildW9,10:buildW10,11:buildW11,12:buildW12};
+function buildWideSVG(d){applyFonts();return retint(`<svg xmlns="http://www.w3.org/2000/svg" width="${WW}" height="${WH}" viewBox="0 0 ${WW} ${WH}">${fontStyleTag()}${(WIDE[state.design]||buildW1)(d)}</svg>`)}
+
 /* ---------- 렌더 & 저장 ---------- */
 const BUILDERS={1:buildD1,2:buildD2,3:buildD3,4:buildD4,5:buildD5,6:buildD6,7:buildD7,8:buildD8,9:buildD9,10:buildD10,11:buildD11,12:buildD12};
 function buildSVG(){applyFonts();const d=collect();const{svg,H}=BUILDERS[state.design](d);
@@ -1922,22 +2135,26 @@ function render(){clearTimeout(_rt);_rt=setTimeout(()=>{try{
  const{svg,H,d}=buildSVG();
  $('#viewport').innerHTML=svg;
  $('#miniViewport').innerHTML=buildMiniSVG(d);
+ $('#wideViewport').innerHTML=buildWideSVG(d);
  $('#metaName').textContent=`디자인 ${state.design} · ${d.model}`;
- $('#metaSize').textContent=`${W} × ${H}px + 미니 ${MW} × ${MH}px · 편집 가능한 SVG`;
+ $('#metaSize').textContent=`${W} × ${H}px + 미니 ${MW} × ${MH}px + 와이드 ${WW} × ${WH}px · 편집 가능한 SVG`;
  $('#priceAuto').innerHTML=`자동 계산 → 할인 <b>${d.discTxt||'—'}</b> · 표기 <b>${d.orig?won(d.orig):'—'} → ${d.sale?won(d.sale):'—'}</b>${d.upTxt?` · ${esc(d.upTxt)}`:''}`;
  $('#rewardAuto').innerHTML=`자동 합산 → 모두 참여시 총 네이버페이 <b>${won(d.total)}</b> · 접수양식 <b>모니터_${esc(d.model)}_고객명</b>`;
  }catch(err){setStatus('미리보기 오류: '+err.message,true);console.error(err)}},60)}
 function outputSVG(filename,svg){
  if(inFrame)parent.postMessage({pluginMessage:{type:'save-svg',filename,svg}},'*');
  else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}}
-/* 기본 저장 = 항상 메인 + 미니 2종 (미니만 빼고 싶으면 보조 버튼) */
-$('#saveBtn').innerHTML=`<i>✦</i>${inFrame?'에디터로 보내기 (메인+미니 2종)':'SVG 다운로드 (메인+미니 2종)'}`;
+/* 기본 저장 = 항상 메인 + 미니 + 와이드 3종 (하나만 원하면 보조 버튼) */
+$('#saveBtn').innerHTML=`<i>✦</i>${inFrame?'에디터로 보내기 (메인+미니+와이드 3종)':'SVG 다운로드 (메인+미니+와이드 3종)'}`;
 $('#saveBtn').onclick=()=>{const{svg,d}=buildSVG();
  outputSVG(`launch-v2-${d.model}-d${state.design}.svg`,svg);
  setTimeout(()=>outputSVG(`launch-v2-${d.model}-d${state.design}-mini-284x400.svg`,buildMiniSVG(d)),500);
- setStatus(inFrame?'메인 + 미니배너를 에디터로 보냈습니다. (페이지 2개)':'메인 + 미니배너 SVG 2개를 다운로드했습니다.')};
+ setTimeout(()=>outputSVG(`launch-v2-${d.model}-d${state.design}-wide-1300x327.svg`,buildWideSVG(d)),1000);
+ setStatus(inFrame?'메인 + 미니 + 와이드 배너를 에디터로 보냈습니다. (페이지 3개)':'메인 + 미니 + 와이드 SVG 3개를 다운로드했습니다.')};
 $('#saveBoth').textContent=inFrame?'메인 배너만 보내기':'메인 SVG만 다운로드';
 $('#saveBoth').onclick=()=>{const{svg,d}=buildSVG();outputSVG(`launch-v2-${d.model}-d${state.design}.svg`,svg);setStatus(inFrame?'메인 배너만 에디터로 보냈습니다.':'메인 SVG를 다운로드했습니다.')};
+$('#saveWide').textContent=inFrame?'와이드 배너만 보내기':'와이드 SVG만 다운로드';
+$('#saveWide').onclick=()=>{const d=collect();outputSVG(`launch-v2-${d.model}-d${state.design}-wide-1300x327.svg`,buildWideSVG(d));setStatus(inFrame?'와이드 배너만 에디터로 보냈습니다.':'와이드 SVG를 다운로드했습니다.')};
 window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message,m.type==='error')});
 
 /* ---------- 제품 이미지: 업로드 → 흰 배경 제거 → data URI ---------- */
