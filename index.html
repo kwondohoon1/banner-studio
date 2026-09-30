@@ -528,17 +528,48 @@ function postToPlugin(message) {
   if (fr && fr.contentWindow) fr.contentWindow.postMessage({ pluginMessage: message }, "*");
 }
 
+/* 플러그인에서 가져온 페이지 중 사용자가 실제로 고친 것만 모아 돌려준다(폰트 임베드된 내보내기용 SVG).
+   파일명이 같은 페이지가 여럿이면 마지막 것을 쓴다. */
+async function collectPluginEdits(pid) {
+  if (state.pageIndex >= 0 && state.svg) pages[state.pageIndex].data = getWorkingData();
+  const byName = new Map();
+  pages.forEach(p => { if (p.source && p.source.plugin === pid && p.source.filename && p.edited && p.data && p.data.html) byName.set(p.source.filename, p); });
+  const out = [];
+  for (const [filename, p] of byName) {
+    const doc = new DOMParser().parseFromString(p.data.html, "image/svg+xml");
+    const svg = doc.querySelector("svg"); if (!svg) continue;
+    svg.querySelectorAll("[data-eid]").forEach(e => e.removeAttribute("data-eid"));
+    svg.querySelectorAll("[style='']").forEach(e => e.removeAttribute("style"));
+    if (!svg.getAttribute("xmlns")) svg.setAttribute("xmlns", SVGNS);
+    let str = svg.outerHTML;
+    const styleTag = await fontEmbedStyle(svg);
+    if (styleTag) str = str.replace(/(<svg[^>]*>)/, "$1" + styleTag);
+    out.push({ filename, svg: str, width: p.data.vbW, height: p.data.vbH });
+  }
+  return out;
+}
 function handlePluginMessage(e) {
   const frames = [...$("pluginHost").querySelectorAll("iframe")];
   const frame = frames.find(f => f.contentWindow === e.source);
   if (!frame) return;
   const msg = e.data && e.data.pluginMessage;
   if (!msg) return;
+  const pid = frame.getAttribute("data-plugin") || pluginState.active;
+  if (msg.type === "request-edits") {       // 플러그인이 ZIP 저장 전에 "에디터에서 고친 이미지"를 요청
+    frame.contentWindow.postMessage({ pluginMessage: { type: "edits-ack", requestId: msg.requestId } }, "*");
+    collectPluginEdits(pid).then(items => frame.contentWindow.postMessage({ pluginMessage: { type: "edits", requestId: msg.requestId, items } }, "*"))
+      .catch(() => frame.contentWindow.postMessage({ pluginMessage: { type: "edits", requestId: msg.requestId, items: [] } }, "*"));
+    return;
+  }
   if (msg.type === "save-svg") {
     const label = (EDITOR_PLUGINS.find(p => p.id === pluginState.active) || {}).title || "배너";
-    const ok = openDoc(label, msg.svg || "");   // 새 페이지로 가져와 기존 작업 유지
+    const stem = String(msg.filename || "").replace(/\.[^.]+$/, "");
+    const ok = openDoc(stem || label, msg.svg || "");   // 새 페이지로 가져와 기존 작업 유지 (페이지 이름 = 파일명)
     const name = msg.filename ? ` (${msg.filename})` : "";
     if (ok) {
+      pages[state.pageIndex].source = { plugin: pid, filename: msg.filename || "" };
+      pages[state.pageIndex].edited = false;
+      if (typeof scheduleCacheSave === "function") scheduleCacheSave();
       postToPlugin({ type: "toast", message: "SVG를 에디터로 가져왔습니다." });
       showToast(`${label} SVG를 캔버스로 가져왔습니다${name}`);
     } else {
@@ -1976,7 +2007,7 @@ function saveCache() {
     if (state.pageIndex >= 0 && state.svg) pages[state.pageIndex].data = getWorkingData();
     const hasContent = pages.some(p => p.data && p.data.html);
     if (!hasContent) { localStorage.removeItem(CACHE_KEY); return; }
-    const payload = { v: 1, ts: Date.now(), pageIndex: state.pageIndex, pages: pages.map(p => ({ name: p.name, data: slimData(p.data) })) };
+    const payload = { v: 1, ts: Date.now(), pageIndex: state.pageIndex, pages: pages.map(p => ({ name: p.name, data: slimData(p.data), source: p.source || null, edited: !!p.edited })) };
     localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
   } catch (e) { /* 용량 초과 등은 조용히 무시 */ }
 }
@@ -1988,7 +2019,7 @@ function loadCache() {
     if (!p || !Array.isArray(p.pages) || !p.pages.length) return false;
     if (p.ts && Date.now() - p.ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return false; }
     if (!p.pages.some(pg => pg.data && pg.data.html)) return false;
-    pages = p.pages.map(pg => ({ name: pg.name || "페이지", data: pg.data || null }));
+    pages = p.pages.map(pg => ({ name: pg.name || "페이지", data: pg.data || null, source: pg.source || null, edited: !!pg.edited }));
     state.pageIndex = Math.max(0, Math.min(p.pageIndex || 0, pages.length - 1));
     setWorkingData(pages[state.pageIndex].data);
     if (state.svg) pushSnapshot(true);   // 복원된 상태를 되돌리기 기준으로 시드
@@ -2032,6 +2063,7 @@ function pushSnapshot(initial) {
   const snap = state.svg.outerHTML;
   if (!initial && state.undo.length && state.undo[state.undo.length - 1] === snap) return;
   state.undo.push(snap);
+  if (!initial && state.pageIndex >= 0 && pages[state.pageIndex]) pages[state.pageIndex].edited = true;
   if (state.undo.length > 100) state.undo.shift();
   state.redo = [];
   refreshUndoButtons();
