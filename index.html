@@ -1598,6 +1598,7 @@ function startResize(e, pos) {
       const s = Math.max(0.05, Math.hypot(p.x - anchor.x, p.y - anchor.y) / d0);
       applyScaleGeo(el, scaleGeo, anchor, s);
     } else {
+      if (ev.shiftKey) { const s = Math.max(sx, sy); sx = s; sy = s; }   // Shift: 가로세로 비율 유지 (드래그 중에 눌러도 바로 적용)
       const nw = Math.max(2, bb.width * sx), nh = Math.max(2, bb.height * sy);
       applyResize(el, orig, anchor, pos, nw, nh, bb);
     }
@@ -1805,7 +1806,7 @@ function renderProps() {
       <button data-al="top">상</button><button data-al="cy">세로중앙</button><button data-al="bottom">하</button>
     </div>
     <button class="delBtn" data-del>🗑 요소 삭제 (Delete)</button>
-    <div class="hint">드래그로 이동(가운데·요소에 <b>자석 스냅</b>, <kbd>Alt</kbd>로 해제) · 모서리 핸들로 크기 · <b>텍스트 더블클릭</b> 편집 · <kbd>방향키</kbd> 미세이동 · <kbd>Del</kbd> 삭제 · <kbd>Ctrl+Z</kbd> 되돌리기</div>`;
+    <div class="hint">드래그로 이동(가운데·요소에 <b>자석 스냅</b>, <kbd>Alt</kbd>로 해제) · 모서리 핸들로 크기(<kbd>Shift</kbd>+드래그 = 비율 유지) · <b>텍스트 더블클릭</b> 편집 · <kbd>방향키</kbd> 미세이동 · <kbd>Del</kbd> 삭제 · <kbd>Ctrl+Z</kbd> 되돌리기</div>`;
 
   box.innerHTML = html;
   bindProps(box, el);
