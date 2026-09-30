@@ -256,7 +256,7 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
     function updateCounts(){$("#productCount").textContent=state.products.length;{const extra=auctionOn()?state.products.filter(product=>product.outputs.representative&&String(product.aCode||"").trim()).length:0;$("#jobCount").textContent=`${outputCount()}개 출력 선택${extra?` (+옥션 대표 ${extra}장)`:""}`}$("#matchCount").textContent=`${matchedCount()}/${state.products.length*3} 템플릿`;$("#saveBtn").disabled=state.exporting||!state.products.length;$("#batchBtn").disabled=state.exporting||outputCount()===0;$("#copyBtn").disabled=state.exporting;$("#exportFormat").disabled=state.exporting}
     function renderTable(){
       const rows=categoryProducts();if(!state.products.length){$("#tableHost").innerHTML='<div class="empty"><b>엑셀을 넣으면 제품군별로 정리됩니다</b>필요한 상품과 출력 종류만 체크해 주세요.</div>';updateCounts();return}if(!rows.length){$("#tableHost").innerHTML=`<div class="empty"><b>${esc(state.activeCategory)} 상품이 없습니다</b>다른 제품군을 선택하거나 검색어를 지워주세요.</div>`;updateCounts();return}
-      $("#tableHost").innerHTML=`<table><thead><tr><th>대표</th><th>쿠폰</th><th>혜택가</th><th>템플릿</th><th>제품군</th><th>모델명</th><th>상품코드</th><th>등재가</th><th>노출가</th><th>선택 쿠폰 할인 금액</th><th>중복 쿠폰 할인 금액</th><th>카드 할인</th><th>최종 혜택가</th></tr></thead><tbody>${rows.map(({product,index})=>`<tr data-index="${index}" class="${index===state.activeIndex?"active":""}">${TYPES.map(type=>`<td><label class="output-choice"><input class="check output-check" data-type="${type}" type="checkbox" ${product.outputs[type]?"checked":""}><i class="type-dot ${product.templates[type]?"on":product.outputs[type]?"missing":""}"></i></label></td>`).join("")}<td><div class="template-state">${TYPES.map(type=>`<span title="${esc(product.templates[type]?.file.name||"템플릿 없음")}">${type==="representative"?"대":type==="coupon"?"쿠":"혜"}<i class="type-dot ${product.templates[type]?"on":""}"></i></span>`).join("")}</div></td><td><select data-field="category"><option ${product.category==="모니터"?"selected":""}>모니터</option><option ${product.category==="노트북"?"selected":""}>노트북</option><option ${product.category==="컴포넌트"?"selected":""}>컴포넌트</option></select></td><td><input type="text" data-field="modelKey" value="${esc(product.modelKey)}"></td><td>${esc(product.gCode||"-")}</td>${["listPrice","displayPrice","selectionCouponDiscount","duplicateCouponDiscount","cardDiscount","finalPrice"].map(field=>`<td><input type="number" min="0" step="10" data-field="${field}" value="${numberValue(product[field])}"></td>`).join("")}</tr>`).join("")}</tbody></table>`;updateCounts();
+      $("#tableHost").innerHTML=`<table><thead><tr><th>대표</th><th>쿠폰</th><th>혜택가</th><th>템플릿</th><th>제품군</th><th>모델명</th><th>G 상품코드</th><th>A 상품코드(옥션)</th><th>혜택가 파일명(영문)</th><th>등재가</th><th>노출가</th><th>선택 쿠폰 할인 금액</th><th>중복 쿠폰 할인 금액</th><th>카드 할인</th><th>최종 혜택가</th></tr></thead><tbody>${rows.map(({product,index})=>`<tr data-index="${index}" class="${index===state.activeIndex?"active":""}">${TYPES.map(type=>`<td><label class="output-choice"><input class="check output-check" data-type="${type}" type="checkbox" ${product.outputs[type]?"checked":""}><i class="type-dot ${product.templates[type]?"on":product.outputs[type]?"missing":""}"></i></label></td>`).join("")}<td><div class="template-state">${TYPES.map(type=>`<span title="${esc(product.templates[type]?.file.name||"템플릿 없음")}">${type==="representative"?"대":type==="coupon"?"쿠":"혜"}<i class="type-dot ${product.templates[type]?"on":""}"></i></span>`).join("")}</div></td><td><select data-field="category"><option ${product.category==="모니터"?"selected":""}>모니터</option><option ${product.category==="노트북"?"selected":""}>노트북</option><option ${product.category==="컴포넌트"?"selected":""}>컴포넌트</option></select></td><td><input type="text" data-field="modelKey" value="${esc(product.modelKey)}"></td><td>${esc(product.gCode||"-")}</td><td>${esc(product.aCode||"-")}</td><td><input type="text" data-field="benefitName" value="${esc(uniqueBenefitName(product))}" style="width:230px" title="비우면 규칙으로 자동 생성"></td>${["listPrice","displayPrice","selectionCouponDiscount","duplicateCouponDiscount","cardDiscount","finalPrice"].map(field=>`<td><input type="number" min="0" step="10" data-field="${field}" value="${numberValue(product[field])}"></td>`).join("")}</tr>`).join("")}</tbody></table>`;updateCounts();
     }
     const svgOpen=(width,height,defs="")=>`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${defs}`;
     const textNode=(text,x,y,size,weight,fill,anchor="start",extra="",family="Pretendard, Noto Sans KR, Arial, sans-serif")=>`<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="central" font-family="${family}" font-size="${size}" font-weight="${weight}" fill="${fill}" ${extra}>${esc(text)}</text>`;
@@ -393,10 +393,16 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
     function ensureLayout(template){
       if(!template||template.layoutInfo!==undefined)return Promise.resolve();
       if(template._layoutP)return template._layoutP;
-      template._layoutP=new Promise(resolve=>{const image=new Image();image.onload=()=>{try{template.layoutInfo=detectLayout(image)}catch(error){template.layoutInfo=null}resolve();renderPreview()};image.onerror=()=>{template.layoutInfo=null;resolve()};image.src=template.dataUrl});
+      template._layoutP=new Promise(resolve=>{const image=new Image();image.onload=()=>{try{template.layoutInfo=detectLayout(image);template.crops=makeCrops(image,template.layoutInfo)}catch(error){template.layoutInfo=null;template.crops=null}resolve();renderPreview()};image.onerror=()=>{template.layoutInfo=null;resolve()};image.src=template.dataUrl});
       return template._layoutP;
     }
     function layoutsReady(){return Promise.all(state.templates.map(ensureLayout))}
+    /** 덩어리·CI 영역을 원본 해상도 그대로 잘라 data URI로 — SVG에서는 조각마다 독립된 <image>가 된다 */
+    function makeCrops(image,L){
+      if(!L)return null;
+      const cut=r=>{const c=document.createElement("canvas");c.width=Math.max(1,r.w);c.height=Math.max(1,r.h);const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(image,r.x,r.y,r.w,r.h,0,0,r.w,r.h);return c.toDataURL("image/jpeg",.95)};
+      return{blocks:L.blocks.map(cut),ci:L.ci?cut(L.ci):null};
+    }
     function detectLayout(image){
       const W=250,H=Math.max(1,Math.round(W*image.naturalHeight/image.naturalWidth)),canvas=document.createElement("canvas");canvas.width=W;canvas.height=H;
       const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.drawImage(image,0,0,W,H);
@@ -421,7 +427,10 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
       blocks=blocks.map(b=>{let x0=W,x1=0,n=0;for(let y=b.y0;y<=b.y1;y++)for(let x=0;x<W;x++)if(ink(x,y)){n++;if(x<x0)x0=x;if(x>x1)x1=x}return{...b,x0,x1,n}});
       const total=blocks.reduce((a,b)=>a+b.n,0);
       for(let i=blocks.length-1;i>=0&&blocks.length>1;i--){const b=blocks[i];if(b.n<total*.02||b.y1-b.y0<H*.02){const t=blocks[i>0?i-1:1];t.y0=Math.min(t.y0,b.y0);t.y1=Math.max(t.y1,b.y1);t.x0=Math.min(t.x0,b.x0);t.x1=Math.max(t.x1,b.x1);t.n+=b.n;blocks.splice(i,1)}}
-      const p=1;blocks=blocks.map(b=>({x:Math.max(0,b.x0-p)*sx,y:Math.max(0,b.y0-p)*sy,w:(Math.min(W,b.x1+p+1)-Math.max(0,b.x0-p))*sx,h:(Math.min(H,b.y1+p+1)-Math.max(0,b.y0-p))*sy,n:b.n}));
+      /* 원본 픽셀 정수 좌표로 맞춰 둔다 — 잘라낸 조각(crops)과 배치 좌표가 정확히 일치하도록 */
+      const p=1,IW=image.naturalWidth,IH=image.naturalHeight,rect=(x0,y0,x1,y1)=>{const x=Math.max(0,Math.floor(x0*sx)),y=Math.max(0,Math.floor(y0*sy));return{x,y,w:Math.min(IW,Math.ceil(x1*sx))-x,h:Math.min(IH,Math.ceil(y1*sy))-y}};
+      blocks=blocks.map(b=>({...rect(b.x0-p,b.y0-p,b.x1+p+1,b.y1+p+1),n:b.n}));
+      if(ci)ci=rect(ci.x/sx,ci.y/sy,(ci.x+ci.w)/sx,(ci.y+ci.h)/sy);
       return{ci,blocks,productTop:productTop*sy,contentTop:contentTop*sy,contentBottom:(contentBottom+1)*sy};
     }
     /** 덩어리 배치 (1000 기준 좌표)
@@ -452,7 +461,13 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
     function bandImageTags(template,width,height){
       const b=bandImageBox(template,width,height),S=v=>mgR(v*width/1000),SY=v=>mgR(v*height/1000),href=template.dataUrl;
       let defs="",out=`<rect width="${width}" height="${height}" fill="#ffffff"/>`;
-      /* 덩어리마다 원본 전체를 그 배율로 그리고 덩어리 영역만 잘라 보인다 */
+      const crops=template.crops;
+      if(crops&&crops.blocks.length===b.placed.length){      /* 잘라낸 조각을 그대로 배치 — 에디터에서 조각별로 편집 가능 */
+        b.placed.forEach((p,i)=>{out+=`<image x="${S(p.x)}" y="${SY(p.y)}" width="${S(p.b.w*p.k)}" height="${SY(p.b.h*p.k)}" href="${crops.blocks[i]}" preserveAspectRatio="none"/>`});
+        if(b.ci&&crops.ci)out+=`<image x="${S(b.ci.x)}" y="${SY(b.ci.y)}" width="${S(b.ci.w)}" height="${SY(b.ci.h)}" href="${crops.ci}" preserveAspectRatio="none"/>`;
+        return out;
+      }
+      /* (조각 준비 전 예비 경로) 덩어리마다 원본 전체를 그 배율로 그리고 덩어리 영역만 잘라 보인다 */
       b.placed.forEach((p,i)=>{
         defs+=`<clipPath id="mgBlk${i}"><rect x="${S(p.x)}" y="${SY(p.y)}" width="${S(p.b.w*p.k)}" height="${SY(p.b.h*p.k)}"/></clipPath>`;
         out+=`<image x="${S(p.x-p.b.x*p.k)}" y="${SY(p.y-p.b.y*p.k)}" width="${S(1000*p.k)}" height="${SY(1000*p.k)}" href="${href}" preserveAspectRatio="none" clip-path="url(#mgBlk${i})"/>`});
@@ -493,7 +508,9 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
       /* 금액 — 세로 가운데, 라벨은 금액과 같은 기준선 */
       const priceBase=Y+BH/2+A*.37;
       g+=mgT(X+PAD,priceBase,labelText,L,T.label,T.labelOp<1?` fill-opacity="${T.labelOp}"`:"");
-      g+=`<text x="${mgR(right)}" y="${mgR(priceBase)}" text-anchor="end" font-family="${GMK_FAMILY}" font-size="${mgR(A)}" font-weight="700" fill="${T.price}" letter-spacing="-1.5">${esc(parts.amount)}<tspan font-size="${mgR(A*unitRatio)}" dx="${mgR(A*.05)}" letter-spacing="0">${esc(parts.unit)}</tspan></text>`;
+      {const unitSize=A*unitRatio,unitW=mgW(parts.unit,unitSize);
+       g+=mgT(right,priceBase,parts.unit,unitSize,T.price,` text-anchor="end"`);
+       g+=mgT(right-unitW-A*.05,priceBase,parts.amount,A,T.price,` text-anchor="end" letter-spacing="-1.5"`)}
       /* 쿠폰 칩 — 맨 오른쪽 세로 스택, 폭은 가장 넓은 칩에 맞춰 통일 */
       if(chips.length){
         const stackH=chips.length*chipH+(chips.length-1)*chipGap,top=Y+(BH-stackH)/2;
@@ -585,16 +602,41 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
         return blob;
       }finally{image.onload=null;image.onerror=null;image.removeAttribute("src");URL.revokeObjectURL(url);canvas.width=0;canvas.height=0}
     }
-    function exportSnapshot(product,type,format){const folder=uniqueFilenameBase(product);return{folder,filename:`${folder}_${TYPE_META[type].label}.${format}`,svg:buildSVG(product,type),dimensions:typeDimensions(product,type)}}
+    const EXPORT_FOLDERS={gmarket:"1_대표이미지_지마켓",auction:"2_대표이미지_옥션",coupon:"3_쿠폰",benefit:"4_최종혜택가"};
+    function exportName(product,type,format,variant){
+      if(type==="representative")return `${uniqueFilenameBase(product,variant==="auction"?"aCode":"gCode")}_${TYPE_META[type].label}.${format}`;
+      if(type==="benefit")return `${uniqueBenefitName(product)}.${format}`;
+      return `${uniqueFilenameBase(product)}_${TYPE_META[type].label}.${format}`;
+    }
+    function exportSnapshot(product,type,format,variant="gmarket"){return{product,type,variant,folder:EXPORT_FOLDERS[type==="representative"?variant:type],filename:exportName(product,type,format,variant),svg:null,dimensions:typeDimensions(product,type),auction:variant==="auction"}}
     /** 옥션 코드판 대표이미지 — 같은 그림, 파일명만 A_상품코드 기준. 폴더 수 계산에서는 빠진다(G마켓판과 같은 자리에 둔다) */
+    /* 혜택가 이미지 파일명 규칙 — 소문자 영문 '제조사_모델_스펙' (예: pny_geforce_rtx_5080_argb_epic-x_oc_d7_16gb)
+       ① 제조사 = 브랜드 열을 영문으로(삼성전자→samsung, 한성컴퓨터→hansung …) ② 모델명의 한글 단어는 사전으로 영문 치환
+       ③ 남은 한글·괄호·기호 제거, 점은 뺌(m.2→m2), 공백·밑줄·슬래시 → _ ④ 제조사 중복 토큰 제거 ⑤ 같은 이름이면 _2, _3 */
+    const KO_EN=[["삼성전자","samsung"],["삼성","samsung"],["한성컴퓨터","hansung"],["한성","hansung"],["에이서","acer"],["프레데터","predator"],["지포스","geforce"],["라데온","radeon"],["엔비디아","nvidia"],["인텔","intel"],["킹뱅크","kingbank"],["마이크론","micron"],["씨게이트","seagate"],["웨스턴디지털","wd"],["트리플","triple"],["듀얼","dual"],["싱글","single"],["블랙","black"],["화이트","white"],["실버","silver"],["핑크","pink"],["무결점","flawless"],["게이밍","gaming"],["그래픽카드"," "],["모니터"," "],["노트북"," "],["일반"," "]];
+    const BRAND_EN={"삼성전자":"samsung","삼성":"samsung","한성컴퓨터":"hansung","한성":"hansung","에이서":"acer","킹뱅크":"kingbank"};
+    function benefitSlug(product){
+      if(product.benefitName)return product.benefitName;
+      const brandRaw=String(product.brand||"").trim(),brand=BRAND_EN[brandRaw]||brandRaw.toLowerCase().replace(/[^a-z0-9]+/g,"");
+      let name=String(product.model||product.modelKey||"").normalize("NFKC");
+      KO_EN.forEach(([ko,en])=>{name=name.split(ko).join(` ${en} `)});
+      const tokens=name.replace(/[()\[\]{}]/g," ").replace(/[^\x00-\x7F]+/g," ").toLowerCase().split(/[\s_\/,+]+/)
+        .map(t=>t.replace(/\./g,"").replace(/[^a-z0-9-]/g,"").replace(/^-+|-+$/g,"")).filter(t=>t&&t!==brand);
+      const out=[brand,...tokens].filter((t,i,a)=>t&&t!==a[i-1]);
+      return out.join("_")||"product";
+    }
+    function cleanSlug(v){return String(v||"").normalize("NFKC").toLowerCase().replace(/[^a-z0-9_.-]+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
+    function uniqueBenefitName(product){const used=new Map();for(const item of state.products){const base=benefitSlug(item);const n=(used.get(base)||0)+1;used.set(base,n);if(item===product)return n>1?`${base}_${n}`:base}return benefitSlug(product)}
     function auctionOn(){const box=$("#auctionCopy");return !box||box.checked}
-    function exportSnapshots(product,type,format){const main=exportSnapshot(product,type,format),list=[main];if(type==="representative"&&auctionOn()&&String(product.aCode||"").trim()){const base=uniqueFilenameBase(product,"aCode");list.push({folder:main.folder,filename:`${base}_${TYPE_META[type].label}.${format}`,svg:main.svg,dimensions:main.dimensions,auction:true})}return list}
+    function exportSnapshots(product,type,format){const list=[exportSnapshot(product,type,format)];if(type==="representative"&&auctionOn()&&String(product.aCode||"").trim())list.push(exportSnapshot(product,type,format,"auction"));return list}
+    /** 일괄 순서: 대표(지마켓) 전부 → 대표(옥션) 전부 → 쿠폰 → 최종혜택가 */
+    function batchSnapshots(jobs,format){const of=type=>jobs.filter(job=>job.type===type);const reps=of("representative");return[...reps.map(({product})=>exportSnapshot(product,"representative",format)),...(auctionOn()?reps.filter(({product})=>String(product.aCode||"").trim()).map(({product})=>exportSnapshot(product,"representative",format,"auction")):[]),...of("coupon").map(({product})=>exportSnapshot(product,"coupon",format)),...of("benefit").map(({product})=>exportSnapshot(product,"benefit",format))]}
     async function saveCurrent(){
       if(state.exporting)return;await layoutsReady();
       const product=activeProduct(),type=state.previewType,meta=TYPE_META[type],format=exportFormat();
       if(!product.templates[type])return setStatus(`${product.modelKey}의 ${meta.label} 서버 원본이 없습니다. 원본을 직접 추가해 주세요.`,true);
       state.exporting=true;updateCounts();
-      try{const jobs=exportSnapshots(product,type,format),names=jobs.map(job=>job.filename).join(", ");if(format==="jpg"){setStatus("원본 크기로 JPG를 만드는 중입니다…");const blob=await svgToJpeg(jobs[0].svg,jobs[0].dimensions);for(const job of jobs){downloadBlob(job.filename,blob);await new Promise(resolve=>setTimeout(resolve,350))}setStatus(`${names} 다운로드를 시작했습니다.`)}else{for(const job of jobs){outputSVG(job.filename,job.svg);await new Promise(resolve=>setTimeout(resolve,120))}setStatus(inFrame?`SVG ${jobs.length}개를 배너 스튜디오로 보냈습니다.`:`SVG ${jobs.length}개를 다운로드했습니다.`)}}
+      try{const jobs=exportSnapshots(product,type,format),names=jobs.map(job=>job.filename).join(", "),svg=buildSVG(product,type);jobs.forEach(job=>job.svg=svg);if(format==="jpg"){setStatus("원본 크기로 JPG를 만드는 중입니다…");const blob=await svgToJpeg(svg,jobs[0].dimensions);for(const job of jobs){downloadBlob(job.filename,blob);await new Promise(resolve=>setTimeout(resolve,350))}setStatus(`${names} 다운로드를 시작했습니다.`)}else{for(const job of jobs){outputSVG(job.filename,job.svg);await new Promise(resolve=>setTimeout(resolve,120))}setStatus(inFrame?`SVG ${jobs.length}개를 배너 스튜디오로 보냈습니다.`:`SVG ${jobs.length}개를 다운로드했습니다.`)}}
       catch(error){setStatus(`다운로드 실패: ${error.message||"다시 시도해 주세요."}`,true)}finally{state.exporting=false;updateCounts()}
     }
     async function copyCurrent(){const product=activeProduct(),type=state.previewType;if(!product.templates[type])return setStatus("연결된 서버 원본이 없습니다. 원본을 직접 추가해 주세요.",true);try{await navigator.clipboard.writeText(buildSVG(product,type));setStatus("편집 가능한 SVG 코드를 복사했습니다.")}catch{setStatus("브라우저가 클립보드 복사를 허용하지 않습니다.",true)}}
@@ -607,14 +649,14 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
       state.exporting=true;updateCounts();
       try{
         // Capture prices, dates, templates and filenames before any asynchronous conversion.
-        const snapshots=jobs.flatMap(({product,type})=>exportSnapshots(product,type,format)),zip=sendToEditor?null:new JSZip();const folderCount={};snapshots.forEach(s=>{if(!s.auction)folderCount[s.folder]=(folderCount[s.folder]||0)+1});
+        const snapshots=batchSnapshots(jobs,format),zip=sendToEditor?null:new JSZip(),repCache=new Map();
         for(let index=0;index<snapshots.length;index++){
           const job=snapshots[index];setStatus(`${format.toUpperCase()} 생성 중 ${index+1}/${snapshots.length} · ${job.filename}`);
-          if(sendToEditor){outputSVG(job.filename,job.svg);await new Promise(resolve=>setTimeout(resolve,45))}
-          else{const data=job.svg===saveBatch.lastSvg?saveBatch.lastData:(format==="jpg"?await(await svgToJpeg(job.svg,job.dimensions)).arrayBuffer():job.svg);saveBatch.lastSvg=job.svg;saveBatch.lastData=data;(folderCount[job.folder]>1?zip.folder(job.folder):zip).file(job.filename,data)}
-          if(!snapshots.slice(index+1).some(next=>next.svg===job.svg))job.svg="";
+          const reuse=job.type==="representative"?repCache.get(job.product):null;
+          if(sendToEditor){const svg=reuse||buildSVG(job.product,job.type);if(job.type==="representative"&&!job.auction)repCache.set(job.product,svg);outputSVG(job.filename,svg);await new Promise(resolve=>setTimeout(resolve,45))}
+          else{const data=reuse||(format==="jpg"?await(await svgToJpeg(buildSVG(job.product,job.type),job.dimensions)).arrayBuffer():buildSVG(job.product,job.type));if(job.type==="representative"&&!job.auction)repCache.set(job.product,data);zip.folder(job.folder).file(job.filename,data)}
         }
-        saveBatch.lastSvg=null;saveBatch.lastData=null;if(sendToEditor)setStatus(`${snapshots.length}개 선택 SVG를 배너 스튜디오로 보냈습니다.`);
+        repCache.clear();if(sendToEditor)setStatus(`${snapshots.length}개 선택 SVG를 배너 스튜디오로 보냈습니다.`);
         else{setStatus(`${snapshots.length}개 ${format.toUpperCase()}를 ZIP으로 묶는 중입니다…`);const blob=await zip.generateAsync({type:"blob",compression:"STORE"});downloadBlob(`G마켓_선택배너_${format.toUpperCase()}_${new Date().toISOString().slice(0,10)}.zip`,blob);setStatus(`${snapshots.length}개 선택 ${format.toUpperCase()}를 ZIP으로 다운로드했습니다.`)}
       }catch(error){setStatus(`일괄 다운로드 실패: ${error.message||"다시 시도해 주세요."}`,true)}finally{state.exporting=false;updateCounts()}
     }
@@ -625,7 +667,7 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
     $("#searchInput").addEventListener("input",renderTable);$("#selectVisible").addEventListener("click",()=>{categoryProducts().forEach(({product})=>TYPES.forEach(type=>product.outputs[type]=true));renderTable();renderPreview()});$("#clearVisible").addEventListener("click",()=>{categoryProducts().forEach(({product})=>TYPES.forEach(type=>product.outputs[type]=false));renderTable();renderPreview()});
     $$(".output-bulk").forEach(button=>button.addEventListener("click",()=>{const type=button.dataset.type,rows=categoryProducts(),turnOn=rows.some(({product})=>!product.outputs[type]);rows.forEach(({product})=>product.outputs[type]=turnOn);renderTable();renderPreview()}));
     $("#tableHost").addEventListener("click",event=>{if(event.target.matches("input,select"))return;const row=event.target.closest("tr[data-index]");if(!row)return;state.activeIndex=Number(row.dataset.index);renderTable();renderPreview()});
-    $("#tableHost").addEventListener("change",event=>{const row=event.target.closest("tr[data-index]");if(!row)return;const index=Number(row.dataset.index),product=state.products[index];state.activeIndex=index;if(event.target.classList.contains("output-check"))product.outputs[event.target.dataset.type]=event.target.checked;else if(event.target.dataset.field){const field=event.target.dataset.field;product[field]=field==="modelKey"?modelKey(event.target.value):field==="category"?event.target.value:numberValue(event.target.value);if(field==="modelKey"||field==="category")matchTemplates()}renderCategoryTabs();renderTable();renderPreview()});
+    $("#tableHost").addEventListener("change",event=>{const row=event.target.closest("tr[data-index]");if(!row)return;const index=Number(row.dataset.index),product=state.products[index];state.activeIndex=index;if(event.target.classList.contains("output-check"))product.outputs[event.target.dataset.type]=event.target.checked;else if(event.target.dataset.field){const field=event.target.dataset.field;product[field]=field==="modelKey"?modelKey(event.target.value):field==="category"?event.target.value:field==="benefitName"?cleanSlug(event.target.value):numberValue(event.target.value);if(field==="modelKey"||field==="category")matchTemplates()}renderCategoryTabs();renderTable();renderPreview()});
     $$(".tab").forEach(tab=>tab.addEventListener("click",()=>{state.previewType=tab.dataset.type;renderPreview()}));$("#includeOutput").addEventListener("change",event=>{activeProduct().outputs[state.previewType]=event.target.checked;renderTable();renderPreview()});$("#overlayPosition").addEventListener("change",event=>{const value=event.target.value;if(state.previewType==="representative"&&(isModernPromo(value)||isRepresentativePromo(value))){[...state.products,sampleProduct].forEach(product=>product.overlay.representative.position=value)}else activeProduct().overlay[state.previewType].position=value;renderPreview()});[["rateSel","selectionCouponRate"],["rateDup","duplicateCouponRate"],["rateCard","cardRate"]].forEach(([id,field])=>$(`#${id}`).addEventListener("input",event=>{const v=parseFloat(event.target.value);activeProduct()[field]=Number.isFinite(v)&&v>0?v:0;renderPreview()}));$("#showCoupons").addEventListener("change",renderPreview);$("#auctionCopy").addEventListener("change",updateCounts);$("#modernLayout").addEventListener("change",event=>{state.modernLayout=event.target.value;renderPreview()});$("#bandImgScale").addEventListener("input",event=>{state.bandImgScale=numberValue(event.target.value)/100;renderPreview()});$("#overlayColor").addEventListener("input",event=>{activeProduct().overlay[state.previewType].color=event.target.value;renderPreview()});$("#overlayScale").addEventListener("input",event=>{activeProduct().overlay[state.previewType].scale=numberValue(event.target.value);renderPreview()});["campaign","priceUnit","startDate","endDate"].forEach(id=>$(`#${id}`).addEventListener("input",renderPreview));
     $("#resetOverlay").addEventListener("click",()=>{activeProduct().overlay[state.previewType]=freshOverlay()[state.previewType];renderPreview()});
     $("#exportFormat").addEventListener("change",updateExportLabels);$("#saveBtn").addEventListener("click",saveCurrent);$("#copyBtn").addEventListener("click",copyCurrent);$("#batchBtn").addEventListener("click",saveBatch);
