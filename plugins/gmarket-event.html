@@ -388,7 +388,7 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
          · 그 아래 첫 잉크 줄 = 제품 시작, 전체 마지막 잉크 줄 = 내용 끝
        → 원본을 k배로 줄여 [CI 아래 ~ 띠 위]에 넣고, 줄인 사본의 CI 자리는 흰색으로 지운 뒤
          원본 크기 CI만 잘라 원래 자리에 다시 얹는다. */
-    const BAND_BASE_H=198,BAND_Y=976-BAND_BASE_H;
+    const BAND_BASE_H=198,BAND_Y=976-BAND_BASE_H,BAND_TAB_H=44,BAND_TAB_TOP=BAND_Y-BAND_TAB_H/2;
     function bandLayoutOn(setting){return isModernPromo(setting.position)&&state.modernLayout!=="card"}
     function ensureLayout(template){
       if(!template||template.layoutInfo!==undefined)return Promise.resolve();
@@ -419,7 +419,7 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
     function bandImageBox(template,width,height){
       const L=template&&template.layoutInfo,sx=1000/width,sy=1000/height;
       const top=L?(L.ci?L.ci.y*sy+L.ci.h*sy+14:12):12,from=L?(L.ci?L.productTop:L.contentTop)*sy:0,to=L?L.contentBottom*sy:1000;
-      const cap=Math.min(.9,Math.max(.6,state.bandImgScale||.8)),k=Math.min(cap,(BAND_Y-14-top)/Math.max(1,to-from));
+      const cap=Math.min(.9,Math.max(.6,state.bandImgScale||.8)),k=Math.min(cap,(BAND_TAB_TOP-14-top)/Math.max(1,to-from));   /* 날짜 탭 윗변보다 14px 위에서 원본이 끝나게 */
       const w=1000*k;return{k,x:(1000-w)/2,y:top-from*k,w,h:1000*k,ci:L&&L.ci?{x:L.ci.x*sx,y:L.ci.y*sy,w:L.ci.w*sx,h:L.ci.h*sy}:null}
     }
     function bandImageTags(template,width,height){
@@ -458,7 +458,7 @@ window.EMBEDDED_BLOB=function(u){var i=u.indexOf(",");var m=(u.slice(5,i).split(
       g+=`<rect x="${X}" y="${Y}" width="${BW}" height="${BH}" rx="28" fill="${T.card}"${T.stroke?` stroke="${T.stroke}" stroke-width="1.5"`:""} filter="url(#mgShadow)"/>`;
       if(T.sheen)g+=`<g clip-path="url(#mgClip)"><circle cx="${X+BW-140}" cy="${Y-60}" r="230" fill="#ffffff" fill-opacity=".10"/><circle cx="${X+80}" cy="${Y+BH+90}" r="150" fill="#ffffff" fill-opacity=".06"/></g>`;
       /* 기간 탭 — 띠 윗변에 걸친 알약 */
-      const tabSize=24,tabW=mgW(dateText,tabSize)+44,tabH=44,tabX=X+PAD-6,tabY=Y-tabH/2;
+      const tabSize=24,tabW=mgW(dateText,tabSize)+44,tabH=BAND_TAB_H,tabX=X+PAD-6,tabY=BAND_TAB_TOP;
       g+=`<rect x="${mgR(tabX)}" y="${tabY}" width="${mgR(tabW)}" height="${tabH}" rx="${tabH/2}" fill="${T.tab}"/>`+mgT(tabX+22,tabY+tabH/2+tabSize*.36,dateText,tabSize,T.tabText);
       /* 금액 — 세로 가운데, 라벨은 금액과 같은 기준선 */
       const priceBase=Y+BH/2+A*.37;
