@@ -15,6 +15,7 @@
   {"id": "install-service", "title": "설치배송", "description": "설치 서비스 안내 배너(860) — 히어로/상품 이미지 교체, 구매 옵션 안내, 진행 절차(Iconify 아이콘), 유의사항", "file": "plugins/install-service.html"},
   {"id": "friday-refurb", "title": "전시장리퍼", "description": "매주 금요일 전시장 리퍼상품 추가할인 배너(1680×945) — 입체 타이포·햇살 배경·달력 배지·말풍선", "file": "plugins/friday-refurb.html"},
   {"id": "photo-review-event", "title": "포토상품평", "description": "월간 포토상품평 이벤트 배너 — 통합형(블루)·카테고리형(블루/핑크) 3종, 메인 860 + 소배너 284×400 동시 생성, 카테고리별 일괄", "file": "plugins/photo-review-event.html"},
+  {"id": "photo-review-v2", "title": "포토상품평v2", "description": "포토상품평 이벤트 통배너(860) — 증정품·참여 방법·대상 상품(금액 구간·필수 해시태그)·NOTICE, 카테고리 카드/텍스트 일괄 편집, 테마 4종·제목 폰트 선택, 자동 저장", "file": "plugins/photo-review-v2.html"},
   {"id": "gmarket-event", "title": "지마켓행사", "description": "G마켓 행사 상품 이미지 일괄 생성 — 엑셀(모델·최종혜택가) + 원본 이미지 → 대표이미지·쿠폰·최종혜택가 JPG/SVG 일괄, 모델 원본 22종 내장", "file": "plugins/gmarket-event.html"},
   {"id": "pc-spec-sheet", "title": "핵심사양시트", "description": "조립PC 관리시트(엑셀) → 상품별 '핵심 사양' 이미지(860) — 9칸 카드(CPU·GPU·RAM·SSD·M/B·POWER·COOLER·CASE·OS) 자동 간결화 + 노출가 카드, 항목별 편집, PNG/SVG ZIP", "file": "plugins/pc-spec-sheet.html"},
   {"id": "card-promotion", "title": "카드사프로모션", "description": "네이버쇼핑 카드사 프로모션 상세 배너(860) — 월별 컨셉·눈누 제목 폰트, 히어로/EVENT 01/EVENT 02 카드 일러스트, 간편결제 안내·유의사항", "file": "plugins/card-promotion-monthly.html"},
