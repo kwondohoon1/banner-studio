@@ -345,11 +345,38 @@ function skyGradientSVG(S, w, h){
 }
 // 3D 배경/실사 cover: 기존 canvas 씬 엔진을 오프스크린에 그려 하나의 <image>로 임베드(레이아웃/픽셀 동일)
 function sceneBackgroundSVG(S, w, h, box){
+  const img = shared.sceneImg;
+  // 실사 사진: 원본 파일 바이트(img._data)를 그대로 넣고 위치·크기만 지정 → 다시 굽지 않아 화질 손실 없음.
+  // 배너 밖으로 나간 부분은 SVG 영역에서 잘린다(에디터에서 배경을 옮겨 다시 맞출 수도 있음).
+  if (img && img._data) {
+    const r = scenePhotoRect(img, w, h, box);
+    S.image(img._data, r.x, r.y, r.w, r.h, { preserveAspectRatio: 'none' });
+    return;
+  }
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   sceneBackground(c.getContext('2d'), w, h, box);
-  // 실사 사진은 JPEG(용량 1/4 수준), 절차적 3D 배경은 PNG
-  S.image(shared.sceneImg ? c.toDataURL('image/jpeg', 0.9) : c.toDataURL('image/png'), 0, 0, w, h, { preserveAspectRatio: 'none' });
+  S.image(img ? c.toDataURL('image/jpeg', 0.95) : c.toDataURL('image/png'), 0, 0, w, h, { preserveAspectRatio: 'none' });
+}
+/* 실사 사진이 배너에서 차지할 위치·크기(배너 좌표). 받침대 사진은 무대 배치, 그 외는 cover + 슬라이더 */
+function scenePhotoRect(img, w, h, box){
+  if (activeAnchor() && box) {
+    const L = stageLayout(w, h, box);
+    if (L.k != null) return { x: L.ox, y: L.oy, w: img.width*L.k, h: img.height*L.k };
+  }
+  const zoom = shared.sceneZoom || 1;
+  const px = shared.scenePosX == null ? 0.5 : shared.scenePosX;
+  const py = shared.scenePosY == null ? 0.5 : shared.scenePosY;
+  const k = Math.max(w/img.width, h/img.height) * zoom, dw = img.width*k, dh = img.height*k;
+  return { x: (w-dw)*px, y: (h-dh)*py, w: dw, h: dh };
+}
+/* 파일/주소 → { img, 원본 data URI } (원본 바이트 보존) */
+function blobToDataURL(blob){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); }); }
+async function loadPhotoKeepBytes(blob){
+  const data = await blobToDataURL(blob);
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = data; });
+  img._data = data;
+  return img;
 }
 /* 실사 배경 프리셋 — 받침대가 있는 사진은 받침대 윗면 중심(ax, ay)과 폭(aw)을 원본 비율로 기록해 두고,
    배너마다 제품이 그 받침대 위에 서도록 확대·위치를 자동으로 맞춘다(placeScenePhoto).
@@ -819,7 +846,7 @@ document.getElementById('removeWhite').addEventListener('change', async () => {
 document.getElementById('sceneImage').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if(!file) return;
-  shared.sceneImg = await loadImageFile(file);
+  shared.sceneImg = await loadPhotoKeepBytes(file);   // 원본 바이트 그대로 임베드
   shared.scenePreset = null;               // 직접 올린 사진은 cover
   renderSceneGrid();
   renderAll();
@@ -932,13 +959,11 @@ renderAll();
 }); });
 // 기본 배경: 스튜디오 이미지(assets/studio-bg.jpg)를 sceneImg 기본값으로 사용
 PHOTO_SCENES.forEach(P => {
-  const img = new Image();
-  img.onload = function(){
+  fetch(P.src).then(r => { if (!r.ok) throw Error(r.status); return r.blob(); }).then(loadPhotoKeepBytes).then(img => {
     photoImgs[P.key] = img;
     if (P.key === 'photo_studio' && !shared.sceneImg && !shared.sceneStyleManual) { shared.sceneImg = img; shared.scenePreset = P.key; renderAll(); }
     renderSceneGrid();
-  };
-  img.src = P.src;
+  }).catch(() => {});
 });
 </script>
 <script src="image-drop.js"></script>
