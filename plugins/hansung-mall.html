@@ -89,13 +89,13 @@
       <label class="check"><input id="removeWhite" type="checkbox" checked /> 흰 배경 자동 제거</label>
 
       <div class="step"><b>3D 공간 배경</b><span class="num">SCENE</span></div>
-      <label>자동 배경 스타일 (이미지 업로드 안 했을 때 적용)</label>
+      <label>배경 고르기 — 실사 사진 3종 + 자동 3D 배경 5종</label>
       <div class="sceneGrid" id="sceneGrid"></div>
       <label class="upload" for="sceneImage" style="margin-top:9px"><i>＋</i><div><b>배경 직접 업로드</b><span>스마트스토어·브랜드스토어에 cover 방식으로 적용</span></div></label>
       <input id="sceneImage" type="file" accept="image/*" hidden />
       <p class="hint">업로드하면 위 자동 스타일 대신 이 이미지가 깔립니다. 아래에서 배경 위치·크기를 조절하세요.</p>
       <div id="sceneAdjust" style="margin-top:8px">
-        <p class="hint" style="margin:0 0 4px">배경은 꽉 채워 들어갑니다. 아래로 <b>어느 부분이 보일지</b> 옮기세요.</p>
+        <p class="hint" style="margin:0 0 4px">배경은 꽉 채워 들어갑니다. 아래로 <b>어느 부분이 보일지</b> 옮기세요. '받침대 자동 맞춤' 사진은 배너마다 제품이 받침대 위에 오도록 자동 배치되고, 아래 슬라이더는 받침대 위치·크기를 미세 조정합니다.</p>
         <label>배경 좌우 이동</label><input type="range" id="scenePosX" min="0" max="1" step="0.01" value="0.5" style="width:100%" />
         <label>배경 상하 이동</label><input type="range" id="scenePosY" min="0" max="1" step="0.01" value="0.5" style="width:100%" />
         <label>배경 확대</label><input type="range" id="sceneZoom" min="1" max="2.5" step="0.02" value="1" style="width:100%" />
@@ -344,11 +344,55 @@ function skyGradientSVG(S, w, h){
   S.rect(0, 0, w, h, fill);
 }
 // 3D 배경/실사 cover: 기존 canvas 씬 엔진을 오프스크린에 그려 하나의 <image>로 임베드(레이아웃/픽셀 동일)
-function sceneBackgroundSVG(S, w, h){
+function sceneBackgroundSVG(S, w, h, box){
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
-  sceneBackground(c.getContext('2d'), w, h);
-  S.image(c.toDataURL('image/png'), 0, 0, w, h, { preserveAspectRatio: 'none' });
+  sceneBackground(c.getContext('2d'), w, h, box);
+  // 실사 사진은 JPEG(용량 1/4 수준), 절차적 3D 배경은 PNG
+  S.image(shared.sceneImg ? c.toDataURL('image/jpeg', 0.9) : c.toDataURL('image/png'), 0, 0, w, h, { preserveAspectRatio: 'none' });
+}
+/* 실사 배경 프리셋 — 받침대가 있는 사진은 받침대 윗면 중심(ax, ay)과 폭(aw)을 원본 비율로 기록해 두고,
+   배너마다 제품이 그 받침대 위에 서도록 확대·위치를 자동으로 맞춘다(placeScenePhoto).
+   anchor가 없는 사진(스튜디오)은 기존처럼 cover. 새 사진 추가 시 assets/에 넣고 여기 한 줄 추가. */
+const PHOTO_SCENES = [
+  { key:'photo_studio', label:'스튜디오 (기본)', src:'assets/studio-bg.jpg' },
+  { key:'photo_white_podium', label:'화이트 포디움', src:'assets/scene-white-podium.jpg', anchor:{ ax:0.7254, ay:0.646, fb:0.795, aw:0.3064, fit:1.25 } },
+  { key:'photo_arch_lounge', label:'아치 라운지', src:'assets/scene-arch-lounge.jpg', anchor:{ ax:0.7544, ay:0.6976, fb:0.842, aw:0.4536, fit:1.35 } }
+];
+const photoImgs = {};
+function activeAnchor(){
+  if (!shared.sceneImg) return null;
+  const P = PHOTO_SCENES.find(x => x.key === shared.scenePreset);
+  return P && P.anchor ? P.anchor : null;
+}
+/* 받침대 사진용 무대 배치. 반환: { box(제품 칸, 받침대 위로 올라간 것), k, ox, oy }
+   ① 제품 밑변 가운데 = 받침대 윗면 중심  ② 받침대 앞면 전체 + 여백이 배너 안에 들어오도록 제품 칸 밑변을 올림
+   ③ 받침대 폭 ≈ 제품 폭 × fit  ④ 사진은 항상 배너를 꽉 채움 */
+function stageLayout(w, h, box0){
+  const A = activeAnchor(), img = shared.sceneImg;
+  if (!A || !img) return { box: box0 };
+  const iw = img.width, ih = img.height, zoom = shared.sceneZoom || 1;
+  const nx = ((shared.scenePosX == null ? 0.5 : shared.scenePosX) - 0.5) * w * 0.3;   // 좌우 미세 조정 ±15%
+  const ny = ((shared.scenePosY == null ? 0.5 : shared.scenePosY) - 0.5) * h * 0.3;   // 상하 미세 조정 ±15%
+  let box = Object.assign({}, box0), k = 0, tx = 0, ty = 0;
+  for (let it = 0; it < 4; it++) {
+    let pw = box.w; tx = box.x + box.w/2; ty = box.y + box.h;
+    if (shared.productImg) { const r = containRect(shared.productImg, box); tx = r.x + r.w/2; ty = r.y + r.h*0.985; pw = r.w; }
+    tx += nx; ty += ny;
+    k = Math.max(w/iw, h/ih, pw*A.fit/(A.aw*iw), ty/(A.ay*ih), tx/(A.ax*iw), (w-tx)/((1-A.ax)*iw)) * zoom;
+    const tyMax = h - (A.fb - A.ay)*ih*k*0.6;                    // 받침대 앞면이 60% 이상 보이는 가장 낮은 위치(아래가 조금 잘리는 건 사진처럼 자연스러움)
+    if (ty <= tyMax + 0.5) break;
+    const lift = ty - tyMax;                                      // 그만큼 제품 칸 밑변을 올리고(위는 그대로) 다시 계산
+    box.h = Math.max(box0.h*0.55, box.h - lift);
+  }
+  const dw = iw*k, dh = ih*k;
+  const ox = Math.min(0, Math.max(w-dw, tx - A.ax*dw)), oy = Math.min(0, Math.max(h-dh, ty - A.ay*dh));
+  return { box, k, ox, oy };
+}
+function placeScenePhoto(ctx, img, w, h, box){
+  const L = stageLayout(w, h, box);
+  if (L.k == null) { drawCover(ctx, img, w, h); return; }
+  ctx.drawImage(img, L.ox, L.oy, img.width*L.k, img.height*L.k);
 }
 const SCENE_STYLES = [
   { key: 'cove_podium', label: '클래식 포디움' },
@@ -538,8 +582,12 @@ function drawSceneStyle(ctx, w, h, styleKey){
   return sceneCovePodium(ctx, w, h);
 }
 
-function sceneBackground(ctx, w, h){
-  if (shared.sceneImg) { drawCover(ctx, shared.sceneImg, w, h); return; }
+function sceneBackground(ctx, w, h, box){
+  if (shared.sceneImg) {
+    if (activeAnchor() && box) placeScenePhoto(ctx, shared.sceneImg, w, h, box);
+    else drawCover(ctx, shared.sceneImg, w, h);
+    return;
+  }
   drawSceneStyle(ctx, w, h, shared.sceneStyle || 'cove_podium');
 }
 
@@ -572,8 +620,9 @@ const TEMPLATES = [
   {
     id:'naver_brand_mobile', label:'네이버 브랜드스토어 모바일', w:708, h:250,
     draw(S, w, h, inp){
-      sceneBackgroundSVG(S, w, h);
-      drawProduct(S, { x:w*0.55, y:h*0.10, w:w*0.38, h:h*0.82 }, w, h, { shadow:false });
+      const box = { x:w*0.55, y:h*0.10, w:w*0.38, h:h*0.82 };
+      sceneBackgroundSVG(S, w, h, box);
+      drawProduct(S, stageLayout(w, h, box).box, w, h, { shadow:false });
       const x = w*0.14;
       inp.specLines.forEach((line,i)=> S.text(line, x, h*0.36 + i*h*0.115, { size:h*0.085, weight:'400', fill:'#1b1b22', align:'left' }));
       const ms = fitSingle(mctx, inp.model, w*0.4, h*0.125, h*0.075, '800');
@@ -593,8 +642,9 @@ const TEMPLATES = [
   {
     id:'smartstore_category', label:'스마트스토어 카테고리', w:1280, h:600,
     draw(S, w, h, inp){
-      sceneBackgroundSVG(S, w, h);
-      drawProduct(S, { x:w*0.55, y:h*0.12, w:w*0.36, h:h*0.78 }, w, h, { shadow:false });
+      const box = { x:w*0.55, y:h*0.12, w:w*0.36, h:h*0.78 };
+      sceneBackgroundSVG(S, w, h, box);
+      drawProduct(S, stageLayout(w, h, box).box, w, h, { shadow:false });
       const x = w*0.09;
       inp.specLines.forEach((line,i)=> S.text(line, x, h*0.38 + i*h*0.075, { size:h*0.055, weight:'400', fill:'#1b1b22', align:'left' }));
       const ms = fitSingle(mctx, inp.model, w*0.36, h*0.075, h*0.045, '800');
@@ -619,8 +669,9 @@ const TEMPLATES = [
   {
     id:'smartstore_main_pc', label:'스마트스토어 PC 메인대문', w:1920, h:860,
     draw(S, w, h, inp){
-      sceneBackgroundSVG(S, w, h);
-      drawProduct(S, { x:w*0.56, y:h*0.16, w:w*0.32, h:h*0.72 }, w, h, { shadow:false });
+      const box = { x:w*0.56, y:h*0.16, w:w*0.32, h:h*0.72 };
+      sceneBackgroundSVG(S, w, h, box);
+      drawProduct(S, stageLayout(w, h, box).box, w, h, { shadow:false });
       const x = w*0.24;
       inp.specLines.forEach((line,i)=> S.text(line, x, h*0.44 + i*h*0.058, { size:h*0.042, weight:'400', fill:'#1b1b22', align:'left' }));
       const ms = fitSingle(mctx, inp.model, w*0.28, h*0.055, h*0.035, '800');
@@ -630,11 +681,12 @@ const TEMPLATES = [
   {
     id:'smartstore_main_mobile', label:'스마트스토어 모바일 메인대문', w:750, h:1308,
     draw(S, w, h, inp){
-      sceneBackgroundSVG(S, w, h);
+      const box = { x:w*0.10, y:h*0.42, w:w*0.80, h:h*0.42 };
+      sceneBackgroundSVG(S, w, h, box);
       const ms = fitSingle(mctx, inp.model, w*0.85, h*0.038, h*0.024, '800');
       S.text(inp.model, w/2, h*0.24, { size:ms, weight:'800', fill:'#111', align:'center' });
       inp.specLines.forEach((line,i)=> S.text(line, w/2, h*0.29 + i*h*0.030, { size:h*0.022, weight:'400', fill:'#1b1b22', align:'center' }));
-      drawProduct(S, { x:w*0.10, y:h*0.42, w:w*0.80, h:h*0.42 }, w, h);
+      drawProduct(S, stageLayout(w, h, box).box, w, h, { shadow: !activeAnchor() });
     }
   }
 ];
@@ -768,13 +820,41 @@ document.getElementById('sceneImage').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if(!file) return;
   shared.sceneImg = await loadImageFile(file);
+  shared.scenePreset = null;               // 직접 올린 사진은 cover
   renderSceneGrid();
   renderAll();
 });
 
+function resetSceneAdjust(){
+  shared.scenePosX = 0.5; shared.scenePosY = 0.5; shared.sceneZoom = 1;
+  [['scenePosX',0.5],['scenePosY',0.5],['sceneZoom',1]].forEach(([id,v]) => { const el = document.getElementById(id); if (el) el.value = v; });
+}
+function selectPhotoScene(key){
+  const P = PHOTO_SCENES.find(x => x.key === key), img = photoImgs[key];
+  if (!P || !img) return;
+  shared.sceneImg = img; shared.scenePreset = key;
+  document.getElementById('sceneImage').value = '';
+  resetSceneAdjust(); renderSceneGrid(); renderAll();
+}
 function renderSceneGrid(){
   const grid = document.getElementById('sceneGrid');
   grid.innerHTML = '';
+  PHOTO_SCENES.forEach(P => {
+    const img = photoImgs[P.key];
+    if (!img) return;                       // 아직 로딩 중
+    const item = document.createElement('div');
+    item.className = 'sceneItem' + (shared.sceneImg && shared.scenePreset === P.key ? ' active' : '');
+    const cnv = document.createElement('canvas');
+    cnv.width = 160; cnv.height = 90;
+    const g = cnv.getContext('2d'), k = Math.max(160/img.width, 90/img.height);
+    g.drawImage(img, (160-img.width*k)/2, (90-img.height*k)/2, img.width*k, img.height*k);
+    item.appendChild(cnv);
+    const label = document.createElement('span');
+    label.textContent = '실사 · ' + P.label + (P.anchor ? ' · 받침대 자동 맞춤' : '');
+    item.appendChild(label);
+    item.onclick = () => selectPhotoScene(P.key);
+    grid.appendChild(item);
+  });
   SCENE_STYLES.forEach(s => {
     const item = document.createElement('div');
     item.className = 'sceneItem' + (!shared.sceneImg && shared.sceneStyle === s.key ? ' active' : '');
@@ -789,6 +869,7 @@ function renderSceneGrid(){
       shared.sceneStyle = s.key;
       shared.sceneStyleManual = true;
       shared.sceneImg = null;
+      shared.scenePreset = null;
       document.getElementById('sceneImage').value = '';
       renderSceneGrid();
       renderAll();
@@ -850,7 +931,15 @@ renderAll();
   renderAll();
 }); });
 // 기본 배경: 스튜디오 이미지(assets/studio-bg.jpg)를 sceneImg 기본값으로 사용
-(function(){ const img=new Image(); img.onload=function(){ shared.sceneImg=img; if(typeof renderSceneGrid==='function') renderSceneGrid(); renderAll(); }; img.src='assets/studio-bg.jpg'; })();
+PHOTO_SCENES.forEach(P => {
+  const img = new Image();
+  img.onload = function(){
+    photoImgs[P.key] = img;
+    if (P.key === 'photo_studio' && !shared.sceneImg && !shared.sceneStyleManual) { shared.sceneImg = img; shared.scenePreset = P.key; renderAll(); }
+    renderSceneGrid();
+  };
+  img.src = P.src;
+});
 </script>
 <script src="image-drop.js"></script>
 <script>window.addEventListener('load',function(){if(!window.ImageDrop)return;var st=window.setStatus||null;ImageDrop.wire('productImage',['#tplGrid'],st);ImageDrop.wire('sceneImage',[],st);});</script>
