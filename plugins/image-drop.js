@@ -28,6 +28,8 @@
   // 다나와 썸네일 크롭 파라미터 제거 → 원본(고해상도)
   function cleanUrl(url) {
     if (/img\.danawa\.com\/images\/attachFiles\//i.test(url)) return url.split("?")[0];
+    // 네이버 스마트스토어/브랜드스토어(shop-phinf 등 pstatic) — ?type=m510 같은 축소 파라미터 제거 → 원본
+    if (/^https?:\/\/[^\/]*pstatic\.net\//i.test(url)) return url.split("?")[0];
     return url;
   }
   function proxied(url) {

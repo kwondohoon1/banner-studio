@@ -19,5 +19,6 @@
   {"id": "gmarket-event", "title": "지마켓행사", "description": "G마켓 행사 상품 이미지 일괄 생성 — 엑셀(모델·최종혜택가) + 원본 이미지 → 대표이미지·쿠폰·최종혜택가 JPG/SVG 일괄, 모델 원본 22종 내장", "file": "plugins/gmarket-event.html"},
   {"id": "pc-spec-sheet", "title": "핵심사양시트", "description": "조립PC 관리시트(엑셀) → 상품별 '핵심 사양' 이미지(860) — 9칸 카드(CPU·GPU·RAM·SSD·M/B·POWER·COOLER·CASE·OS) 자동 간결화 + 노출가 카드, 항목별 편집, PNG/SVG ZIP", "file": "plugins/pc-spec-sheet.html"},
   {"id": "card-promotion", "title": "카드사프로모션", "description": "네이버쇼핑 카드사 프로모션 상세 배너(860) — 월별 컨셉·눈누 제목 폰트, 히어로/EVENT 01/EVENT 02 카드 일러스트, 간편결제 안내·유의사항", "file": "plugins/card-promotion-monthly.html"},
-  {"id": "desktop-thumbnail", "title": "데스크탑썸네일", "description": "부품구성 엑셀 → 구성별 1000×1000 썸네일 일괄 — 제품명은 다나와 기준으로 치환, 케이스 사진 자동 삽입, PNG ZIP 저장", "file": "plugins/desktop-thumbnail.html"}
+  {"id": "desktop-thumbnail", "title": "데스크탑썸네일", "description": "부품구성 엑셀 → 구성별 1000×1000 썸네일 일괄 — 제품명은 다나와 기준으로 치환, 케이스 사진 자동 삽입, PNG ZIP 저장", "file": "plugins/desktop-thumbnail.html"},
+  {"id": "gift", "title": "사은품", "description": "상품 썸네일 → 우측 하단에 ＋사은품 원형 배지 자동 삽입 — 브랜드스토어 이미지 드래그·붙여넣기, 사은품 이미지는 한 번 넣으면 기억", "file": "plugins/gift.html"}
 ]
