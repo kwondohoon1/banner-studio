@@ -104,12 +104,8 @@ label.chk input{width:16px;height:16px}
     <button class="sbtn" data-v="penta">QD-OLED Penta Tandem</button>
   </div>
   <div id="qdOpts" hidden>
-    <div class="rowbtns" id="qdPlate">
-      <button class="sbtn on" data-v="black">검정 판 (흰 글자)</button>
-      <button class="sbtn" data-v="white">흰 판 (검정 글자)</button>
-    </div>
     <div class="rowbtns" style="align-items:center"><span style="font-weight:700;color:#5b5d54">크기</span><input type="range" id="qdScale" min="0.7" max="1.3" step="0.05" value="1" style="flex:1"><span id="qdScaleV" style="width:40px;text-align:right;font-weight:700;color:#5b5d54">100%</span></div>
-    <div class="hint">브랜드 가이드 준수: 로고는 공식 원본 이미지 그대로(비율 고정·효과 없음·색 변경 없음), 복잡한 화면 위에 직접 올리지 않고 단색 판 위에 얹습니다. 패널기술 글자·무지개 O는 로고로 대체되고, "패널기술 2줄"은 판 아래에 그대로 표시됩니다.</div>
+    <div class="hint">로고는 브랜드 가이드 원본을 누끼 딴 그대로(비율 고정·효과 없음·색 변경 없음) 화면 위에 바로 얹습니다(Q 컬러 + 흰 글자 공식 버전). 패널기술 글자·무지개 O는 로고로 대체되고, "패널기술 2줄"은 판 아래에 그대로 표시됩니다.</div>
   </div>
 
   <div class="step"><b>화면 범위 지정 <small style="color:var(--muted);font-weight:500">스펙이 얹힐 화면 영역</small></b><span class="num">03 SCREEN</span></div>
@@ -161,7 +157,7 @@ const state = {
   inch:'27"', cm:'67.3cm', grade:'QHD', res:'2560X1440', hz:'240Hz', ms:'0.03ms', ratio:'16:9', panel:'평면',
   dual:false, grade2:'FHD', hz2:'320Hz',
   tech:'LED', tech2:'', techRing:true, warrantyOn:true,
-  qdLogo:'', qdPlate:'black', qdScale:1, qdImg:{},
+  qdLogo:'', qdScale:1, qdImg:{},
   screen:{...RS}, showGuide:true, ciOn:true,
   ci:'', ciW:0, ciH:0, warImg:'', warW:0, warH:0, ringImg:'', ringW:0, ringH:0, standImg:'', imgFit:null
 };
@@ -228,21 +224,17 @@ function badges(){
     if(state.inch) out+=T(state.inch,bx+bw/2,by+10*k+62*k,{size:57*k,weight:900,fill:'#111214',anchor:'middle'});
     if(state.cm) out+=T(state.cm,bx+bw/2,by+130*k,{size:42*k,weight:800,fill:'#fff',anchor:'middle'});
   }
-  // 2) 패널기술 — 우상단. QD-OLED 로고를 고르면 그 자리를 로고가 대신한다(브랜드 가이드: 원본 비율·색 그대로, 단색 판 위)
+  // 2) 패널기술 — 우상단. QD-OLED 로고를 고르면 그 자리를 로고가 대신한다(브랜드 가이드: 원본 비율·색 그대로, 누끼 이미지)
   const qd = qdLogoAsset();
   if(qd){
     const rightX=S.x+S.w-m, topY=S.y+m, f2=0.08*u;
-    const pr = state.qdLogo==='penta' ? {x:0.22,y:0.2} : {x:0.34,y:0.36};   // 판 여백(로고 높이 대비)
     // 좌상단 27" 배지와 겹치지 않게 남는 폭 안에서만 키운다 — 비율은 고정(가로·세로 같은 배율)
     const leftUsed = (state.inch||state.cm) ? 219*k + 0.04*u : 0;
-    const maxPW = S.w - 2*m - leftUsed;
-    let lw = (state.qdLogo==='penta' ? 0.60 : 0.58)*u*state.qdScale;
-    const pwOf = w => w + 2*w*qd.h/qd.w*pr.x;
-    if(pwOf(lw) > maxPW) lw *= maxPW/pwOf(lw);
-    const lh = lw*qd.h/qd.w, padX = lh*pr.x, padY = lh*pr.y;
-    const pw = lw+2*padX, ph = lh+2*padY, px = rightX-pw;
-    out+=rrect(px,topY,pw,ph,10*k,{fill:state.qdPlate==='white'?'#ffffff':'#000000'});
-    out+=IMG(qd.d,px+padX,topY+padY,lw,lh,'xMidYMid meet');
+    const maxW = S.w - 2*m - leftUsed;
+    let lw = (state.qdLogo==='penta' ? 0.52 : 0.50)*u*state.qdScale;
+    if(lw > maxW) lw = maxW;
+    const lh = lw*qd.h/qd.w, ph = lh;
+    out+=IMG(qd.d,rightX-lw,topY,lw,lh,'xMidYMid meet');
     if(state.tech2) out+=T(state.tech2,rightX,topY+ph+f2*1.05,{size:f2,weight:800,fill:'#fff',anchor:'end',stroke:'#000',sw:f2*0.075});
   }
   // 무지개 링은 OLED의 "O" 글자 역할: 캡하이트 크기 + 베이스라인 정렬
@@ -457,11 +449,10 @@ $('#saveBtn').onclick=()=>{ outputSVG('monitor-spec-1000.svg', buildSVG(false));
 window.addEventListener('message',e=>{const m=e.data&&e.data.pluginMessage;if(m&&(m.type==='toast'||m.type==='error'))setStatus(m.message);});
 window.addEventListener('load',()=>{ if(window.ImageDrop) ImageDrop.wire('imgInput',['#imgBox'],setStatus); });
 
-/* QD-OLED 로고 — 판 색에 맞는 공식 버전(흰 판=검정 글자, 검정 판=흰 글자). Q 그라데이션은 두 버전 동일 */
+/* QD-OLED 로고 — 누끼(투명 배경) 공식 버전: Q 컬러 + 흰 글자 */
 function qdLogoAsset(){
   if(!state.qdLogo) return null;
-  const a = state.qdImg[state.qdLogo+'-'+(state.qdPlate==='white'?'black':'white')];
-  return a || null;
+  return state.qdImg[state.qdLogo] || null;
 }
 function segBind(sel, key, after){
   $(sel).querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -470,10 +461,9 @@ function segBind(sel, key, after){
   });
 }
 segBind('#qdSel','qdLogo',()=>{ $('#qdOpts').hidden=!state.qdLogo; });
-segBind('#qdPlate','qdPlate');
 $('#qdScale').addEventListener('input',e=>{ state.qdScale=parseFloat(e.target.value); $('#qdScaleV').textContent=Math.round(state.qdScale*100)+'%'; render(); });
-[['qd','qd-oled'],['penta','qd-oled-penta']].forEach(([k,f])=>['black','white'].forEach(c=>
-  loadAsset(`assets/${f}-${c}.png`,(d,w,h)=>{ state.qdImg[k+'-'+c]={d,w,h}; render(); })));
+[['qd','qd-oled'],['penta','qd-oled-penta']].forEach(([k,f])=>
+  loadAsset(`assets/${f}-white.png`,(d,w,h)=>{ state.qdImg[k]={d,w,h}; render(); }));
 
 // 레포의 에셋(무지개 링·골드 보증뱃지·CI)을 data URI로 임베드
 loadAsset('assets/rainbow-ring.png',(d,w,h)=>{ state.ringImg=d;state.ringW=w;state.ringH=h; render(); });
