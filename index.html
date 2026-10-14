@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<title>배너 SVG 에디터</title>
+<title>배너 스튜디오</title>
 <!-- 대표 한글 웹폰트 (Pretendard + Google Fonts + 사용자 추가 SDGdGothic00) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,7 +28,7 @@
   .topbar .title .ver{font-size:10px;font-weight:600;color:var(--muted);margin-left:5px;vertical-align:middle}
   .topbar .credit{font-size: 13px;font-weight:400;color: #707070;letter-spacing:0;align-self:center;margin-right:4px;white-space:nowrap}
   .topbar .rightgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .topbar .title span{color:var(--accent2)}
+  .topbar .title span:not(.ver){color:var(--accent2);background:var(--accent);padding:2px 8px 3px;border-radius:7px;margin-left:2px}
   .tb{background:#fff;border:1px solid var(--line);color:var(--text);border-radius:8px;
     padding:7px 11px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
   .tb:hover{border-color:#bfc1b8;box-shadow:0 4px 12px rgba(25,27,22,.07)}
@@ -222,7 +222,7 @@
 
   <!-- 상단바 -->
   <div class="topbar">
-    <div class="title">배너 <span>SVG</span> 에디터<span class="ver">v0.9</span></div>
+    <div class="title">배너 <span>스튜디오</span><span class="ver">v0.9</span></div>
     <button class="tb primary" id="openBtn">📂 SVG 열기</button>
     <input type="file" id="fileInput" accept=".svg,image/svg+xml" style="display:none" />
     <div class="sep"></div>
