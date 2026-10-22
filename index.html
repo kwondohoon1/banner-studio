@@ -42,6 +42,15 @@
   .spacer{flex:1}
   .pluginTabs{display:flex;gap:6px;flex-wrap:wrap;flex:1 1 100%;min-width:0;max-height:132px;overflow-y:auto;align-content:flex-start;padding:2px 0}
   .pluginTabs .tb{padding:6px 9px;font-size:12px}
+  /* 플러그인 카테고리 — 탭 위 한 줄 세그먼트 */
+  .pluginCats{display:inline-flex;gap:2px;padding:3px;background:var(--surface);border:1px solid var(--line);border-radius:10px;flex-wrap:wrap}
+  .pluginCats button{border:0;background:transparent;color:#5b5d54;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .pluginCats button:hover:not(:disabled):not(.on){background:#fff}
+  .pluginCats button.on{background:var(--accent);color:#fff}
+  .pluginCats button:disabled{opacity:.38;cursor:default}
+  .pluginCats .n{font-size:10px;font-weight:600;opacity:.6}
+  .pluginCats button.on .n{color:var(--accent2);opacity:1}
+  .pluginTabs .brk{flex-basis:100%;height:0}
   .editorToast{position:fixed;right:14px;top:58px;z-index:60;max-width:360px;padding:10px 12px;border:1px solid var(--line);
     border-radius:10px;background:#fff;color:var(--text);box-shadow:var(--shadow);font-size:12px;font-weight:700;
     opacity:0;transform:translateY(-8px);pointer-events:none;transition:.18s ease}
@@ -413,12 +422,51 @@ async function loadManifest() {
   applyPlugins();
   loadCustomPlugins();   // 사용자 추가 플러그인(IndexedDB)도 불러와 병합
 }
+/* ---- 플러그인 카테고리 (plugins.json 의 "category": ["모니터"] — 여러 개면 각 칸에 모두 표시) ---- */
+const PLUGIN_CATS = ["모니터", "데스크탑", "주변기기", "컴포넌트", "에이서", "공통"];
+const PLUGIN_CAT_KEY = "bs-plugin-cat";
+let pluginCat = "전체";
+try { pluginCat = localStorage.getItem(PLUGIN_CAT_KEY) || "전체"; } catch (e) {}
+function catsOf(p) {
+  if (p.custom) return ["임시"];
+  return Array.isArray(p.category) ? p.category : (p.category ? [p.category] : []);
+}
+function visiblePlugins() {
+  if (pluginCat === "전체") return EDITOR_PLUGINS;
+  return EDITOR_PLUGINS.filter(p => catsOf(p).includes(pluginCat));
+}
+function setPluginCat(c) {
+  pluginCat = c;
+  try { localStorage.setItem(PLUGIN_CAT_KEY, c); } catch (e) {}
+  renderPluginTabs(); renderPluginList();
+}
+function renderPluginCats(wrap) {
+  const bar = document.createElement("div");
+  bar.className = "pluginCats";
+  const cats = ["전체"].concat(PLUGIN_CATS);
+  if (EDITOR_PLUGINS.some(p => p.custom)) cats.push("임시");
+  if (!cats.includes(pluginCat)) pluginCat = "전체";
+  cats.forEach(c => {
+    const n = c === "전체" ? EDITOR_PLUGINS.length : EDITOR_PLUGINS.filter(p => catsOf(p).includes(c)).length;
+    const b = document.createElement("button");
+    b.className = c === pluginCat ? "on" : "";
+    b.disabled = n === 0;
+    b.innerHTML = '<span></span><span class="n"></span>';
+    b.firstChild.textContent = c; b.lastChild.textContent = n;
+    b.title = n ? c + " 플러그인 " + n + "개" : c + " 플러그인이 아직 없어요";
+    b.onclick = () => setPluginCat(c);
+    bar.appendChild(b);
+  });
+  wrap.appendChild(bar);
+  const brk = document.createElement("div"); brk.className = "brk"; wrap.appendChild(brk);
+}
 function renderPluginTabs() {
   const wrap = $("pluginTabs");
   if (!wrap) return;
   wrap.innerHTML = "";
+  renderPluginCats(wrap);
   const open = $("workspace").classList.contains("plugins-open");
-  EDITOR_PLUGINS.forEach(plugin => {
+  visiblePlugins().forEach(plugin => {
     const btn = document.createElement("button");
     btn.className = "tb" + (open && pluginState.active === plugin.id ? " active" : "");
     btn.textContent = plugin.title;
@@ -480,7 +528,7 @@ function showToast(message, error = false) {
 function renderPluginList() {
   const list = $("pluginList");
   list.innerHTML = "";
-  EDITOR_PLUGINS.forEach(plugin => {
+  visiblePlugins().forEach(plugin => {
     const btn = document.createElement("button");
     btn.className = "pluginItem" + (pluginState.active === plugin.id ? " active" : "");
     btn.textContent = plugin.title;
